@@ -1,0 +1,4056 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0B1220" />
+  <title>Atomic Habits — Offline Habit Builder</title>
+  <style>
+    :root{
+      --bg:#0B1220;
+      --panel:#111B2E;
+      --panel2:#0F1729;
+      --card:#121E34;
+      --text:#EAF0FF;
+      --muted:#A9B6D6;
+      --muted2:#7E8AA8;
+      --line:rgba(255,255,255,.10);
+      --line2:rgba(255,255,255,.14);
+      --good:#29D39A;
+      --warn:#FFC247;
+      --bad:#FF5A6A;
+      --accent:#7AA7FF;
+      --accent2:#B6C9FF;
+      --focus:rgba(122,167,255,.35);
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+      --radius: 16px;
+      --radius2: 20px;
+      --pad: 14px;
+      --tap: 44px;
+      --max: 960px;
+      --safe-b: env(safe-area-inset-bottom, 0px);
+      --safe-t: env(safe-area-inset-top, 0px);
+    }
+
+    *{ box-sizing:border-box; }
+    html, body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: var(--bg);
+
+      color:var(--text);
+      overflow-x:hidden; /* hard stop for horizontal scroll */
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+body::before{
+  content:"";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(1200px 800px at 20% -10%, rgba(122,167,255,.18), transparent 55%),
+    radial-gradient(900px 700px at 110% 10%, rgba(41,211,154,.10), transparent 60%),
+    var(--bg);
+  transform: translateZ(0);
+}
+
+body::after{
+  content:"";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,.018),
+      rgba(255,255,255,.018) 1px,
+      rgba(0,0,0,0) 2px,
+      rgba(0,0,0,0) 6px
+    );
+  opacity: .25;
+}
+
+
+    a{ color:var(--accent); text-decoration:none; }
+    a:focus{ outline:2px solid var(--focus); outline-offset:2px; border-radius:12px; }
+
+    .app{
+      min-height:100%;
+      display:flex;
+      flex-direction:column;
+    }
+
+    header{
+      position:sticky;
+      top:0;
+      z-index:10;
+      background: linear-gradient(to bottom, rgba(11,18,32,.95), rgba(11,18,32,.70));
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .topbar{
+      max-width:var(--max);
+      margin:0 auto;
+      padding: calc(12px + var(--safe-t)) var(--pad) 10px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .brand{
+      display:flex;
+      flex-direction:column;
+      min-width:0;
+    }
+    .brand .title{
+      font-weight:800;
+      letter-spacing:.2px;
+      font-size:16px;
+      line-height:1.15;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .brand .subtitle{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:3px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      border-radius:999px;
+      padding:8px 10px;
+      min-height:var(--tap);
+      color:var(--text);
+      font-size:13px;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .pill strong{ font-weight:800; }
+    .pill .dot{
+      width:8px; height:8px; border-radius:999px; background:var(--accent);
+      box-shadow:0 0 0 3px rgba(122,167,255,.18);
+      flex:0 0 auto;
+    }
+
+    main{
+      flex:1;
+      max-width:var(--max);
+      width:100%;
+      margin:0 auto;
+      padding: 14px var(--pad) calc(90px + var(--safe-b)); /* bottom nav space */
+    }
+
+    .section{
+      display:none;
+      animation: fadeIn .14s ease-out;
+    }
+    .section.active{ display:block; }
+
+    @keyframes fadeIn{
+      from{ opacity:.55; transform: translateY(2px); }
+      to{ opacity:1; transform: translateY(0); }
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid var(--line);
+      border-radius: var(--radius2);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+
+    .card + .card{ margin-top:12px; }
+
+    .cardHeader{
+      padding: 14px 14px 12px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.00));
+    }
+
+    .cardHeader .left{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .cardHeader .right{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex:0 0 auto;
+    }
+
+    .hTitle{
+      font-weight:850;
+      font-size:16px;
+      line-height:1.2;
+      margin:0;
+      word-break:break-word;
+    }
+    .hMeta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color:var(--text);
+      font-weight:700;
+      font-size:12px;
+      white-space:nowrap;
+    }
+    .tag.good{ border-color: rgba(41,211,154,.35); background: rgba(41,211,154,.10); }
+    .tag.bad{ border-color: rgba(255,90,106,.35); background: rgba(255,90,106,.10); }
+    .tag.muted{ color: var(--muted); font-weight:650; }
+
+    button{
+      appearance:none;
+      border:none;
+      background:none;
+      color:inherit;
+      font:inherit;
+      cursor:pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      padding: 10px 12px;
+      min-height: var(--tap);
+      border-radius: 14px;
+      border:1px solid var(--line2);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-weight:800;
+      font-size:14px;
+      user-select:none;
+      width:auto;
+      max-width:100%;
+    }
+    .btn:active{ transform: translateY(1px); }
+    .btn.primary{
+      border-color: rgba(122,167,255,.45);
+      background: linear-gradient(180deg, rgba(122,167,255,.26), rgba(122,167,255,.14));
+    }
+    .btn.danger{
+      border-color: rgba(255,90,106,.50);
+      background: linear-gradient(180deg, rgba(255,90,106,.22), rgba(255,90,106,.10));
+    }
+    .btn.ghost{
+      border-color: var(--line);
+      background: transparent;
+    }
+    .btn.small{
+      min-height: var(--tap);
+      padding: 8px 10px;
+      font-size: 13px;
+      border-radius: 12px;
+    }
+    .btn.wide{ width:100%; }
+
+    /* Insights range segmented control */
+    .seg{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .segBtn{
+      min-height: var(--tap);
+      padding: 8px 10px;
+      border-radius: 12px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      font-weight: 900;
+      font-size: 12px;
+      letter-spacing: .2px;
+    }
+    .segBtn.active{
+      background: rgba(122,167,255,.14);
+      border-color: rgba(122,167,255,.34);
+    }
+    .segBtn:active{
+      transform: translateY(1px);
+    }
+    .rangeHint{
+      margin-top:6px;
+    }
+
+
+    /* Recent logs toggle header */
+    .secHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-top:12px;
+    }
+    .secHead .sectionTitle{
+      margin:0;
+    }
+    .recentBody{
+      margin-top:10px;
+    }
+
+
+    .btn:focus{
+      outline:2px solid var(--focus);
+      outline-offset:2px;
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      min-width:0;
+    }
+
+    .grid{
+      display:grid;
+      gap:12px;
+    }
+    .grid.two{
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 520px){
+      .grid.two{
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .content{
+      padding: 14px;
+    }
+
+    .hr{
+      height:1px;
+      background: var(--line);
+      margin: 12px 0;
+    }
+
+    .muted{ color: var(--muted); }
+    .muted2{ color: var(--muted2); }
+    .small{ font-size: 12px; }
+    .tiny{ font-size: 11px; }
+
+    /* Forms */
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width:0;
+    }
+    label{
+      font-size:12px;
+      font-weight:800;
+      color:var(--accent2);
+      letter-spacing:.2px;
+    }
+    input, textarea, select{
+      width:100%;
+      max-width:100%;
+      min-height: var(--tap);
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line2);
+      background: rgba(11,18,32,.45);
+      color: var(--text);
+      outline:none;
+      font-size: 14px;
+    }
+    textarea{ min-height: 92px; resize: vertical; }
+    input:focus, textarea:focus, select:focus{
+      border-color: rgba(122,167,255,.55);
+      box-shadow: 0 0 0 4px rgba(122,167,255,.12);
+    }
+    input::placeholder, textarea::placeholder{ color: rgba(169,182,214,.65); }
+    .help{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.35;
+    }
+
+    .inline{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:flex-end;
+      min-width:0;
+    }
+.inline > .field{ flex: 1 1 160px; min-width: 0; }
+.inline > .field.compact{ flex: 1 1 150px; min-width: 0; }
+.inline > .field.compact2{ flex: 1 1 170px; min-width: 0; }
+
+    .error{
+      border:1px solid rgba(255,90,106,.45);
+      background: rgba(255,90,106,.10);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 13px;
+      line-height:1.35;
+    }
+    .success{
+      border:1px solid rgba(41,211,154,.45);
+      background: rgba(41,211,154,.10);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 13px;
+      line-height:1.35;
+    }
+
+    /* Habit list */
+    details.habit{
+      border-top:1px solid var(--line);
+    }
+    details.habit:first-of-type{
+      border-top: none;
+    }
+    details.habit > summary{
+  list-style:none;
+  cursor:pointer;
+  padding: 14px;
+  display:flex;
+  flex-direction:column;         /* <— allows the bar to span full width */
+  align-items:stretch;
+  justify-content:flex-start;
+  gap:10px;                      /* space between top row and bar */
+  min-height: var(--tap);
+  user-select:none;
+  -webkit-tap-highlight-color: transparent;
+  background: rgba(255,255,255,.02);
+}
+
+/* Top row inside summary: left content + right action button */
+.sumRowTop{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+/* Dashboard bar: keep pill shape, but inset by summary padding (already) */
+.dashMini{
+  width:100%;
+  min-width:0;
+}
+.dashMini .bar{
+  width:100%;
+  height:14px;
+  margin-top:0;
+}
+
+/* Summary inner layout */
+.sumTopRow{
+  padding: 14px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.sumTodayLine{
+  margin-top:10px;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  font-size:11px;
+  font-weight:800;
+  color: var(--muted2);
+}
+
+/* Full-width summary progress strip */
+.sumProgressStrip{
+  width:100%;
+  height:10px;
+  background: rgba(255,255,255,.08);
+  border-top: 1px solid rgba(255,255,255,.10);
+  overflow:hidden;
+}
+
+.sumProgressFill{
+  height:100%;
+  width: calc(var(--p, 0) * 100%);
+  background: linear-gradient(90deg, rgba(41,211,154,.90), rgba(122,167,255,.80));
+  transition: width .35s ease;
+  position:relative;
+}
+
+.sumProgressFill::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0));
+  opacity:.45;
+}
+
+details.habit > summary::-webkit-details-marker{ display:none; }
+details.habit > summary::marker{ content:""; } /* Firefox */
+
+details.habit[open]{
+  /* subtle “selected card” ring without changing layout */
+  box-shadow: inset 0 0 0 1px rgba(122,167,255,.22);
+  background: rgba(255,255,255,.01);
+}
+
+details.habit[open] > summary{
+  /* accent + clarity, but doesn’t shift the Done button or bar */
+  background:
+    linear-gradient(90deg, rgba(122,167,255,.18), rgba(255,255,255,.04) 32%),
+    rgba(255,255,255,.04);
+  border-bottom:1px solid var(--line);
+}
+
+details.habit[open] .detailsBody{
+  /* make expanded content feel separate from the “main box” */
+  background: rgba(11,18,32,.18);
+}
+
+
+    .sumLeft{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      gap:7px;
+    }
+    .sumTop{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .sumName{
+      font-weight:900;
+      font-size:15px;
+      line-height:1.2;
+      word-break:break-word;
+    }
+    .sumDesc{
+      color: var(--muted);
+      font-size: 12px;
+      line-height:1.35;
+      overflow:hidden;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient: vertical;
+      flex: 0 0 100%;
+      order: 99;
+      width: 100%;
+
+    }
+    .sumRight{
+      flex:0 0 auto;
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+
+    .detailsBody{
+      padding: 14px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .stats{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    @media (min-width: 520px){
+      .stats{
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+    .stat{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      border-radius: 16px;
+      padding: 10px;
+      min-width:0;
+    }
+    .stat .k{ font-size:11px; color: var(--muted2); font-weight:800; letter-spacing:.2px; }
+    .stat .v{ font-size:14px; font-weight:900; margin-top:6px; line-height:1.15; word-break:break-word; }
+    .stat .s{ font-size:11px; color: var(--muted); margin-top:4px; line-height:1.2; }
+
+    /* Progress bar */
+    .progressWrap{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      border-radius: 18px;
+      padding: 12px;
+      overflow:hidden;
+    }
+    .progressTop{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:baseline;
+    }
+    .progressTop .label{
+      font-weight:900;
+      letter-spacing:.2px;
+      font-size:13px;
+    }
+    .progressTop .meta{
+      font-size:12px;
+      color: var(--muted);
+      font-weight:700;
+    }
+    .bar{
+      margin-top:10px;
+      height:16px;
+      border-radius:999px;
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.10);
+      overflow:hidden;
+    }
+    .bar > .fill{
+      height:100%;
+      width: calc(var(--p, 0) * 100%);
+      border-radius:999px;
+      background: linear-gradient(90deg,
+        rgba(41,211,154,.85),
+        rgba(122,167,255,.75)
+      );
+      box-shadow: 0 12px 24px rgba(41,211,154,.10);
+      transition: width .35s ease;
+      position:relative;
+    }
+    .bar > .fill::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0));
+      opacity:.55;
+    }
+    .progressMsg{
+      margin-top:10px;
+      font-size:12px;
+      color: var(--muted);
+      line-height:1.35;
+    }
+
+/* Dashboard quick-check row */
+.dashRow{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin-top:10px;
+}
+.dashMini{
+  flex:1 1 auto;
+  min-width:0;
+}
+.dashMiniTop{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:6px;
+}
+.dashMini .bar{
+  height:14px;
+}
+.dashBtn{
+  flex:0 0 auto;
+  white-space:nowrap;
+}
+
+/* Satisfying completion pulse */
+@keyframes dashPop{
+  0%{ transform: scale(1); }
+  40%{ transform: scale(1.02); }
+  100%{ transform: scale(1); }
+}
+@keyframes dashShine{
+  0%{ transform: translateX(-80px); opacity:0; }
+  20%{ opacity:.55; }
+  100%{ transform: translateX(380px); opacity:0; }
+}
+.dashMini.celebrate{
+  animation: dashPop .35s ease-out;
+}
+.dashMini.celebrate .sumProgressFill::before{
+  content:"";
+  position:absolute;
+  top:0; bottom:0;
+  width:60px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+  opacity:0;
+  animation: dashShine .75s ease-out;
+}
+
+
+    /* Tabs inside habit */
+    .subtabs{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.02);
+      padding:8px;
+      border-radius: 18px;
+    }
+    .tabBtn{
+      flex:1 1 110px;
+      min-height: var(--tap);
+      padding: 10px 12px;
+      border-radius: 14px;
+      border:1px solid transparent;
+      background: transparent;
+      font-weight:900;
+      font-size:13px;
+      color: var(--muted);
+      text-align:center;
+      user-select:none;
+    }
+    .tabBtn.active{
+      background: rgba(122,167,255,.14);
+      border-color: rgba(122,167,255,.30);
+      color: var(--text);
+    }
+    .panel{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.02);
+      border-radius: 18px;
+      padding: 12px;
+    }
+    .panel.hidden{ display:none; }
+
+    /* Chart */
+    .chartWrap{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.02);
+      border-radius: 18px;
+      padding: 12px;
+      overflow:hidden;
+    }
+    .chartHead{
+      display:flex;
+      gap:10px;
+      align-items:baseline;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .chartHead .t{
+      font-weight:900;
+      font-size:13px;
+      letter-spacing:.2px;
+    }
+    .legend{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      color: var(--muted);
+      font-size:11px;
+      font-weight:800;
+    }
+    .leg{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      white-space:nowrap;
+    }
+    .swatch{
+      width:12px; height:6px; border-radius:999px;
+      background: rgba(255,255,255,.30);
+      border:1px solid rgba(255,255,255,.20);
+    }
+    .swatch.actual{ background: rgba(41,211,154,.85); border-color: rgba(41,211,154,.35); }
+    .swatch.plan{ background: rgba(122,167,255,.85); border-color: rgba(122,167,255,.35); }
+    .swatch.dots{ background: rgba(255,255,255,.0); border-color: rgba(255,255,255,.35); }
+
+    /* Bottom nav */
+    .nav{
+      position:fixed;
+      left:0; right:0; bottom:0;
+      z-index:20;
+      padding: 10px var(--pad) calc(10px + var(--safe-b));
+      background: linear-gradient(to top, rgba(11,18,32,.92), rgba(11,18,32,.70));
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--line);
+    }
+    .navInner{
+      max-width:var(--max);
+      margin:0 auto;
+      display:flex;
+      gap:10px;
+    }
+    .navBtn{
+      flex:1 1 0;
+      min-height: var(--tap);
+      border-radius: 16px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:4px;
+      padding: 8px 10px;
+      color: var(--muted);
+      font-weight:900;
+      font-size:12px;
+      user-select:none;
+      text-align:center;
+    }
+    .navBtn.active{
+      color: var(--text);
+      border-color: rgba(122,167,255,.30);
+      background: rgba(122,167,255,.12);
+    }
+
+    /* Modal */
+    .modal{
+      position:fixed;
+      inset:0;
+      display:none;
+      z-index:50;
+      background: rgba(0,0,0,.52);
+      backdrop-filter: blur(6px);
+      padding: 14px;
+      padding-bottom: calc(14px + var(--safe-b));
+    }
+    .modal.active{ display:flex; align-items:flex-end; justify-content:center; }
+    .sheet{
+      width:100%;
+      max-width: 720px;
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border:1px solid var(--line2);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .sheetHead{
+      padding: 14px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+    .sheetHead .h{
+      font-weight:950;
+      font-size:15px;
+      margin:0;
+    }
+    .sheetBody{
+      padding: 14px;
+      max-height: min(70vh, 560px);
+      overflow:auto;
+    }
+    .sheetBody textarea{
+      min-height: 260px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      line-height:1.35;
+    }
+    .sheetFoot{
+      padding: 14px;
+      border-top:1px solid var(--line);
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    /* Toast */
+    .toast{
+      position:fixed;
+      left:50%;
+      transform: translateX(-50%);
+      bottom: calc(88px + var(--safe-b));
+      z-index:60;
+      width: min(520px, calc(100% - 28px));
+      display:none;
+    }
+    .toast.active{ display:block; }
+    .toast .tcard{
+      border-radius: 18px;
+      border:1px solid var(--line2);
+      background: rgba(17,27,46,.92);
+      box-shadow: var(--shadow);
+      padding: 12px 12px;
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+    }
+    .toast .icon{
+      width:36px;
+      height:36px;
+      border-radius: 14px;
+      display:grid;
+      place-items:center;
+      background: rgba(122,167,255,.14);
+      border:1px solid rgba(122,167,255,.25);
+      flex:0 0 auto;
+    }
+    .toast .msg{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+    }
+    .toast .msg .a{
+      font-weight:950;
+      font-size:13px;
+      line-height:1.25;
+    }
+    .toast .msg .b{
+      color: var(--muted);
+      font-size:12px;
+      line-height:1.35;
+    }
+
+    /* Create Habit accordion */
+    .createWrap{
+      border-radius: var(--radius2);
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      overflow:hidden;
+      margin-bottom: 12px;
+    }
+    .createHead{
+      padding: 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .createTitle{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:0;
+    }
+    .createTitle .t{
+      font-weight:950;
+      font-size:15px;
+      margin:0;
+    }
+    .createTitle .s{
+      margin:0;
+      color: var(--muted);
+      font-size:12px;
+      line-height:1.35;
+    }
+    .createBody{
+      padding: 14px;
+      border-top:1px solid var(--line);
+      display:none;
+    }
+    .createWrap.open .createBody{ display:block; }
+
+    /* Review page */
+    .reviewHero{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-bottom: 12px;
+    }
+    .reviewHero .big{
+      font-weight:950;
+      font-size: 16px;
+      line-height:1.25;
+      margin:0;
+    }
+    .reviewHero .smallp{
+      margin:0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height:1.45;
+    }
+
+    /* Ensure no overflow issues in narrow screens */
+    .nowrapEllip{
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      min-width:0;
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      *{ animation:none !important; transition:none !important; }
+      .btn:active{ transform:none; }
+    }
+
+
+  </style>
+<style id="mobile-safari-fixes">
+/* =========================
+   Mobile layout + Safari fixes
+========================= */
+
+/* Give date inputs enough room for the calendar affordance / native UI */
+input[type="date"]{
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;     /* iOS Safari: allow shrink inside flex */
+  display: block;
+}
+
+
+
+/* Mobile-only fixes */
+@media (max-width: 520px){
+  /* Keep Start date / Frequency unit / Target aligned on mobile */
+  .freqRow{
+    justify-content: center;
+  }
+  .freqRow > .field,
+  .freqRow > .field.compact,
+  .freqRow > .field.compact2{
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  /* iOS Safari date input overflow fix */
+  input[type="date"]{
+    -webkit-appearance: none;
+    appearance: none;
+    padding-right: 44px;
+    min-width: 0;
+  }
+
+
+  /* 1) Hide scrollbar indicator on mobile (keeps scrolling enabled) */
+  *{ scrollbar-width: none; }                 /* Firefox */
+  *::-webkit-scrollbar{ width:0; height:0; }  /* iOS/Android WebKit */
+
+  /* 2) Hard stop horizontal scroll (including post-zoom weirdness) */
+  html, body{ overflow-x: hidden; }
+
+  /* 3) Prevent iOS “tap-to-zoom” on inputs (font-size must be >= 16px) */
+  input, textarea, select{ font-size: 16px; }
+
+  /* Export/Import textarea: prevent zoom too */
+  .sheetBody textarea{ font-size: 16px; }
+
+  /* 4) On very small screens, stack inline fields so nothing collides */
+  .inline > .field,
+  .inline > .field.compact,
+  .inline > .field.compact2{
+    flex: 1 1 100%;
+  }
+}
+</style>
+
+</head>
+
+<body>
+  <div class="app">
+    <header>
+      <div class="topbar">
+        <div class="brand">
+          <div class="title">Atomic Habits — Offline Builder</div>
+          <div class="subtitle">Identity • Design • Tracking • Weekly review</div>
+        </div>
+        <div class="pill" id="headerPill" aria-live="polite">
+          <span class="dot"></span>
+          <span><strong id="habitCount">0</strong> habits</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="section active" id="tab-dashboard" aria-label="Dashboard"></section>
+      <section class="section" id="tab-review" aria-label="Weekly Review"></section>
+      <section class="section" id="tab-settings" aria-label="Settings"></section>
+    </main>
+
+    <nav class="nav" aria-label="Primary">
+      <div class="navInner">
+        <button class="navBtn active" data-action="switchTab" data-tab="dashboard" aria-current="page">
+          <div>Dashboard</div>
+          <div class="tiny muted2">Habits & tracking</div>
+        </button>
+        <button class="navBtn" data-action="switchTab" data-tab="review">
+          <div>Review</div>
+          <div class="tiny muted2">Weekly reflection</div>
+        </button>
+        <button class="navBtn" data-action="switchTab" data-tab="settings">
+          <div>Settings</div>
+          <div class="tiny muted2">Export / import</div>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Modal (Export/Import) -->
+    <div class="modal" id="modal" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="sheet" role="document">
+        <div class="sheetHead">
+          <h2 class="h" id="modalTitle">Modal</h2>
+          <button class="btn small ghost" data-action="closeModal" aria-label="Close">Close</button>
+        </div>
+        <div class="sheetBody" id="modalBody"></div>
+        <div class="sheetFoot" id="modalFoot"></div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast" aria-live="polite" aria-atomic="true">
+      <div class="tcard">
+        <div class="icon" id="toastIcon">✓</div>
+        <div class="msg">
+          <div class="a" id="toastA">Saved</div>
+          <div class="b" id="toastB">Your changes are stored on this device.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (() => {
+    'use strict';
+
+    /* =========================
+       Constants & Utilities
+    ========================== */
+
+    const STORAGE_KEY = 'appData_v1';
+    const SCHEMA_VERSION = 1;
+    const MAX_HABITS = 20;
+
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+    const $ = (sel, root=document) => root.querySelector(sel);
+
+    const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
+
+    function pad2(n){ return String(n).padStart(2, '0'); }
+
+    function toISODate(d){
+      // local date -> YYYY-MM-DD (local)
+      return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+    }
+
+    function parseISODate(s){
+      // robust parse for YYYY-MM-DD -> local Date at noon (avoid DST edge)
+      if (!s || typeof s !== 'string') return null;
+      const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!m) return null;
+      const y = +m[1], mo = +m[2]-1, da = +m[3];
+      const d = new Date(y, mo, da, 12, 0, 0, 0);
+      if (Number.isNaN(d.getTime())) return null;
+      // Validate round-trip
+      if (d.getFullYear() !== y || d.getMonth() !== mo || d.getDate() !== da) return null;
+      return d;
+    }
+
+    function todayISO(){
+      return toISODate(new Date());
+    }
+
+    function uid(){
+      // small but safe-ish for local app
+      if (crypto && crypto.randomUUID) return crypto.randomUUID();
+      return 'h_' + Math.random().toString(16).slice(2) + '_' + Date.now().toString(16);
+    }
+
+    function deepClone(obj){
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    function safeObj(x){ return (x && typeof x === 'object') ? x : {}; }
+    function safeArr(x){ return Array.isArray(x) ? x : []; }
+
+    function setByPath(rootObj, path, value){
+      if (!rootObj || typeof rootObj !== 'object') return;
+      const parts = String(path || '').split('.').filter(Boolean);
+      if (!parts.length) return;
+      let cur = rootObj;
+      for (let i=0;i<parts.length-1;i++){
+        const k = parts[i];
+        if (!cur[k] || typeof cur[k] !== 'object') cur[k] = {};
+        cur = cur[k];
+      }
+      cur[parts[parts.length-1]] = value;
+    }
+
+    function getByPath(rootObj, path, fallback=''){
+      const parts = String(path || '').split('.').filter(Boolean);
+      let cur = rootObj;
+      for (const p of parts){
+        if (!cur || typeof cur !== 'object' || !(p in cur)) return fallback;
+        cur = cur[p];
+      }
+      return (cur === undefined || cur === null) ? fallback : cur;
+    }
+
+    function escapeHtml(s){
+      return String(s ?? '')
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'","&#039;");
+    }
+
+    function formatUnit(unit, n){
+      const u = unit === 'day' ? 'day' : unit === 'week' ? 'week' : 'month';
+      return `${n} / ${u}`;
+    }
+
+    function startOfWeekMonday(d){
+      const dd = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0, 0);
+      const day = (dd.getDay() + 6) % 7; // Monday=0
+      dd.setDate(dd.getDate() - day);
+      return dd;
+    }
+
+    function startOfMonth(d){
+      return new Date(d.getFullYear(), d.getMonth(), 1, 12, 0, 0, 0);
+    }
+
+    function addDays(d, n){
+      const x = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0, 0);
+      x.setDate(x.getDate() + n);
+      return x;
+    }
+
+    function diffDays(a, b){
+      // a,b local Date noon. return integer days b - a
+      const ms = (b.getTime() - a.getTime());
+      return Math.round(ms / 86400000);
+    }
+
+    function isValidStatusForType(type, status){
+      const t = type === 'negative' ? 'negative' : 'positive';
+      const s = String(status || '').toLowerCase();
+      if (t === 'positive') return ['completed','missed'].includes(s);
+      return ['resisted','relapsed'].includes(s);
+    }
+
+    function successStatusForType(type){
+      return (type === 'negative') ? 'resisted' : 'completed';
+    }
+
+    function failStatusForType(type){
+      return (type === 'negative') ? 'relapsed' : 'missed';
+    }
+
+    function lawLabelsForType(type){
+      if (type === 'negative'){
+        return {
+          obvious: 'Make it invisible (reduce cues)',
+          attractive: 'Make it unattractive (reframe craving)',
+          easy: 'Make it difficult (add friction)',
+          satisfying: 'Make it unsatisfying (add consequence)'
+        };
+      }
+      return {
+        obvious: 'Make it obvious (design cues)',
+        attractive: 'Make it attractive (make it inviting)',
+        easy: 'Make it easy (reduce friction)',
+        satisfying: 'Make it satisfying (reward + track)'
+      };
+    }
+
+    function motivationalLine(h){
+      const identity = (safeObj(h.motivator).identity || '').trim();
+      if (!identity) return 'Each small action is a vote for the person you’re becoming.';
+      // avoid double punctuation
+      const id = identity.replace(/\s+$/,'');
+      return `Another calm vote for: “${id}”`;
+    }
+
+    function normalizeData(raw){
+      const base = {
+        version: SCHEMA_VERSION,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        habits: [],
+        reviews: {},
+        ui: { activeTab: 'dashboard', createOpen: false, habitSubtabs: {} }
+      };
+
+      const d = safeObj(raw);
+      const out = base;
+
+      // Migrate / fill
+      out.version = SCHEMA_VERSION;
+      out.createdAt = (typeof d.createdAt === 'string') ? d.createdAt : out.createdAt;
+      out.updatedAt = (typeof d.updatedAt === 'string') ? d.updatedAt : out.updatedAt;
+
+      out.ui = safeObj(d.ui);
+      if (!out.ui.activeTab) out.ui.activeTab = 'dashboard';
+      if (typeof out.ui.createOpen !== 'boolean') out.ui.createOpen = false;
+      if (!out.ui.habitSubtabs || typeof out.ui.habitSubtabs !== 'object') out.ui.habitSubtabs = {};
+if (!out.ui.insightsRange || typeof out.ui.insightsRange !== 'object') out.ui.insightsRange = {};
+
+
+      out.reviews = safeObj(d.reviews);
+
+      out.habits = safeArr(d.habits)
+        .filter(h => h && typeof h === 'object')
+        .slice(0, MAX_HABITS)
+        .map(h => {
+          const hh = safeObj(h);
+          const type = (hh.type === 'negative') ? 'negative' : 'positive';
+          const freq = safeObj(hh.frequency);
+          const unit = (freq.unit === 'week' || freq.unit === 'month') ? freq.unit : 'day';
+          let target = Number(freq.target);
+          if (!Number.isFinite(target) || target <= 0) target = 1;
+          target = Math.round(target);
+
+          const motivator = safeObj(hh.motivator);
+          const design = safeObj(hh.design);
+          const loop = safeObj(design.loop);
+          const laws = safeObj(design.laws);
+
+          const logs = safeObj(hh.logs);
+
+          // sanitize logs
+          const cleanLogs = {};
+          for (const k of Object.keys(logs)){
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(k)) continue;
+            const entry = safeObj(logs[k]);
+            const st = String(entry.status || '').toLowerCase();
+            if (!isValidStatusForType(type, st)) continue;
+            const succStatus = successStatusForType(type);
+let c = Number(entry.count);
+if (!Number.isFinite(c) || c < 0) c = (st === succStatus ? 1 : 0);
+c = Math.round(c);
+
+if (unit === 'day' && st === succStatus && c < target) c = target;
+
+cleanLogs[k] = {
+  date: k,
+  status: st,
+  note: String(entry.note ?? ''),
+  count: c,
+  auto: !!entry.auto,
+  updatedAt: (typeof entry.updatedAt === 'string') ? entry.updatedAt : new Date().toISOString()
+};
+
+          }
+
+          return {
+            id: (typeof hh.id === 'string' && hh.id) ? hh.id : uid(),
+            name: String(hh.name ?? '').slice(0, 120),
+            type,
+            description: String(hh.description ?? '').slice(0, 1200),
+            startDate: /^\d{4}-\d{2}-\d{2}$/.test(hh.startDate) ? hh.startDate : todayISO(),
+            frequency: { unit, target },
+            motivator: {
+              identity: String(motivator.identity ?? '').slice(0, 220),
+              outcome: String(motivator.outcome ?? '').slice(0, 260),
+              why: String(motivator.why ?? '').slice(0, 420)
+            },
+            design: {
+              loop: {
+                cue: String(loop.cue ?? '').slice(0, 800),
+                craving: String(loop.craving ?? '').slice(0, 800),
+                response: String(loop.response ?? '').slice(0, 800),
+                reward: String(loop.reward ?? '').slice(0, 800)
+              },
+              laws: {
+                obvious: String(laws.obvious ?? '').slice(0, 900),
+                attractive: String(laws.attractive ?? '').slice(0, 900),
+                easy: String(laws.easy ?? '').slice(0, 900),
+                satisfying: String(laws.satisfying ?? '').slice(0, 900)
+              }
+            },
+            logs: cleanLogs,
+            createdAt: (typeof hh.createdAt === 'string') ? hh.createdAt : new Date().toISOString(),
+            updatedAt: (typeof hh.updatedAt === 'string') ? hh.updatedAt : new Date().toISOString()
+          };
+        });
+
+      // If no habits, keep array
+      if (!Array.isArray(out.habits)) out.habits = [];
+
+      return out;
+    }
+
+    function loadData(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return normalizeData(null);
+        const parsed = JSON.parse(raw);
+        return normalizeData(parsed);
+      }catch(e){
+        // defensive: corrupted storage
+        return normalizeData(null);
+      }
+    }
+
+    let appData = loadData();
+
+    let saveTimer = null;
+    function saveData({ toast=false, toastMsg=null } = {}){
+      appData.updatedAt = new Date().toISOString();
+      try{
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+      }catch(e){
+        // localStorage may fail (quota). Surface calm error.
+        showToast('Couldn’t save', 'Storage is full or blocked in this browser. Try exporting a backup.', { icon: '!' });
+        return;
+      }
+      if (toast){
+        const msg = toastMsg || 'Your changes are stored on this device.';
+        showToast('Saved', msg, { icon: '✓' });
+      }
+    }
+
+    function scheduleSave(){
+      // fast, near-immediate persistence while keeping typing smooth
+      if (saveTimer) return;
+      saveTimer = setTimeout(() => {
+        saveTimer = null;
+        saveData({ toast:false });
+      }, 60);
+    }
+
+    function showToast(a, b, { icon='✓', ms=2400 } = {}){
+      const el = $('#toast');
+      $('#toastIcon').textContent = icon;
+      $('#toastA').textContent = a;
+      $('#toastB').textContent = b;
+      el.classList.add('active');
+      window.clearTimeout(showToast._t);
+      showToast._t = window.setTimeout(() => el.classList.remove('active'), ms);
+    }
+
+    function getHabit(id){
+      return appData.habits.find(h => h.id === id) || null;
+    }
+
+    function sortHabits(){
+      // stable: by createdAt then name
+      appData.habits.sort((a,b) => {
+        const ta = Date.parse(a.createdAt || '') || 0;
+        const tb = Date.parse(b.createdAt || '') || 0;
+        if (ta !== tb) return ta - tb;
+        return String(a.name).localeCompare(String(b.name));
+      });
+    }
+
+    /* =========================
+       Metrics
+    ========================== */
+
+    function plannedRatePerDay(h){
+      const f = safeObj(h.frequency);
+      const target = Math.max(1, Math.round(Number(f.target) || 1));
+      const unit = f.unit === 'week' ? 'week' : f.unit === 'month' ? 'month' : 'day';
+      if (unit === 'day') return target;
+      if (unit === 'week') return target / 7;
+      // month average days
+      return target / 30.4375;
+    }
+
+    function currentPeriodRange(h){
+      const now = new Date();
+      const unit = safeObj(h.frequency).unit;
+      if (unit === 'week'){
+        const start = startOfWeekMonday(now);
+        const end = addDays(start, 7);
+        return { start, end, label:'This week' };
+      }
+      if (unit === 'month'){
+        const start = startOfMonth(now);
+        const end = new Date(start.getFullYear(), start.getMonth()+1, 1, 12,0,0,0);
+        return { start, end, label:'This month' };
+      }
+      // day
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12,0,0,0);
+      const end = addDays(start, 1);
+      return { start, end, label:'Today' };
+    }
+
+    function countSuccessInRange(h, start, end){
+      const logs = safeObj(h.logs);
+      const succ = successStatusForType(h.type);
+      let c = 0;
+      for (const k of Object.keys(logs)){
+        const d = parseISODate(k);
+        if (!d) continue;
+        if (d >= start && d < end){
+          if ((logs[k]?.status) === succ) c++;
+        }
+      }
+      return c;
+    }
+
+function windowConsistencyPercent(h, days){
+  const w = effectiveWindowForHabit(h, days);
+  const succCount = countSuccessInRange(h, w.start, addDays(w.end, 1));
+
+  const planned = plannedRatePerDay(h) * w.days; // <-- key change: only planned “so far”
+  if (planned <= 0.0001) return 0;
+
+  return clamp(Math.round((succCount / planned) * 100), 0, 100);
+}
+
+
+    function currentDailyStreak(h){
+      // consecutive days ending today with success
+      const logs = safeObj(h.logs);
+      const succ = successStatusForType(h.type);
+      let streak = 0;
+      const today = parseISODate(todayISO());
+      if (!today) return 0;
+      for (let i=0; i<3650; i++){
+        const d = addDays(today, -i);
+        const iso = toISODate(d);
+        const entry = logs[iso];
+        if (entry && entry.status === succ){
+          streak++;
+        } else {
+          break;
+        }
+      }
+      return streak;
+    }
+
+    function periodProgress(h){
+  const f = safeObj(h.frequency);
+  const target = Math.max(1, Math.round(Number(f.target) || 1));
+  const unit = f.unit === 'week' ? 'week' : f.unit === 'month' ? 'month' : 'day';
+  const succ = successStatusForType(h.type);
+
+  // Day unit uses count for "today" progress
+  if (unit === 'day'){
+    const iso = todayISO();
+    const e = safeObj(safeObj(h.logs)[iso]);
+    let c = Number(e.count);
+    if (!Number.isFinite(c) || c < 0) c = (String(e.status || '').toLowerCase() === succ) ? target : 0;
+    c = clamp(Math.round(c), 0, target);
+    const ratio = clamp(c / target, 0, 1);
+    return { target, actual: c, ratio, label: 'Today', startISO: iso };
+  }
+
+  // Week/month count successful days
+  const { start, end, label } = currentPeriodRange(h);
+  const actual = countSuccessInRange(h, start, end);
+  const ratio = clamp(actual / target, 0, 1);
+  return { target, actual, ratio, label, startISO: toISODate(start) };
+}
+
+
+    function actualCountLast12Months(h){
+      const succ = successStatusForType(h.type);
+      const logs = safeObj(h.logs);
+      const end = parseISODate(todayISO());
+      if (!end) return 0;
+      const start = addDays(end, -364);
+      let c = 0;
+      for (const k of Object.keys(logs)){
+        const d = parseISODate(k);
+        if (!d) continue;
+        if (d >= start && d <= end){
+          if ((logs[k]?.status) === succ) c++;
+        }
+      }
+      return c;
+    }
+
+    function insightsSuggestions(h){
+      const c7 = windowConsistencyPercent(h, 7);
+      const c30 = windowConsistencyPercent(h, 30);
+      const isNeg = (h.type === 'negative');
+      const lines = [];
+      if (c7 < 35){
+        lines.push(isNeg
+          ? 'Make the trigger harder to reach this week: remove cues or add a small speed bump.'
+          : 'Make the first step tiny: aim for a “2-minute version” and let momentum do the rest.');
+      } else if (c7 < 70){
+        lines.push(isNeg
+          ? 'Good trend. Keep your environment supportive: reduce exposure to cues during your weak spots.'
+          : 'You’re building consistency. Reduce friction: prep the environment so starting is effortless.');
+      } else {
+        lines.push(isNeg
+          ? 'Strong week. Protect the streak by planning for high-risk moments with a simple if-then plan.'
+          : 'Strong week. Consider gently raising the bar only if it still feels calm and sustainable.');
+      }
+
+      if (c30 < 50){
+        lines.push('Look for the “real obstacle”: time, energy, location, or a missing cue. Adjust the system, not your self-talk.');
+      } else {
+        lines.push('Keep it shame-free: the goal is trajectory. A miss is data, not a verdict.');
+      }
+
+      // tie to motivator
+      const id = (safeObj(h.motivator).identity || '').trim();
+      if (id){
+        lines.push(`Identity reminder: ${id}`);
+      } else {
+        lines.push('Identity reminder: you’re the kind of person who returns to the path.');
+      }
+      return lines.slice(0, 4);
+    }
+
+function effectiveWindowForHabit(h, requestedDays){
+  const end = new Date(); // now
+  const endNoon = new Date(end.getFullYear(), end.getMonth(), end.getDate(), 12,0,0,0);
+
+  const req = clamp(Math.round(Number(requestedDays) || 7), 1, 365);
+  const requestedStart = addDays(endNoon, -(req - 1));
+
+  const startD = parseISODate(h.startDate);
+  const start = (startD && startD > requestedStart) ? startD : requestedStart;
+
+  const days = clamp(diffDays(start, endNoon) + 1, 1, req); // “days so far” in this window
+  return { start, end: endNoon, days };
+}
+
+    /* =========================
+       Chart (12 months)
+    ========================== */
+
+function buildCumulativeSeries(h, days){
+  const succ = successStatusForType(h.type);
+  const logs = safeObj(h.logs);
+
+  const w = effectiveWindowForHabit(h, days);
+  const start = w.start;
+  const end = w.end;
+  const span = w.days;
+
+  const plannedRate = plannedRatePerDay(h);
+
+  // Precompute success set for quick lookup
+  const successSet = new Set();
+  for (const k of Object.keys(logs)){
+    if ((logs[k]?.status) === succ) successSet.add(k);
+  }
+
+  let actualCum = 0;
+  const points = [];
+  for (let i = 0; i < span; i++){
+    const d = addDays(start, i);
+    const iso = toISODate(d);
+    const hit = successSet.has(iso);
+    if (hit) actualCum += 1;
+    const plannedCum = plannedRate * (i + 1);
+    points.push({ i, iso, actual: actualCum, planned: plannedCum, hit });
+  }
+
+  const last = points[points.length - 1];
+  const yMax = Math.max(1, Math.ceil(Math.max(last.actual, last.planned)));
+  return { startISO: toISODate(start), endISO: toISODate(end), points, yMax, days: span };
+}
+
+function svgPathFrom(points, x0, y0, w, h, yMax, key){
+  const n = points.length;
+  if (n === 0) return '';
+  if (n === 1){
+    // Draw a tiny horizontal segment so SVG has something valid to render
+    const val = points[0][key] || 0;
+    const y = y0 + h - (val / yMax) * h;
+    const xA = x0;
+    const xB = x0 + Math.min(w, 1); // 1px-ish segment
+    return `M${xA.toFixed(2)} ${y.toFixed(2)} L${xB.toFixed(2)} ${y.toFixed(2)}`;
+  }
+
+  let d = '';
+  for (let i=0;i<n;i++){
+    const x = x0 + (i / (n-1)) * w;
+    const val = points[i][key] || 0;
+    const y = y0 + h - (val / yMax) * h;
+    d += (i===0 ? 'M' : 'L') + x.toFixed(2) + ' ' + y.toFixed(2) + ' ';
+  }
+  return d.trim();
+}
+
+
+const INSIGHT_RANGES = {
+  '1w': { label: '1 week', days: 7 },
+  '1m': { label: '1 month', days: 30 },
+  '3m': { label: '3 months', days: 90 },
+  '6m': { label: '6 months', days: 180 },
+  '1y': { label: '1 year', days: 365 }
+};
+
+function getInsightRangeKey(hid){
+  appData.ui = safeObj(appData.ui);
+  appData.ui.insightsRange = safeObj(appData.ui.insightsRange);
+  const v = String(appData.ui.insightsRange[hid] || '1y');
+  return INSIGHT_RANGES[v] ? v : '1y';
+}
+
+
+function renderChartSVG(h, container, rangeKey){
+  const rk = (rangeKey && INSIGHT_RANGES[rangeKey]) ? rangeKey : getInsightRangeKey(h.id);
+  const range = INSIGHT_RANGES[rk] || INSIGHT_RANGES['1y'];
+
+  const series = buildCumulativeSeries(h, range.days);
+  if (!series){
+    container.innerHTML = '<div class="muted small">Chart unavailable.</div>';
+    return;
+  }
+
+  const { points, yMax, startISO, endISO, days } = series;
+  const n = points.length;
+  const denom = Math.max(1, n - 1);
+
+  const vbW = 360, vbH = 130;
+  const padL = 12, padR = 10, padT = 10, padB = 26;
+  const plotW = vbW - padL - padR;
+  const plotH = vbH - padT - padB;
+
+  const planPath = svgPathFrom(points, padL, padT, plotW, plotH, yMax, 'planned');
+  const actPath  = svgPathFrom(points, padL, padT, plotW, plotH, yMax, 'actual');
+
+  // dots at actual hits
+  const dotEls = [];
+  for (let i=0;i<n;i++){
+    if (!points[i].hit) continue;
+    const x = padL + (i / denom) * plotW;
+    const y = padT + plotH - (points[i].actual / yMax) * plotH;
+    dotEls.push(`<circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="1.7" fill="rgba(234,240,255,.85)" stroke="rgba(234,240,255,.35)" stroke-width="1" />`);
+  }
+
+  // Ticks + labels adapt to range
+  const startD = parseISODate(startISO);
+  const endD = parseISODate(endISO);
+  const tickEls = [];
+  const labelEls = [];
+
+  function xForIndex(i){
+    return padL + (i / denom) * plotW;
+  }
+
+  if (startD && endD){
+    if (days <= 14){
+      // Daily ticks, label every other day (weekday)
+      for (let i=0;i<n;i++){
+        const x = xForIndex(i);
+        tickEls.push(`<line x1="${x.toFixed(2)}" y1="${(padT+plotH).toFixed(2)}" x2="${x.toFixed(2)}" y2="${(padT+plotH+5).toFixed(2)}" stroke="rgba(255,255,255,.18)" stroke-width="1" />`);
+        if (i % 2 === 0){
+          const d = addDays(startD, i);
+          const lab = d.toLocaleString(undefined, { weekday:'short' });
+          labelEls.push(`<text x="${x.toFixed(2)}" y="${(padT+plotH+18).toFixed(2)}" text-anchor="middle" font-size="9" fill="rgba(169,182,214,.90)" font-weight="700">${escapeHtml(lab)}</text>`);
+        }
+      }
+    } else if (days <= 45){
+      // Weekly ticks, label each tick (Mon date)
+      for (let i=0;i<n;i+=7){
+        const x = xForIndex(i);
+        tickEls.push(`<line x1="${x.toFixed(2)}" y1="${(padT+plotH).toFixed(2)}" x2="${x.toFixed(2)}" y2="${(padT+plotH+5).toFixed(2)}" stroke="rgba(255,255,255,.18)" stroke-width="1" />`);
+        const d = addDays(startD, i);
+        const lab = d.toLocaleString(undefined, { month:'short', day:'numeric' });
+        labelEls.push(`<text x="${x.toFixed(2)}" y="${(padT+plotH+18).toFixed(2)}" text-anchor="middle" font-size="9" fill="rgba(169,182,214,.90)" font-weight="700">${escapeHtml(lab)}</text>`);
+      }
+    } else {
+      // Month ticks (first of month), label every month for <=6m, every other for 1y
+      const cursor = new Date(startD.getFullYear(), startD.getMonth(), 1, 12,0,0,0);
+      while (cursor < startD) cursor.setMonth(cursor.getMonth()+1);
+
+      let tickCount = 0;
+      const labelEvery = (days >= 300) ? 2 : 1;
+
+      while (cursor <= endD){
+        const idx = diffDays(startD, cursor);
+        if (idx >= 0 && idx < n){
+          const x = xForIndex(idx);
+          tickEls.push(`<line x1="${x.toFixed(2)}" y1="${(padT+plotH).toFixed(2)}" x2="${x.toFixed(2)}" y2="${(padT+plotH+5).toFixed(2)}" stroke="rgba(255,255,255,.18)" stroke-width="1" />`);
+          if (tickCount % labelEvery === 0){
+            const m = cursor.toLocaleString(undefined, { month:'short' });
+            labelEls.push(`<text x="${x.toFixed(2)}" y="${(padT+plotH+18).toFixed(2)}" text-anchor="middle" font-size="9" fill="rgba(169,182,214,.90)" font-weight="700">${escapeHtml(m)}</text>`);
+          }
+          tickCount++;
+        }
+        cursor.setMonth(cursor.getMonth()+1);
+      }
+    }
+  }
+
+  const aria = `${range.label} cumulative progress chart`;
+
+  const svg = `
+    <svg viewBox="0 0 ${vbW} ${vbH}" width="100%" height="130" role="img" aria-label="${escapeHtml(aria)}">
+      <defs>
+        <linearGradient id="gAct" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0%" stop-color="rgba(41,211,154,.90)"></stop>
+          <stop offset="100%" stop-color="rgba(122,167,255,.80)"></stop>
+        </linearGradient>
+        <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="1.2" result="blur"></feGaussianBlur>
+          <feMerge>
+            <feMergeNode in="blur"></feMergeNode>
+            <feMergeNode in="SourceGraphic"></feMergeNode>
+          </feMerge>
+        </filter>
+      </defs>
+
+      <rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}" rx="12" ry="12"
+            fill="rgba(255,255,255,.02)" stroke="rgba(255,255,255,.10)" />
+
+      <line x1="${padL}" y1="${(padT+plotH*0.33).toFixed(2)}" x2="${(padL+plotW)}" y2="${(padT+plotH*0.33).toFixed(2)}"
+            stroke="rgba(255,255,255,.06)" stroke-width="1" />
+      <line x1="${padL}" y1="${(padT+plotH*0.66).toFixed(2)}" x2="${(padL+plotW)}" y2="${(padT+plotH*0.66).toFixed(2)}"
+            stroke="rgba(255,255,255,.06)" stroke-width="1" />
+
+      <path d="${planPath}" fill="none" stroke="rgba(122,167,255,.75)" stroke-width="2" stroke-dasharray="5 4" />
+      <path d="${actPath}" fill="none" stroke="url(#gAct)" stroke-width="2.6" filter="url(#glow)" />
+
+      ${dotEls.join('')}
+      ${tickEls.join('')}
+      ${labelEls.join('')}
+    </svg>
+  `;
+  container.innerHTML = svg;
+}
+
+
+    /* =========================
+       Rendering
+    ========================== */
+
+    function render(){
+      // normalize and sort
+      appData = normalizeData(appData);
+      sortHabits();
+      $('#habitCount').textContent = String(appData.habits.length);
+
+      renderNavActive();
+      renderDashboard();
+      renderReview();
+      renderSettings();
+      applyActiveTab();
+    }
+
+    function renderNavActive(){
+      $$('.navBtn').forEach(btn => {
+        const tab = btn.getAttribute('data-tab');
+        const active = tab === appData.ui.activeTab;
+        btn.classList.toggle('active', active);
+        if (active) btn.setAttribute('aria-current','page');
+        else btn.removeAttribute('aria-current');
+      });
+    }
+
+    function applyActiveTab(){
+      const tab = appData.ui.activeTab || 'dashboard';
+      $$('.section').forEach(s => s.classList.remove('active'));
+      const el = $(`#tab-${tab}`);
+      if (el) el.classList.add('active');
+    }
+
+    function renderDashboard(){
+      const root = $('#tab-dashboard');
+      const createOpen = !!appData.ui.createOpen;
+
+      const habitCount = appData.habits.length;
+      const canCreate = habitCount < MAX_HABITS;
+
+      const createHtml = `
+        <div class="createWrap ${createOpen ? 'open':''}" id="createWrap">
+          <div class="createHead">
+  <button class="btn primary wide" data-action="toggleCreate" aria-expanded="${createOpen ? 'true':'false'}">
+    + Create Habit
+  </button>
+</div>
+
+          <div class="createBody" aria-label="Create Habit Form">
+            ${canCreate ? renderCreateForm() : `
+              <div class="error">
+                You’ve reached the maximum of ${MAX_HABITS} habits. If you want, delete one first (you can export a backup before deleting).
+              </div>
+            `}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardHeader">
+            <div class="left">
+              <p class="hTitle">Your habits</p>
+              <div class="hMeta">
+                <span class="tag muted">${habitCount}/${MAX_HABITS} used</span>
+                <span class="muted2">Tap a habit to expand.</span>
+              </div>
+            </div>
+            <div class="right">
+              <button class="btn small ghost" data-action="quickBackup" title="Export JSON backup">Export</button>
+            </div>
+          </div>
+
+          ${renderHabitList()}
+        </div>
+      `;
+
+      root.innerHTML = createHtml;
+
+      // After render, hydrate charts for any open habits (details open)
+      hydrateVisibleCharts();
+    }
+
+    function renderCreateForm(){
+      const d = todayISO();
+      return `
+        <div class="grid two">
+          <div class="field">
+            <label for="c_name">Habit name *</label>
+            <input id="c_name" type="text" placeholder="e.g., Walk after lunch" autocomplete="off" maxlength="120" />
+            <div class="help">Keep it concrete and action-based.</div>
+          </div>
+          <div class="field">
+            <label for="c_type">Habit type *</label>
+            <select id="c_type">
+              <option value="positive">Positive (build)</option>
+              <option value="negative">Negative (reduce)</option>
+            </select>
+            <div class="help">Negative habits track “Resisted / Relapsed”.</div>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:12px;">
+          <label for="c_desc">Description *</label>
+          <textarea id="c_desc" placeholder="What does success look like? Keep it shame-free." maxlength="1200"></textarea>
+        </div>
+
+        <div class="inline freqRow" style="margin-top:12px;">
+          <div class="field compact2">
+            <label for="c_start">Start date *</label>
+            <input id="c_start" type="date" value="${d}" />
+          </div>
+          <div class="field compact">
+            <label for="c_unit">Frequency unit *</label>
+<select id="c_unit">
+  <option value="week" selected>Week</option>
+  <option value="day">Day</option>
+  <option value="month">Month</option>
+</select>
+          </div>
+          <div class="field compact">
+            <label for="c_target">Target # *</label>
+            <input id="c_target" type="number" min="1" step="1" value="1" inputmode="numeric" />
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="grid two">
+          <div class="field">
+            <label for="c_ident">Identity statement * <span class="muted2">(required)</span></label>
+            <input id="c_ident" type="text" placeholder="I am the kind of person who…" maxlength="220" />
+            <div class="help">Example: “I am the kind of person who moves daily.”</div>
+          </div>
+          <div class="field">
+            <label for="c_outcome">Long-term outcome *</label>
+            <input id="c_outcome" type="text" placeholder="What does this enable over months/years?" maxlength="260" />
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:12px;">
+          <label for="c_why">Why this matters *</label>
+          <textarea id="c_why" placeholder="A calm, honest reason you can return to." maxlength="420"></textarea>
+        </div>
+
+        <div id="createErr" style="margin-top:12px;"></div>
+
+        <div class="row" style="margin-top:12px;">
+          <button class="btn primary wide" data-action="saveCreate">Save habit</button>
+          <button class="btn ghost wide" data-action="cancelCreate">Cancel</button>
+        </div>
+      `;
+    }
+
+function dashboardState(h){
+  const iso = todayISO();
+  const entry = safeObj(safeObj(h.logs)[iso]);
+
+  const unit = safeObj(h.frequency).unit;
+  const target = Math.max(1, Math.round(Number(safeObj(h.frequency).target) || 1));
+  const succ = successStatusForType(h.type);
+  const fail = failStatusForType(h.type);
+
+  const st = String(entry.status || '').toLowerCase();
+  const doneToday = (st === succ);
+
+  // For day-unit habits, allow count-based progress (but dashboard button completes in one tap)
+  if (unit === 'day'){
+    let c = Number(entry.count);
+    if (!Number.isFinite(c) || c < 0) c = doneToday ? target : 0;
+    c = clamp(Math.round(c), 0, target);
+    const ratio = clamp(c / target, 0, 1);
+
+    const isDone = doneToday && c >= target;
+    const btnLabel = isDone ? 'Reset' : (h.type === 'negative' ? 'Resist' : 'Done');
+    const btnClass = isDone ? 'ghost' : 'primary';
+
+    return { labelLeft:'Today', labelRight:`${c}/${target}`, ratio, btnLabel, btnClass, succ, fail };
+  }
+
+  // For week/month habits: dashboard shows TODAY only (binary)
+  const ratio = doneToday ? 1 : 0;
+  const btnLabel = doneToday ? 'Undo' : (h.type === 'negative' ? 'Resist' : 'Done');
+  const btnClass = doneToday ? 'ghost' : 'primary';
+  const labelRight = doneToday ? (h.type === 'negative' ? 'Resisted' : 'Done') : 'Not yet';
+
+  return { labelLeft:'Today', labelRight, ratio, btnLabel, btnClass, succ, fail };
+}
+
+
+function renderDashboardQuick(h){
+  const s = dashboardState(h);
+  return `
+    <div class="dashMini" id="dash-${escapeHtml(h.id)}-mini">
+      <div class="sumProgressStrip" aria-label="Today progress">
+        <div class="sumProgressFill" style="--p:${clamp(s.ratio,0,1).toFixed(3)}"></div>
+      </div>
+    </div>
+  `;
+}
+
+function updateDashboardQuick(habitId){
+  const h = getHabit(habitId);
+  if (!h) return;
+
+  const s = dashboardState(h);
+
+  // Update every dashboard toggle button for this habit (prevents mismatched labels)
+  document
+    .querySelectorAll(`button[data-action="dashToggle"][data-habit="${habitId}"]`)
+    .forEach((btn) => {
+      btn.textContent = s.btnLabel;
+      btn.classList.toggle('primary', s.btnClass === 'primary');
+      btn.classList.toggle('ghost', s.btnClass === 'ghost');
+    });
+
+  // Update the progress bar for this habit (supports either fill class name)
+  const mini = document.getElementById(`dash-${habitId}-mini`);
+  if (mini){
+    const fill = mini.querySelector('.fill') || mini.querySelector('.sumProgressFill');
+    if (fill) fill.style.setProperty('--p', clamp(s.ratio, 0, 1).toFixed(3));
+  }
+}
+
+
+function pulseDashboardQuick(habitId){
+  const mini = document.getElementById(`dash-${habitId}-mini`);
+  if (!mini) return;
+  mini.classList.add('celebrate');
+  setTimeout(() => mini.classList.remove('celebrate'), 900);
+}
+
+function dashToggle(habitId){
+  const h = getHabit(habitId);
+  if (!h) return;
+
+  const iso = todayISO();
+  if (!h.logs || typeof h.logs !== 'object') h.logs = {};
+
+  const entry = h.logs[iso] ? safeObj(h.logs[iso]) : null;
+  const succ = successStatusForType(h.type);
+  const fail = failStatusForType(h.type);
+
+  const unit = safeObj(h.frequency).unit;
+  const target = Math.max(1, Math.round(Number(safeObj(h.frequency).target) || 1));
+
+  // Ensure an entry exists (default is uncompleted)
+  if (!h.logs[iso]){
+    h.logs[iso] = { date: iso, status: fail, note:'', count:0, auto:true, updatedAt: new Date().toISOString() };
+  }
+
+  const e = h.logs[iso];
+  e.auto = false; // user interacted
+
+  if (unit === 'day'){
+    let c = Number(e.count);
+    if (!Number.isFinite(c) || c < 0) c = (String(e.status || '').toLowerCase() === succ) ? target : 0;
+    c = Math.round(c);
+
+    const isDone = (String(e.status || '').toLowerCase() === succ) && c >= target;
+
+    if (unit === 'day'){
+  const st = String(e.status || '').toLowerCase();
+  let c = Number(e.count);
+  if (!Number.isFinite(c) || c < 0) c = (st === succ) ? target : 0;
+  c = Math.round(c);
+
+  const isDone = (st === succ) && c >= target;
+
+  if (isDone){
+    // Reset
+    e.status = fail;
+    e.count = 0;
+    e.updatedAt = new Date().toISOString();
+    showToast('Reset', 'Back to zero for today. You can check it off again anytime.', { icon:'↺', ms:1800 });
+  } else {
+    // One tap = complete the full daily target
+    e.status = succ;
+    e.count = target;
+    e.updatedAt = new Date().toISOString();
+    showToast('Nice', motivationalLine(h), { icon:'✓', ms:5000 });
+  }
+}
+
+  } else {
+    const st = String(e.status || '').toLowerCase();
+    if (st === succ){
+      e.status = fail;
+      e.count = 0;
+      e.updatedAt = new Date().toISOString();
+      showToast('Undone', 'Your log was updated.', { icon:'↺', ms:1800 });
+    } else {
+      e.status = succ;
+      e.count = 1;
+      e.updatedAt = new Date().toISOString();
+      showToast('Nice', motivationalLine(h), { icon:'✓', ms:2600 });
+    }
+  }
+
+  h.updatedAt = new Date().toISOString();
+  saveData({ toast:false });
+
+  updateHabitVisuals(habitId);
+  updateDashboardQuick(habitId);
+  hydrateVisibleCharts();
+  pulseDashboardQuick(habitId);
+}
+
+
+function renderHabitList(){
+  const habits = safeArr(appData.habits);
+  if (!habits.length){
+    return `
+      <div class="content">
+        <div class="panel">
+          <div style="font-weight:950; margin-bottom:6px;">No habits yet</div>
+          <div class="muted small">Create your first habit. Start small, make it obvious, and let the system carry you.</div>
+        </div>
+      </div>
+    `;
+  }
+
+  const items = habits.map(h => {
+    const isNeg = h.type === 'negative';
+    const tagClass = isNeg ? 'bad' : 'good';
+    const typeLabel = isNeg ? 'Negative' : 'Positive';
+    const freqTxt = formatUnit(h.frequency.unit, h.frequency.target);
+
+    const prog = periodProgress(h);
+    const c7 = windowConsistencyPercent(h, 7);
+    const streak = currentDailyStreak(h);
+    const last12 = actualCountLast12Months(h);
+
+    const subtab = appData.ui.habitSubtabs?.[h.id] || 'track';
+
+    const succStatus = successStatusForType(h.type);
+    const failStatus = failStatusForType(h.type);
+
+    return `
+      <details class="habit" id="habit-${escapeHtml(h.id)}" data-habit="${escapeHtml(h.id)}">
+        <summary>
+          <div class="sumRowTop">
+            <div class="sumLeft">
+              <div class="sumTop">
+                <div class="sumName" data-sum="name">${escapeHtml(h.name || 'Untitled habit')}</div>
+
+                <span class="tag ${tagClass}">${typeLabel}</span>
+                <span class="tag muted" data-sum="freq">${escapeHtml(freqTxt)}</span>
+
+                <div class="sumDesc" data-sum="desc">${escapeHtml(h.description || '')}</div>
+              </div>
+            </div>
+
+            <div class="sumRight">
+              <button
+                class="btn small ${escapeHtml(dashboardState(h).btnClass)} dashBtn"
+                data-action="dashToggle"
+                data-habit="${escapeHtml(h.id)}"
+                aria-label="Mark ${escapeHtml(h.name || 'habit')} for today"
+              >${escapeHtml(dashboardState(h).btnLabel)}</button>
+            </div>
+          </div>
+
+          ${renderDashboardQuick(h)}
+        </summary>
+
+        <div class="detailsBody">
+          <div id="habit-${escapeHtml(h.id)}-summary">
+            ${renderHabitSummary(h, { prog, c7, streak, last12 })}
+          </div>
+
+          <div class="subtabs" role="tablist" aria-label="Habit sections">
+            <button class="tabBtn ${subtab==='track'?'active':''}"
+              data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="track"
+              role="tab" aria-selected="${subtab==='track'?'true':'false'}">Track</button>
+
+            <button class="tabBtn ${subtab==='design'?'active':''}"
+              data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="design"
+              role="tab" aria-selected="${subtab==='design'?'true':'false'}">Design</button>
+
+            <button class="tabBtn ${subtab==='insights'?'active':''}"
+              data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="insights"
+              role="tab" aria-selected="${subtab==='insights'?'true':'false'}">Insights</button>
+
+            <button class="tabBtn ${subtab==='motivation'?'active':''}"
+              data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="motivation"
+              role="tab" aria-selected="${subtab==='motivation'?'true':'false'}">Motivator</button>
+
+            <button class="tabBtn ${subtab==='edit'?'active':''}"
+              data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="edit"
+              role="tab" aria-selected="${subtab==='edit'?'true':'false'}">Edit</button>
+          </div>
+
+          <div class="panel ${subtab==='track'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-track" role="tabpanel">
+            ${renderHabitTrackPanel(h, { succStatus, failStatus })}
+          </div>
+
+          <div class="panel ${subtab==='design'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-design" role="tabpanel">
+            ${renderHabitDesignPanel(h)}
+          </div>
+
+          <div class="panel ${subtab==='insights'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-insights" role="tabpanel">
+            ${renderHabitInsightsPanel(h)}
+          </div>
+
+          <div class="panel ${subtab==='motivation'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-motivation" role="tabpanel">
+            ${renderHabitMotivationPanel(h)}
+          </div>
+
+          <div class="panel ${subtab==='edit'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-edit" role="tabpanel">
+            ${renderHabitEditPanel(h)}
+          </div>
+
+          <div class="row">
+            <button class="btn small ghost" data-action="saveHabit" data-habit="${escapeHtml(h.id)}">Save</button>
+            <button class="btn small danger" data-action="deleteHabit" data-habit="${escapeHtml(h.id)}">Delete</button>
+          </div>
+
+          <div class="muted tiny">Tip: Inputs save instantly. “Save” simply confirms and refreshes visuals.</div>
+        </div>
+      </details>
+    `;
+  }).join('');
+
+  return items;
+}
+
+
+    function renderHabitSummary(h, pre){
+      const isNeg = h.type === 'negative';
+      const prog = pre?.prog || periodProgress(h);
+      const c7 = pre?.c7 ?? windowConsistencyPercent(h, 7);
+      const c30 = windowConsistencyPercent(h, 30);
+      const c90 = windowConsistencyPercent(h, 90);
+      const streak = pre?.streak ?? currentDailyStreak(h);
+      const last12 = pre?.last12 ?? actualCountLast12Months(h);
+      const freqTxt = formatUnit(h.frequency.unit, h.frequency.target);
+
+      const ratio = clamp(prog.ratio, 0, 1);
+
+      const identity = (safeObj(h.motivator).identity || '').trim();
+      const msgA = isNeg
+        ? 'Every resisted urge strengthens your system.'
+        : 'Every completion strengthens your identity.';
+      const msgB = identity
+        ? `Identity: “${identity}”`
+        : 'Identity: “I return to the path.”';
+      const msg = `${msgA} ${msgB}`;
+
+      return `
+        <div class="stats" aria-label="Tracking summary">
+          <div class="stat">
+            <div class="k">Planned</div>
+            <div class="v">${escapeHtml(freqTxt)}</div>
+            <div class="s">${escapeHtml(prog.label)}</div>
+          </div>
+          <div class="stat">
+            <div class="k">Actual</div>
+            <div class="v">${escapeHtml(String(prog.actual))} / ${escapeHtml(String(prog.target))}</div>
+            <div class="s">${escapeHtml(prog.startISO)}</div>
+          </div>
+          <div class="stat">
+            <div class="k">Consistency</div>
+            <div class="v">${escapeHtml(String(c7))}%</div>
+            <div class="s">7d • 30d ${escapeHtml(String(c30))}%</div>
+          </div>
+          <div class="stat">
+            <div class="k">Streak</div>
+            <div class="v">${escapeHtml(String(streak))}d</div>
+            <div class="s">90d ${escapeHtml(String(c90))}% • 12mo ${escapeHtml(String(last12))}</div>
+          </div>
+        </div>
+
+        <div class="progressWrap" id="habit-${escapeHtml(h.id)}-progress" style="margin-top:12px;">
+          <div class="progressTop">
+            <div class="label">${escapeHtml(prog.label)} progress</div>
+            <div class="meta">${escapeHtml(String(prog.actual))} / ${escapeHtml(String(prog.target))}</div>
+          </div>
+          <div class="bar" aria-label="Progress bar">
+            <div class="fill" style="--p:${ratio.toFixed(3)}"></div>
+          </div>
+          <div class="progressMsg">${escapeHtml(msg)}</div>
+        </div>
+      `;
+    }
+
+function renderHabitEditPanel(h){
+  const f = safeObj(h.frequency);
+  const unit = (f.unit === 'week' || f.unit === 'month') ? f.unit : 'day';
+  const target = Math.max(1, Math.round(Number(f.target) || 1));
+
+  return `
+    <div class="panel" style="border:none; background:transparent; padding:0;">
+      <div style="font-weight:950; margin-bottom:8px;">Edit habit</div>
+
+      <div class="grid two">
+        <div class="field">
+          <label>Habit name *</label>
+          <input
+            type="text"
+            data-bind="name"
+            data-habit="${escapeHtml(h.id)}"
+            value="${escapeHtml(h.name || '')}"
+            maxlength="120"
+            placeholder="e.g., Walk after lunch" />
+          <div class="help">Keep it concrete and action-based.</div>
+        </div>
+
+        <div class="field">
+          <label>Start date *</label>
+          <input
+            type="date"
+            data-bind="startDate"
+            data-habit="${escapeHtml(h.id)}"
+            value="${escapeHtml(h.startDate || todayISO())}" />
+          <div class="help">This doesn’t delete logs. It’s just the habit’s reference start date.</div>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:12px;">
+        <label>Description *</label>
+        <textarea
+          data-bind="description"
+          data-habit="${escapeHtml(h.id)}"
+          maxlength="1200"
+          placeholder="What does success look like? Keep it shame-free.">${escapeHtml(h.description || '')}</textarea>
+      </div>
+
+      <div class="inline freqRow" style="margin-top:12px;">
+        <div class="field compact">
+          <label>Frequency unit *</label>
+          <select data-bind="frequency.unit" data-habit="${escapeHtml(h.id)}">
+            <option value="day" ${unit==='day'?'selected':''}>Day</option>
+            <option value="week" ${unit==='week'?'selected':''}>Week</option>
+            <option value="month" ${unit==='month'?'selected':''}>Month</option>
+          </select>
+        </div>
+
+        <div class="field compact">
+          <label>Target # *</label>
+          <input
+            type="number"
+            min="1"
+            step="1"
+            inputmode="numeric"
+            data-bind="frequency.target"
+            data-habit="${escapeHtml(h.id)}"
+            value="${escapeHtml(String(target))}" />
+        </div>
+      </div>
+
+      <div class="success" style="margin-top:12px;">
+        <strong>Note:</strong>
+        <div class="small muted" style="margin-top:6px;">
+          Changing frequency updates how progress is calculated. Your existing logs are kept.
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function normalizeLogCountsForFrequency(h){
+  const f = safeObj(h.frequency);
+  const unit = (f.unit === 'week' || f.unit === 'month') ? f.unit : 'day';
+  const target = Math.max(1, Math.round(Number(f.target) || 1));
+  const succ = successStatusForType(h.type);
+
+  if (!h.logs || typeof h.logs !== 'object') return;
+
+  for (const k of Object.keys(h.logs)){
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(k)) continue;
+    const e = safeObj(h.logs[k]);
+    const st = String(e.status || '').toLowerCase();
+
+    // Keep note/updatedAt/auto as-is, just normalize count
+    h.logs[k].count = (st === succ) ? ((unit === 'day') ? target : 1) : 0;
+  }
+}
+
+function updateHabitHeader(habitId){
+  const h = getHabit(habitId);
+  if (!h) return;
+
+  const det = document.getElementById(`habit-${habitId}`);
+  if (!det) return;
+
+  const nameEl = det.querySelector('[data-sum="name"]');
+  if (nameEl) nameEl.textContent = h.name || 'Untitled habit';
+
+  const descEl = det.querySelector('[data-sum="desc"]');
+  if (descEl) descEl.textContent = h.description || '';
+
+  const freqEl = det.querySelector('[data-sum="freq"]');
+  if (freqEl) freqEl.textContent = formatUnit(h.frequency.unit, h.frequency.target);
+
+  const dashBtn = det.querySelector(`button[data-action="dashToggle"][data-habit="${habitId}"]`);
+  if (dashBtn) dashBtn.setAttribute('aria-label', `Mark ${h.name || 'habit'} for today`);
+}
+
+    function renderHabitMotivationPanel(h){
+      const m = safeObj(h.motivator);
+      return `
+        <div class="grid two">
+          <div class="field">
+            <label>Identity statement *</label>
+            <input type="text"
+              data-bind="motivator.identity"
+              data-habit="${escapeHtml(h.id)}"
+              value="${escapeHtml(m.identity || '')}"
+              maxlength="220"
+              placeholder="I am the kind of person who…" />
+            <div class="help">This should feel true even on hard days.</div>
+          </div>
+          <div class="field">
+            <label>Long-term outcome *</label>
+            <input type="text"
+              data-bind="motivator.outcome"
+              data-habit="${escapeHtml(h.id)}"
+              value="${escapeHtml(m.outcome || '')}"
+              maxlength="260"
+              placeholder="Over time, this enables…" />
+          </div>
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <label>Why this matters *</label>
+          <textarea
+            data-bind="motivator.why"
+            data-habit="${escapeHtml(h.id)}"
+            maxlength="420"
+            placeholder="A reason worth returning to.">${escapeHtml(m.why || '')}</textarea>
+        </div>
+        <div class="success" style="margin-top:12px;">
+          <strong>How it will be used:</strong>
+          <div class="small muted" style="margin-top:6px;">
+            This motivator shows up in your tracking feedback, weekly review prompts, and gentle encouragement.
+          </div>
+        </div>
+      `;
+    }
+
+    function renderHabitDesignPanel(h){
+      const loop = safeObj(safeObj(h.design).loop);
+      const laws = safeObj(safeObj(h.design).laws);
+      const labels = lawLabelsForType(h.type);
+
+      return `
+        <div class="panel" style="border:none; background:transparent; padding:0;">
+          <div style="font-weight:950; margin-bottom:8px;">Habit loop</div>
+          <div class="grid two">
+            <div class="field">
+              <label>Cue</label>
+              <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.loop.cue" placeholder="What triggers it?">${escapeHtml(loop.cue || '')}</textarea>
+            </div>
+            <div class="field">
+              <label>Craving</label>
+              <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.loop.craving" placeholder="What feeling/want does it promise?">${escapeHtml(loop.craving || '')}</textarea>
+            </div>
+            <div class="field">
+              <label>Response</label>
+              <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.loop.response" placeholder="What do you actually do?">${escapeHtml(loop.response || '')}</textarea>
+            </div>
+            <div class="field">
+              <label>Reward</label>
+              <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.loop.reward" placeholder="What immediate payoff happens?">${escapeHtml(loop.reward || '')}</textarea>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div style="font-weight:950; margin-bottom:8px;">Four laws of behavior change</div>
+          <div class="grid two">
+            <div class="field">
+              <label>${escapeHtml(labels.obvious)}</label>
+              <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.laws.obvious" placeholder="Environment & cues...">${escapeHtml(laws.obvious || '')}</textarea>
+            </div>
+            <div class="field">
+              <label>${escapeHtml(labels.attractive)}</label>
+              <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.laws.attractive" placeholder="Make it appealing (or not)...">${escapeHtml(laws.attractive || '')}</textarea>
+            </div>
+            <div class="field">
+              <label>${escapeHtml(labels.easy)}</label>
+              <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.laws.easy" placeholder="Reduce friction (or add it)...">${escapeHtml(laws.easy || '')}</textarea>
+            </div>
+            <div class="field">
+              <label>${escapeHtml(labels.satisfying)}</label>
+              <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.laws.satisfying" placeholder="Reward & tracking (or consequence)...">${escapeHtml(laws.satisfying || '')}</textarea>
+            </div>
+          </div>
+
+          <div class="success" style="margin-top:12px;">
+            <strong>System > willpower.</strong>
+            <div class="small muted" style="margin-top:6px;">
+              If it’s hard to follow through, adjust the environment. Make the “right thing” the easy thing.
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+function renderHabitInsightsPanel(h){
+const rk = getInsightRangeKey(h.id);
+const range = INSIGHT_RANGES[rk] || INSIGHT_RANGES['1y'];
+
+const plannedRate = plannedRatePerDay(h);
+
+const w = effectiveWindowForHabit(h, range.days);
+const actualInRange = countSuccessInRange(h, w.start, addDays(w.end, 1));
+const plannedInRange = Math.round(plannedRate * w.days);
+
+
+  const s = insightsSuggestions(h);
+
+  return `
+    <div class="seg" role="group" aria-label="Insights time range">
+      <button type="button" class="segBtn ${rk==='1w'?'active':''}" data-action="setInsightRange" data-habit="${escapeHtml(h.id)}" data-range="1w">1W</button>
+      <button type="button" class="segBtn ${rk==='1m'?'active':''}" data-action="setInsightRange" data-habit="${escapeHtml(h.id)}" data-range="1m">1M</button>
+      <button type="button" class="segBtn ${rk==='3m'?'active':''}" data-action="setInsightRange" data-habit="${escapeHtml(h.id)}" data-range="3m">3M</button>
+      <button type="button" class="segBtn ${rk==='6m'?'active':''}" data-action="setInsightRange" data-habit="${escapeHtml(h.id)}" data-range="6m">6M</button>
+      <button type="button" class="segBtn ${rk==='1y'?'active':''}" data-action="setInsightRange" data-habit="${escapeHtml(h.id)}" data-range="1y">1Y</button>
+    </div>
+    <div class="tiny muted rangeHint">
+  Showing ${escapeHtml(range.label)} (${escapeHtml(toISODate(w.start))} → ${escapeHtml(toISODate(w.end))})
+</div>
+
+
+    <div class="chartWrap" style="margin-top:10px;">
+      <div class="chartHead">
+        <div class="t">${escapeHtml(range.label)} frequency graph</div>
+        <div class="legend" aria-label="Chart legend">
+          <span class="leg"><span class="swatch plan"></span> Planned</span>
+          <span class="leg"><span class="swatch actual"></span> Actual</span>
+          <span class="leg"><span class="swatch dots"></span> Execution dates</span>
+        </div>
+      </div>
+      <div id="habit-${escapeHtml(h.id)}-chart" class="chart" data-chart="${escapeHtml(h.id)}">
+        <div class="muted small">Chart will render here.</div>
+      </div>
+      <div class="muted tiny" style="margin-top:8px;">
+        Cumulative actual vs planned for the selected window. Executions are marked along the line.
+      </div>
+    </div>
+
+    <div class="stats" style="margin-top:12px;">
+      <div class="stat">
+        <div class="k">${escapeHtml(range.label)} planned</div>
+        <div class="v">${escapeHtml(String(plannedInRange))}</div>
+        <div class="s">Based on your frequency</div>
+      </div>
+      <div class="stat">
+        <div class="k">${escapeHtml(range.label)} actual</div>
+        <div class="v">${escapeHtml(String(actualInRange))}</div>
+        <div class="s">Successes logged</div>
+      </div>
+      <div class="stat">
+        <div class="k">7 / 30 / 90</div>
+        <div class="v">${escapeHtml(String(windowConsistencyPercent(h,7)))}% / ${escapeHtml(String(windowConsistencyPercent(h,30)))}% / ${escapeHtml(String(windowConsistencyPercent(h,90)))}%</div>
+        <div class="s">Consistency vs plan</div>
+      </div>
+      <div class="stat">
+        <div class="k">Streak</div>
+        <div class="v">${escapeHtml(String(currentDailyStreak(h)))}d</div>
+        <div class="s">Consecutive success days</div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:12px;">
+      <div style="font-weight:950; margin-bottom:8px;">Suggestions (calm + data-informed)</div>
+      <ul class="small muted" style="margin:0; padding-left:18px; line-height:1.5;">
+        ${s.map(x => `<li>${escapeHtml(x)}</li>`).join('')}
+      </ul>
+    </div>
+  `;
+}
+
+
+    function renderHabitTrackPanel(h, { succStatus, failStatus }){
+      const today = todayISO();
+      const existing = safeObj(h.logs)[today];
+      const defaultStatus = existing?.status || succStatus;
+
+      const noteVal = String(existing?.note ?? '');
+      const statusLabelA = (h.type === 'negative') ? 'Resisted' : 'Completed';
+      const statusLabelB = (h.type === 'negative') ? 'Relapsed' : 'Missed';
+
+      const recentHtml = renderRecentLogs(h);
+
+      return `
+        <div class="panel" style="border:none; background:transparent; padding:0;">
+          <div style="font-weight:950; margin-bottom:8px;">Daily logging</div>
+
+          <div class="inline">
+            <div class="field compact2">
+              <label>Date</label>
+              <input type="date" value="${escapeHtml(today)}" data-habit="${escapeHtml(h.id)}" data-track="date" />
+            </div>
+            <div class="field compact2">
+              <label>Status</label>
+              <select data-habit="${escapeHtml(h.id)}" data-track="status">
+                <option value="${escapeHtml(succStatus)}" ${defaultStatus===succStatus ? 'selected':''}>${escapeHtml(statusLabelA)}</option>
+                <option value="${escapeHtml(failStatus)}" ${defaultStatus===failStatus ? 'selected':''}>${escapeHtml(statusLabelB)}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field" style="margin-top:10px;">
+            <label>Note (optional)</label>
+            <textarea data-habit="${escapeHtml(h.id)}" data-track="note" placeholder="What helped? What got in the way?">${escapeHtml(noteVal)}</textarea>
+          </div>
+
+          <div class="row" style="margin-top:10px;">
+            <button class="btn primary wide" data-action="saveLog" data-habit="${escapeHtml(h.id)}">Save log</button>
+            <button class="btn ghost wide" data-action="clearLogInputs" data-habit="${escapeHtml(h.id)}">Clear fields</button>
+          </div>
+
+          <div class="hr"></div>
+
+          <div style="font-weight:950; margin-bottom:8px;">Recent logs</div>
+          <div class="muted small" style="margin-bottom:10px;">Edit notes anytime. Status changes update your graph and progress immediately.</div>
+
+          <div id="habit-${escapeHtml(h.id)}-logslist">
+            ${recentHtml}
+          </div>
+        </div>
+      `;
+    }
+
+function renderRecentLogs(h){
+  const logs = safeObj(h.logs);
+  const keys = Object.keys(logs).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k));
+  keys.sort((a,b) => (a < b ? 1 : -1));
+
+  // Persisted open/closed state per habit
+  appData.ui = safeObj(appData.ui);
+  appData.ui.recentOpen = safeObj(appData.ui.recentOpen);
+  const open = !!appData.ui.recentOpen[h.id];
+
+  // Build inner rows
+  let inner = '';
+  if (!keys.length){
+    inner = `<div class="panel"><div class="muted small">No logs yet. Start with a single calm entry today.</div></div>`;
+  } else {
+    const show = keys.slice(0, 30);
+    const isNeg = h.type === 'negative';
+    const succ = successStatusForType(h.type);
+    const fail = failStatusForType(h.type);
+    const aLabel = isNeg ? 'Resisted' : 'Completed';
+    const bLabel = isNeg ? 'Relapsed' : 'Missed';
+
+    inner = show.map(k => {
+      const e = logs[k] || {};
+      const st = String(e.status || fail); // default to fail, not success
+      const note = String(e.note ?? '');
+      return `
+        <div class="panel" style="margin-bottom:10px;">
+          <div class="inline">
+            <div class="field compact2">
+              <label>Date</label>
+              <input type="date" value="${escapeHtml(k)}" disabled />
+            </div>
+            <div class="field compact2">
+              <label>Status</label>
+              <select data-habit="${escapeHtml(h.id)}" data-logdate="${escapeHtml(k)}" data-logfield="status">
+                <option value="${escapeHtml(succ)}" ${st===succ?'selected':''}>${escapeHtml(aLabel)}</option>
+                <option value="${escapeHtml(fail)}" ${st===fail?'selected':''}>${escapeHtml(bLabel)}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field" style="margin-top:10px;">
+            <label>Note</label>
+            <textarea data-habit="${escapeHtml(h.id)}" data-logdate="${escapeHtml(k)}" data-logfield="note" placeholder="Optional…">${escapeHtml(note)}</textarea>
+          </div>
+
+          <div class="row" style="margin-top:10px; justify-content:flex-end;">
+            <button type="button" class="btn small danger" data-action="deleteLog" data-habit="${escapeHtml(h.id)}" data-date="${escapeHtml(k)}">Delete</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Wrap inner content in a toggleable section with a button
+  return `
+    <div class="secHead">
+      <div class="sectionTitle">Recent logs</div>
+      <button
+        type="button"
+        class="btn small ghost"
+        id="recentBtn-${escapeHtml(h.id)}"
+        data-action="toggleRecentLogs"
+        data-habit="${escapeHtml(h.id)}"
+        aria-expanded="${open ? 'true' : 'false'}"
+      >${open ? 'Hide' : 'Show'}</button>
+    </div>
+
+    <div class="recentBody" id="recent-${escapeHtml(h.id)}" ${open ? '' : 'hidden'}>
+      ${inner}
+    </div>
+  `;
+}
+
+    function renderReview(){
+      const root = $('#tab-review');
+      const habits = safeArr(appData.habits);
+
+      const weekStartISO = getReviewWeekISO();
+      const weekStart = parseISODate(weekStartISO) || startOfWeekMonday(new Date());
+      const weekEnd = addDays(weekStart, 7);
+
+      const global = safeObj(appData.reviews?.[weekStartISO]?.global);
+      const notes = safeObj(appData.reviews?.[weekStartISO]?.notes);
+
+      const habitBlocks = habits.length ? habits.map(h => {
+        const n = safeObj(notes?.[h.id]);
+        const identity = (safeObj(h.motivator).identity || '').trim();
+        const c7 = windowConsistencyPercent(h, 7);
+        const prog = periodProgress(h);
+
+        const promptA = identity ? `How did this week support: “${identity}”?` : 'How did this week support your identity?';
+
+        return `
+          <div class="card" style="margin-top:12px;">
+            <div class="cardHeader">
+              <div class="left">
+                <div class="hTitle">${escapeHtml(h.name || 'Untitled habit')}</div>
+                <div class="hMeta">
+                  <span class="tag ${h.type==='negative'?'bad':'good'}">${h.type==='negative'?'Negative':'Positive'}</span>
+                  <span class="tag muted">${escapeHtml(formatUnit(h.frequency.unit, h.frequency.target))}</span>
+                  <span class="muted2">7d ${escapeHtml(String(c7))}% • ${escapeHtml(prog.label)} ${escapeHtml(String(prog.actual))}/${escapeHtml(String(prog.target))}</span>
+                </div>
+              </div>
+            </div>
+            <div class="content">
+              <div class="grid two">
+                <div class="field">
+                  <label>What worked?</label>
+                  <textarea data-review-week="${escapeHtml(weekStartISO)}" data-review-habit="${escapeHtml(h.id)}" data-review-bind="worked"
+                    placeholder="What made it easier?">${escapeHtml(String(n.worked ?? ''))}</textarea>
+                </div>
+                <div class="field">
+                  <label>What got in the way?</label>
+                  <textarea data-review-week="${escapeHtml(weekStartISO)}" data-review-habit="${escapeHtml(h.id)}" data-review-bind="blocked"
+                    placeholder="What friction/cue showed up?">${escapeHtml(String(n.blocked ?? ''))}</textarea>
+                </div>
+                <div class="field">
+                  <label>One tweak for next week</label>
+                  <textarea data-review-week="${escapeHtml(weekStartISO)}" data-review-habit="${escapeHtml(h.id)}" data-review-bind="tweak"
+                    placeholder="Environment change, cue, or smaller step.">${escapeHtml(String(n.tweak ?? ''))}</textarea>
+                </div>
+                <div class="field">
+                  <label>${escapeHtml(promptA)}</label>
+                  <textarea data-review-week="${escapeHtml(weekStartISO)}" data-review-habit="${escapeHtml(h.id)}" data-review-bind="identity"
+                    placeholder="A sentence you’ll believe on hard days.">${escapeHtml(String(n.identity ?? ''))}</textarea>
+                </div>
+              </div>
+
+              <div class="success" style="margin-top:12px;">
+                <strong>Data-informed nudge:</strong>
+                <div class="small muted" style="margin-top:6px;">
+                  ${escapeHtml(insightsSuggestions(h)[0] || 'Keep the system gentle and consistent.')}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('') : `
+        <div class="panel">
+          <div style="font-weight:950; margin-bottom:6px;">No habits yet</div>
+          <div class="muted small">Create a habit on the Dashboard, then reflect here weekly.</div>
+        </div>
+      `;
+
+      root.innerHTML = `
+        <div class="reviewHero">
+          <p class="big">Weekly review</p>
+          <p class="smallp">
+            Calm reflection, no shame. Use what happened as data to improve the system (cues, friction, environment).
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="cardHeader">
+            <div class="left">
+              <div class="hTitle">Week of ${escapeHtml(weekStartISO)}</div>
+              <div class="hMeta">
+                <span class="muted2">${escapeHtml(toISODate(weekStart))} → ${escapeHtml(toISODate(addDays(weekEnd,-1)))}</span>
+              </div>
+            </div>
+            <div class="right">
+              <button class="btn small ghost" data-action="shiftWeek" data-dir="-1" aria-label="Previous week">←</button>
+              <button class="btn small ghost" data-action="shiftWeek" data-dir="1" aria-label="Next week">→</button>
+            </div>
+          </div>
+          <div class="content">
+            <div class="grid two">
+              <div class="field">
+                <label>Wins (any size)</label>
+                <textarea data-review-week="${escapeHtml(weekStartISO)}" data-review-global="wins" placeholder="What went well?">${escapeHtml(String(global.wins ?? ''))}</textarea>
+              </div>
+              <div class="field">
+                <label>What did you learn?</label>
+                <textarea data-review-week="${escapeHtml(weekStartISO)}" data-review-global="learn" placeholder="What did the week teach you about cues/fatigue/time?">${escapeHtml(String(global.learn ?? ''))}</textarea>
+              </div>
+              <div class="field">
+                <label>Next week — one system change</label>
+                <textarea data-review-week="${escapeHtml(weekStartISO)}" data-review-global="next" placeholder="Make the right action easier (or the wrong one harder).">${escapeHtml(String(global.next ?? ''))}</textarea>
+              </div>
+              <div class="field">
+                <label>Identity reinforcement</label>
+                <textarea data-review-week="${escapeHtml(weekStartISO)}" data-review-global="identity" placeholder="Who are you becoming?">${escapeHtml(String(global.identity ?? ''))}</textarea>
+              </div>
+            </div>
+
+            <div class="row" style="margin-top:12px;">
+              <button class="btn primary wide" data-action="saveReview" data-week="${escapeHtml(weekStartISO)}">Save review</button>
+              <button class="btn ghost wide" data-action="copyReviewPrompt">Copy prompts</button>
+            </div>
+
+            <div class="muted tiny" style="margin-top:10px;">
+              Everything saves instantly, but “Save review” gives you a clear checkpoint.
+            </div>
+          </div>
+        </div>
+
+        ${habitBlocks}
+      `;
+    }
+
+    function renderSettings(){
+      const root = $('#tab-settings');
+      const updated = appData.updatedAt ? new Date(appData.updatedAt).toLocaleString() : '—';
+
+      const diag = runDiagnostics();
+
+      root.innerHTML = `
+        <div class="card">
+          <div class="cardHeader">
+            <div class="left">
+              <div class="hTitle">Settings</div>
+              <div class="hMeta">
+                <span class="tag muted">Offline • localStorage</span>
+                <span class="muted2">Last saved: ${escapeHtml(updated)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="content">
+            <div class="panel">
+              <div style="font-weight:950; margin-bottom:8px;">Backup & restore</div>
+              <div class="row">
+                <button class="btn primary wide" data-action="openExport">Export JSON</button>
+                <button class="btn ghost wide" data-action="openImport">Import JSON</button>
+              </div>
+              <div class="muted small" style="margin-top:10px;">
+                Export regularly if this matters to you. Import supports merge or replace (with validation).
+              </div>
+            </div>
+
+            <div class="panel" style="margin-top:12px;">
+              <div style="font-weight:950; margin-bottom:8px;">Danger zone</div>
+              <button class="btn danger wide" data-action="clearAll">Clear all data</button>
+              <div class="muted small" style="margin-top:10px;">
+                This deletes all habits, logs, and reviews from this device.
+              </div>
+            </div>
+
+            <div class="panel" style="margin-top:12px;">
+              <div style="font-weight:950; margin-bottom:8px;">Diagnostics</div>
+              <div class="${diag.ok ? 'success':'error'}">
+                <strong>${diag.ok ? 'All checks passed' : 'Some checks need attention'}</strong>
+                <div class="small muted" style="margin-top:6px;">
+                  ${escapeHtml(diag.summary)}
+                </div>
+              </div>
+              <div class="muted tiny" style="margin-top:10px;">
+                These checks help prevent common failure modes: missing renders, broken persistence, invalid state.
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function hydrateVisibleCharts(){
+      // Render charts for open habits whose Insights panel is visible OR chart container exists within open details.
+      // We render lazily on open, and also when logs change.
+      const openDetails = $$('details.habit[open]');
+      openDetails.forEach(det => {
+        const hid = det.getAttribute('data-habit');
+        if (!hid) return;
+        const sub = appData.ui.habitSubtabs?.[hid] || 'track';
+        if (sub !== 'insights') return;
+        const chartEl = $(`#habit-${CSS.escape(hid)}-chart`);
+        const h = getHabit(hid);
+        if (chartEl && h){
+          renderChartSVG(h, chartEl, getInsightRangeKey(hid));
+        }
+      });
+    }
+
+    function updateHabitVisuals(habitId){
+      const h = getHabit(habitId);
+      if (!h) return;
+
+      const sumWrap = $(`#habit-${CSS.escape(habitId)}-summary`);
+      if (sumWrap){
+        const prog = periodProgress(h);
+        const c7 = windowConsistencyPercent(h, 7);
+        const streak = currentDailyStreak(h);
+        const last12 = actualCountLast12Months(h);
+        sumWrap.innerHTML = renderHabitSummary(h, { prog, c7, streak, last12 });
+      }
+
+      // If insights panel visible, update chart
+      const sub = appData.ui.habitSubtabs?.[habitId] || 'track';
+      if (sub === 'insights'){
+        const chartEl = $(`#habit-${CSS.escape(habitId)}-chart`);
+        if (chartEl) renderChartSVG(h, chartEl, getInsightRangeKey(habitId));
+      }
+    }
+
+    /* =========================
+       Review week helpers
+    ========================== */
+
+    function getReviewWeekISO(){
+      // store in ui, fallback to current week start
+      const ui = safeObj(appData.ui);
+      const existing = ui.reviewWeekISO;
+      if (existing && /^\d{4}-\d{2}-\d{2}$/.test(existing)) return existing;
+      const wk = startOfWeekMonday(new Date());
+      const iso = toISODate(wk);
+      appData.ui.reviewWeekISO = iso;
+      scheduleSave();
+      return iso;
+    }
+
+    function shiftReviewWeek(dir){
+      const cur = parseISODate(getReviewWeekISO()) || startOfWeekMonday(new Date());
+      const next = addDays(cur, dir * 7);
+      const iso = toISODate(next);
+      appData.ui.reviewWeekISO = iso;
+      saveData({ toast:false });
+      render();
+      appData.ui.activeTab = 'review';
+      saveData({ toast:false });
+      applyActiveTab();
+      renderNavActive();
+    }
+
+    function ensureReviewWeek(weekISO){
+      if (!appData.reviews) appData.reviews = {};
+      if (!appData.reviews[weekISO]) appData.reviews[weekISO] = { global:{}, notes:{} };
+      if (!appData.reviews[weekISO].global) appData.reviews[weekISO].global = {};
+      if (!appData.reviews[weekISO].notes) appData.reviews[weekISO].notes = {};
+    }
+
+function ensureDefaultLogsUpToToday(){
+  const ui = appData.ui = safeObj(appData.ui);
+  const todayD = parseISODate(todayISO());
+  if (!todayD) return;
+
+  const last = parseISODate(ui.lastOpenISO || '');
+  let startD = last ? addDays(last, 1) : todayD;
+  if (startD > todayD) startD = todayD;
+
+  const days = diffDays(startD, todayD);
+  let changed = false;
+
+  for (let i = 0; i <= days; i++){
+    const d = addDays(startD, i);
+    const iso = toISODate(d);
+
+    for (const h of appData.habits){
+      if (!h.logs || typeof h.logs !== 'object') { h.logs = {}; changed = true; }
+
+      const succ = successStatusForType(h.type);
+      const fail = failStatusForType(h.type);
+      const target = Math.max(1, Math.round(Number(safeObj(h.frequency).target) || 1));
+      const unit = safeObj(h.frequency).unit;
+
+      if (!h.logs[iso]){
+        h.logs[iso] = {
+          date: iso,
+          status: fail,
+          note: '',
+          count: 0,
+          auto: true,
+          updatedAt: new Date().toISOString()
+        };
+        h.updatedAt = new Date().toISOString();
+        changed = true;
+      } else {
+        const e = safeObj(h.logs[iso]);
+        let c = Number(e.count);
+        if (!Number.isFinite(c) || c < 0) c = (String(e.status || '').toLowerCase() === succ) ? 1 : 0;
+        c = Math.round(c);
+
+        // For day-unit, a success implies full target
+        if (unit === 'day' && String(e.status || '').toLowerCase() === succ && c < target) c = target;
+
+        if (e.count !== c) { h.logs[iso].count = c; changed = true; }
+        if (typeof e.auto !== 'boolean') { h.logs[iso].auto = false; changed = true; }
+      }
+    }
+  }
+
+  const newLast = toISODate(todayD);
+  if (ui.lastOpenISO !== newLast){
+    ui.lastOpenISO = newLast;
+    changed = true;
+  }
+
+  if (changed) saveData({ toast:false });
+}
+
+
+    /* =========================
+       Actions
+    ========================== */
+
+    function toggleCreate(open){
+      const next = (typeof open === 'boolean') ? open : !appData.ui.createOpen;
+      appData.ui.createOpen = next;
+      saveData({ toast:false });
+      renderDashboard(); // re-render only dashboard for smoothness
+      appData.ui.activeTab = 'dashboard';
+      applyActiveTab();
+      renderNavActive();
+    }
+
+    function clearCreateFields(){
+      // If create form exists, clear DOM fields only (state not used yet)
+      const ids = ['c_name','c_type','c_desc','c_start','c_unit','c_target','c_ident','c_outcome','c_why'];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (el.tagName === 'SELECT') {
+          if (id === 'c_type') el.value = 'positive';
+          if (id === 'c_unit') el.value = 'week';
+        } else if (el.type === 'date') {
+          el.value = todayISO();
+        } else if (el.type === 'number') {
+          el.value = '1';
+        } else {
+          el.value = '';
+        }
+      });
+      const err = $('#createErr');
+      if (err) err.innerHTML = '';
+    }
+
+    function validateCreate(){
+      const name = ($('#c_name')?.value || '').trim();
+      const type = ($('#c_type')?.value || 'positive').trim();
+      const desc = ($('#c_desc')?.value || '').trim();
+      const start = ($('#c_start')?.value || todayISO()).trim();
+      const unit = ($('#c_unit')?.value || 'week').trim();
+      const targetRaw = ($('#c_target')?.value || '1').trim();
+
+      const ident = ($('#c_ident')?.value || '').trim();
+      const outcome = ($('#c_outcome')?.value || '').trim();
+      const why = ($('#c_why')?.value || '').trim();
+
+      const errors = [];
+
+      if (!name) errors.push('Habit name is required.');
+      if (!desc) errors.push('Description is required.');
+      if (!parseISODate(start)) errors.push('Start date is invalid.');
+      const target = Number(targetRaw);
+      if (!Number.isFinite(target) || target <= 0) errors.push('Frequency target must be a positive number.');
+      if (!['day','week','month'].includes(unit)) errors.push('Frequency unit is invalid.');
+      if (!['positive','negative'].includes(type)) errors.push('Habit type is invalid.');
+
+      if (!ident) errors.push('Identity statement is required.');
+      if (!outcome) errors.push('Long-term outcome is required.');
+      if (!why) errors.push('Why this matters is required.');
+
+      return { ok: errors.length === 0, errors, value: { name, type, desc, start, unit, target: Math.round(target), ident, outcome, why } };
+    }
+
+    function createHabitFromForm(){
+      if (appData.habits.length >= MAX_HABITS){
+        showToast('Limit reached', `You can have up to ${MAX_HABITS} habits.`, { icon: '!' });
+        return;
+      }
+
+      const v = validateCreate();
+      const errBox = $('#createErr');
+
+      if (!v.ok){
+        if (errBox){
+          errBox.innerHTML = `<div class="error"><strong>Please fix:</strong><ul style="margin:8px 0 0; padding-left:18px;">${v.errors.map(e => `<li>${escapeHtml(e)}</li>`).join('')}</ul></div>`;
+        }
+        showToast('Not saved', 'Some required fields are missing or invalid.', { icon:'!' });
+        return;
+      }
+
+      const x = v.value;
+      const habit = {
+        id: uid(),
+        name: x.name,
+        type: x.type,
+        description: x.desc,
+        startDate: x.start,
+        frequency: { unit: x.unit, target: x.target },
+        motivator: { identity: x.ident, outcome: x.outcome, why: x.why },
+        design: {
+          loop: { cue:'', craving:'', response:'', reward:'' },
+          laws: { obvious:'', attractive:'', easy:'', satisfying:'' }
+        },
+        logs: {
+  [todayISO()]: {
+    date: todayISO(),
+    status: failStatusForType(x.type),
+    note: '',
+    count: 0,
+    auto: true,
+    updatedAt: new Date().toISOString()
+  }
+},
+
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      appData.habits.push(habit);
+      appData.ui.createOpen = false;
+      saveData({ toast:true, toastMsg:'Habit created and ready to track.' });
+      render(); // ensures habit appears immediately
+
+      // Open the newly created habit for convenience
+      requestAnimationFrame(() => {
+        const det = document.getElementById(`habit-${habit.id}`);
+        if (det && det.tagName === 'DETAILS'){
+          det.open = true;
+          appData.ui.habitSubtabs[habit.id] = 'track';
+          saveData({ toast:false });
+        }
+      });
+    }
+
+    function deleteHabit(habitId){
+      const h = getHabit(habitId);
+      if (!h) return;
+
+      const name = h.name || 'this habit';
+      const msg = `Delete “${name}”?\n\nThis removes its logs and design notes from this device. Consider Export first.`;
+      if (!confirm(msg)) return;
+
+      appData.habits = appData.habits.filter(x => x.id !== habitId);
+      if (appData.ui.habitSubtabs) delete appData.ui.habitSubtabs[habitId];
+
+      // remove review notes for this habit (optional hygiene)
+      const rev = safeObj(appData.reviews);
+      for (const wk of Object.keys(rev)){
+        if (rev[wk]?.notes && rev[wk].notes[habitId]) delete rev[wk].notes[habitId];
+      }
+
+      saveData({ toast:true, toastMsg:'Habit deleted.' });
+      render();
+    }
+
+    function saveHabit(habitId){
+      const h = getHabit(habitId);
+      if (!h) return;
+
+      // enforce required motivator fields (since editable)
+      const m = safeObj(h.motivator);
+      const missing = [];
+      if (!(String(m.identity||'').trim())) missing.push('Identity statement');
+      if (!(String(m.outcome||'').trim())) missing.push('Long-term outcome');
+      if (!(String(m.why||'').trim())) missing.push('Why this matters');
+
+      if (missing.length){
+        showToast('Not saved', `Missing required motivator: ${missing.join(', ')}`, { icon:'!' });
+        // focus first missing
+        const first = missing[0];
+        const selector = first.startsWith('Identity') ? 'motivator.identity' : first.startsWith('Long') ? 'motivator.outcome' : 'motivator.why';
+        const input = document.querySelector(`[data-habit="${CSS.escape(habitId)}"][data-bind="${selector}"]`);
+        if (input) input.focus();
+        return;
+      }
+
+      h.updatedAt = new Date().toISOString();
+      saveData({ toast:true, toastMsg:'Habit saved.' });
+      updateHabitVisuals(habitId);
+      hydrateVisibleCharts();
+    }
+
+    function setHabitSubtab(habitId, subtab){
+      if (!appData.ui.habitSubtabs) appData.ui.habitSubtabs = {};
+      appData.ui.habitSubtabs[habitId] = subtab;
+      saveData({ toast:false });
+
+      const det = document.getElementById(`habit-${habitId}`);
+      if (!det) return;
+
+      // buttons
+      $$(`[data-action="habitSubtab"][data-habit="${CSS.escape(habitId)}"]`, det).forEach(btn => {
+        const isActive = btn.getAttribute('data-subtab') === subtab;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+
+      // panels
+      ['track','design','insights','motivation','edit'].forEach(t => {
+        const p = document.getElementById(`panel-${habitId}-${t}`);
+        if (p) p.classList.toggle('hidden', t !== subtab);
+      });
+
+      if (subtab === 'insights'){
+        const h = getHabit(habitId);
+        const chartEl = document.getElementById(`habit-${habitId}-chart`);
+        if (h && chartEl){
+          renderChartSVG(h, chartEl, getInsightRangeKey(habitId));
+        }
+      }
+    }
+
+    function saveLog(habitId){
+      const h = getHabit(habitId);
+      if (!h) return;
+
+      const det = document.getElementById(`habit-${habitId}`);
+      const dateEl = det?.querySelector(`[data-track="date"][data-habit="${CSS.escape(habitId)}"]`);
+      const statusEl = det?.querySelector(`[data-track="status"][data-habit="${CSS.escape(habitId)}"]`);
+      const noteEl = det?.querySelector(`[data-track="note"][data-habit="${CSS.escape(habitId)}"]`);
+
+      const date = (dateEl?.value || '').trim();
+      const status = (statusEl?.value || '').trim().toLowerCase();
+      const note = String(noteEl?.value ?? '');
+
+      if (!parseISODate(date)){
+        showToast('Not saved', 'Please choose a valid date.', { icon:'!' });
+        if (dateEl) dateEl.focus();
+        return;
+      }
+
+      if (!isValidStatusForType(h.type, status)){
+        showToast('Not saved', 'Please choose a valid status.', { icon:'!' });
+        if (statusEl) statusEl.focus();
+        return;
+      }
+
+      if (!h.logs || typeof h.logs !== 'object') h.logs = {};
+      let count = 0;
+const target = Math.max(1, Math.round(Number(safeObj(h.frequency).target) || 1));
+if (safeObj(h.frequency).unit === 'day'){
+  count = (status === successStatusForType(h.type)) ? target : 0;
+} else {
+  count = (status === successStatusForType(h.type)) ? 1 : 0;
+}
+
+h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().toISOString() };
+
+      h.updatedAt = new Date().toISOString();
+
+      saveData({ toast:false });
+      updateHabitVisuals(habitId);
+
+      // update recent logs list without re-rendering whole app
+      const list = document.getElementById(`habit-${habitId}-logslist`);
+      if (list) list.innerHTML = renderRecentLogs(h);
+
+      // also update chart if visible
+      hydrateVisibleCharts();
+
+      const succ = successStatusForType(h.type);
+      if (status === succ){
+        showToast('Nice', motivationalLine(h), { icon:'✓', ms:5000 });
+      } else {
+        showToast('Logged', 'No shame. This is just data to improve the system.', { icon:'•', ms:2600 });
+      }
+    }
+
+    function deleteLog(habitId, date){
+      const h = getHabit(habitId);
+      if (!h) return;
+      if (!h.logs || typeof h.logs !== 'object' || !h.logs[date]) return;
+
+      if (!confirm(`Delete log for ${date}?`)) return;
+
+      delete h.logs[date];
+      h.updatedAt = new Date().toISOString();
+      saveData({ toast:true, toastMsg:'Log deleted.' });
+      updateHabitVisuals(habitId);
+
+      const list = document.getElementById(`habit-${habitId}-logslist`);
+      if (list) list.innerHTML = renderRecentLogs(h);
+
+      hydrateVisibleCharts();
+    }
+
+    function clearLogInputs(habitId){
+      const det = document.getElementById(`habit-${habitId}`);
+      if (!det) return;
+      const dateEl = det.querySelector(`[data-track="date"][data-habit="${CSS.escape(habitId)}"]`);
+      const statusEl = det.querySelector(`[data-track="status"][data-habit="${CSS.escape(habitId)}"]`);
+      const noteEl = det.querySelector(`[data-track="note"][data-habit="${CSS.escape(habitId)}"]`);
+      if (dateEl) dateEl.value = todayISO();
+      if (statusEl){
+        const h = getHabit(habitId);
+        if (h) statusEl.value = successStatusForType(h.type);
+      }
+      if (noteEl) noteEl.value = '';
+      showToast('Cleared', 'Fields cleared (no saved data changed).', { icon:'↺', ms:1800 });
+    }
+
+    function openModal(title, bodyHtml, footHtml=''){
+      const modal = $('#modal');
+      $('#modalTitle').textContent = title;
+      $('#modalBody').innerHTML = bodyHtml;
+      $('#modalFoot').innerHTML = footHtml;
+      modal.classList.add('active');
+      modal.setAttribute('aria-hidden','false');
+      // focus first focusable
+      setTimeout(() => {
+        const focusable = modal.querySelector('textarea, input, button, select, [tabindex]:not([tabindex="-1"])');
+        if (focusable) focusable.focus();
+      }, 0);
+    }
+
+    function closeModal(){
+      const modal = $('#modal');
+      modal.classList.remove('active');
+      modal.setAttribute('aria-hidden','true');
+    }
+
+    function openExport(){
+      const json = JSON.stringify(appData, null, 2);
+      const body = `
+        <div class="muted small" style="margin-bottom:10px;">
+          Copy this JSON somewhere safe. (This app runs offline; backups are your safety net.)
+        </div>
+        <textarea id="exportText" readonly>${escapeHtml(json)}</textarea>
+      `;
+      const foot = `
+        <button class="btn ghost" data-action="copyExport">Copy</button>
+        <button class="btn primary" data-action="downloadExport">Download</button>
+        <button class="btn ghost" data-action="closeModal">Done</button>
+      `;
+      openModal('Export JSON', body, foot);
+    }
+
+    function openImport(){
+      const body = `
+        <div class="muted small" style="margin-bottom:10px;">
+          Paste exported JSON here. Import is validated. You can merge (keep existing) or replace.
+        </div>
+        <textarea id="importText" placeholder="Paste JSON…"></textarea>
+        <div id="importErr" style="margin-top:10px;"></div>
+      `;
+      const foot = `
+        <button class="btn ghost" data-action="closeModal">Cancel</button>
+        <button class="btn ghost" data-action="importMerge">Merge</button>
+        <button class="btn primary" data-action="importReplace">Replace</button>
+      `;
+      openModal('Import JSON', body, foot);
+    }
+
+    function validateImported(rawText){
+      let parsed;
+      try{
+        parsed = JSON.parse(rawText);
+      }catch(e){
+        return { ok:false, error:'That isn’t valid JSON.' };
+      }
+      const normalized = normalizeData(parsed);
+
+      // required: motivator must be present and filled (per habit)
+      for (const h of normalized.habits){
+        const m = safeObj(h.motivator);
+        if (!String(m.identity||'').trim() || !String(m.outcome||'').trim() || !String(m.why||'').trim()){
+          return { ok:false, error:`Import blocked: habit “${h.name || 'Untitled'}” is missing required motivator fields.` };
+        }
+      }
+
+      if (normalized.habits.length > MAX_HABITS){
+        return { ok:false, error:`Import has ${normalized.habits.length} habits. Max is ${MAX_HABITS}.` };
+      }
+
+      return { ok:true, data: normalized };
+    }
+
+    function importData(mode){
+      const text = $('#importText')?.value || '';
+      const box = $('#importErr');
+      const v = validateImported(text);
+      if (!v.ok){
+        if (box) box.innerHTML = `<div class="error">${escapeHtml(v.error)}</div>`;
+        showToast('Import failed', v.error, { icon:'!' });
+        return;
+      }
+
+      const incoming = v.data;
+
+      if (mode === 'replace'){
+        if (!confirm('Replace all existing data with this import?')) return;
+        appData = incoming;
+        // keep current tab
+        appData.ui = appData.ui || {};
+        appData.ui.activeTab = 'settings';
+        saveData({ toast:true, toastMsg:'Import complete (replaced).' });
+        closeModal();
+        render();
+        return;
+      }
+
+      // merge
+      const byId = new Map(appData.habits.map(h => [h.id, h]));
+      const byName = new Map(appData.habits.map(h => [String(h.name||'').toLowerCase(), h]));
+
+      for (const h of incoming.habits){
+        if (byId.has(h.id)){
+          // merge fields, logs union (import wins)
+          const cur = byId.get(h.id);
+          cur.name = h.name;
+          cur.type = h.type;
+          cur.description = h.description;
+          cur.startDate = h.startDate;
+          cur.frequency = deepClone(h.frequency);
+          cur.motivator = deepClone(h.motivator);
+          cur.design = deepClone(h.design);
+          cur.logs = Object.assign({}, safeObj(cur.logs), safeObj(h.logs));
+          cur.updatedAt = new Date().toISOString();
+        } else {
+          // if same name exists, avoid duplicates by appending
+          const key = String(h.name||'').toLowerCase();
+          if (key && byName.has(key)){
+            h.name = (h.name || 'Habit') + ' (imported)';
+          }
+          appData.habits.push(h);
+          byId.set(h.id, h);
+        }
+      }
+
+      // merge reviews (import wins)
+      appData.reviews = Object.assign({}, safeObj(appData.reviews), safeObj(incoming.reviews));
+
+      // enforce max
+      if (appData.habits.length > MAX_HABITS){
+        appData.habits = appData.habits.slice(0, MAX_HABITS);
+      }
+
+      saveData({ toast:true, toastMsg:'Import complete (merged).' });
+      closeModal();
+      render();
+    }
+
+    function clearAll(){
+      const phrase = 'CLEAR';
+      const ok = prompt(`Type ${phrase} to delete all data from this device:`);
+      if (ok !== phrase) {
+        showToast('Cancelled', 'Nothing was deleted.', { icon:'↺', ms:1800 });
+        return;
+      }
+      appData = normalizeData(null);
+      saveData({ toast:true, toastMsg:'All data cleared.' });
+      render();
+    }
+
+    function quickBackup(){
+      openExport();
+    }
+
+    function copyToClipboard(text){
+      // best effort
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        return navigator.clipboard.writeText(text);
+      }
+      // fallback
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position='fixed';
+      ta.style.left='-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try{ document.execCommand('copy'); }catch(e){}
+      document.body.removeChild(ta);
+      return Promise.resolve();
+    }
+
+    function downloadText(filename, text){
+      const blob = new Blob([text], { type:'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+
+    function saveReview(weekISO){
+      ensureReviewWeek(weekISO);
+      saveData({ toast:true, toastMsg:'Weekly review saved.' });
+    }
+
+    function copyReviewPrompt(){
+      const prompts =
+`Weekly review prompts:
+- Wins (any size)
+- What did you learn (cues, friction, timing)?
+- Next week: one system change
+- Identity reinforcement
+
+Per habit:
+- What worked?
+- What got in the way?
+- One tweak for next week
+- How did this support your identity?`;
+      copyToClipboard(prompts).then(() => {
+        showToast('Copied', 'Prompts copied to clipboard.', { icon:'⧉', ms:2000 });
+      });
+    }
+
+    /* =========================
+       Input Handling (Immediate Save)
+    ========================== */
+
+    function handleBoundInput(el){
+      const habitId = el.getAttribute('data-habit');
+      const path = el.getAttribute('data-bind');
+      if (!habitId || !path) return;
+      const h = getHabit(habitId);
+      if (!h) return;
+
+      let val = el.value;
+
+if (path === 'name'){
+  const trimmed = String(val || '').trim();
+  if (!trimmed){
+    el.value = h.name || '';
+    return;
+  }
+  val = trimmed;
+}
+
+if (path === 'description'){
+  const trimmed = String(val || '').trim();
+  if (!trimmed){
+    el.value = h.description || '';
+    return;
+  }
+  val = trimmed;
+}
+
+if (path === 'startDate'){
+  const s = String(val || '').trim();
+  if (!parseISODate(s)){
+    el.value = h.startDate || todayISO();
+    return;
+  }
+  val = s;
+}
+
+
+      // special cases: frequency target numeric
+      if (path === 'frequency.target'){
+        const n = Number(val);
+        val = (Number.isFinite(n) && n > 0) ? Math.round(n) : 1;
+        el.value = String(val);
+      }
+
+      if (path === 'frequency.unit'){
+        const u = String(val);
+        if (!['day','week','month'].includes(u)) return;
+      }
+
+      if (path === 'type'){
+        const t = String(val);
+        if (!['positive','negative'].includes(t)) return;
+      }
+
+      setByPath(h, path, val);
+h.updatedAt = new Date().toISOString();
+scheduleSave();
+
+// If frequency changes, keep counts consistent with new unit/target
+if (path === 'frequency.target' || path === 'frequency.unit'){
+  normalizeLogCountsForFrequency(h);
+  h.updatedAt = new Date().toISOString();
+  scheduleSave();
+  updateDashboardQuick(habitId);
+}
+
+// Refresh the expanded visuals when core settings change
+if (path === 'frequency.target' || path === 'frequency.unit' || path === 'type'){
+  updateHabitVisuals(habitId);
+  hydrateVisibleCharts();
+}
+
+// Keep the collapsed summary header in sync (name/desc/freq)
+if (path === 'name' || path === 'description' || path === 'frequency.target' || path === 'frequency.unit'){
+  updateHabitHeader(habitId);
+}
+
+    }
+
+function handleLogEdit(el){
+  const habitId = el.getAttribute('data-habit');
+  const date = el.getAttribute('data-logdate');
+  const field = el.getAttribute('data-logfield');
+  if (!habitId || !date || !field) return;
+
+  const h = getHabit(habitId);
+  if (!h) return;
+
+  const succ = successStatusForType(h.type);
+  const fail = failStatusForType(h.type);
+
+  const unit = safeObj(h.frequency).unit;
+  const target = Math.max(1, Math.round(Number(safeObj(h.frequency).target) || 1));
+
+  if (!h.logs) h.logs = {};
+  if (!h.logs[date]){
+    h.logs[date] = {
+      date,
+      status: fail,
+      note: '',
+      count: 0,
+      auto: true,
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  if (field === 'status'){
+    const st = String(el.value || '').toLowerCase();
+    if (!isValidStatusForType(h.type, st)) return;
+
+    h.logs[date].status = st;
+    h.logs[date].auto = false;
+    h.logs[date].updatedAt = new Date().toISOString();
+
+    // keep count consistent with unit + status
+    if (unit === 'day'){
+      h.logs[date].count = (st === succ) ? target : 0;
+    } else {
+      h.logs[date].count = (st === succ) ? 1 : 0;
+    }
+
+    h.updatedAt = new Date().toISOString();
+    scheduleSave();
+
+    updateHabitVisuals(habitId);
+    updateDashboardQuick(habitId); // keeps the collapsed "Done/Undo/Reset" button correct if date is today
+    hydrateVisibleCharts();
+    return;
+  }
+
+  if (field === 'note'){
+    h.logs[date].note = String(el.value ?? '');
+    h.logs[date].auto = false;
+    h.logs[date].updatedAt = new Date().toISOString();
+    h.updatedAt = new Date().toISOString();
+    scheduleSave();
+    return;
+  }
+}
+
+
+    function handleReviewInput(el){
+      const weekISO = el.getAttribute('data-review-week');
+      if (!weekISO || !/^\d{4}-\d{2}-\d{2}$/.test(weekISO)) return;
+
+      ensureReviewWeek(weekISO);
+
+      const globalKey = el.getAttribute('data-review-global');
+      const habitId = el.getAttribute('data-review-habit');
+      const bind = el.getAttribute('data-review-bind');
+
+      if (globalKey){
+        appData.reviews[weekISO].global[globalKey] = String(el.value ?? '');
+        scheduleSave();
+        return;
+      }
+      if (habitId && bind){
+        if (!appData.reviews[weekISO].notes[habitId]) appData.reviews[weekISO].notes[habitId] = {};
+        appData.reviews[weekISO].notes[habitId][bind] = String(el.value ?? '');
+        scheduleSave();
+      }
+    }
+
+    /* =========================
+       Diagnostics / Self-checks
+    ========================== */
+
+    function runDiagnostics(){
+      try{
+        // Invariants
+        const d = normalizeData(appData);
+        if (d.version !== SCHEMA_VERSION) return { ok:false, summary:'Schema version mismatch.' };
+        if (!Array.isArray(d.habits)) return { ok:false, summary:'Habits array missing.' };
+        if (d.habits.length > MAX_HABITS) return { ok:false, summary:'Habit count exceeds limit.' };
+
+        // Validate habits
+        for (const h of d.habits){
+          if (!h.id || !h.name) return { ok:false, summary:'A habit is missing id or name.' };
+          if (!['positive','negative'].includes(h.type)) return { ok:false, summary:`Habit “${h.name}” has invalid type.` };
+          const f = safeObj(h.frequency);
+          if (!['day','week','month'].includes(f.unit)) return { ok:false, summary:`Habit “${h.name}” has invalid frequency unit.` };
+          if (!Number.isFinite(Number(f.target)) || Number(f.target) <= 0) return { ok:false, summary:`Habit “${h.name}” has invalid target.` };
+          const m = safeObj(h.motivator);
+          if (!String(m.identity||'').trim() || !String(m.outcome||'').trim() || !String(m.why||'').trim()){
+            return { ok:false, summary:`Habit “${h.name}” is missing required motivator fields.` };
+          }
+          // logs validity
+          const logs = safeObj(h.logs);
+          for (const k of Object.keys(logs)){
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(k)) return { ok:false, summary:`Habit “${h.name}” has a malformed log date.` };
+            const st = String(logs[k]?.status || '').toLowerCase();
+            if (!isValidStatusForType(h.type, st)) return { ok:false, summary:`Habit “${h.name}” has an invalid log status.` };
+          }
+        }
+
+        // Storage write/read check (non-destructive)
+        const probeKey = STORAGE_KEY + '_probe';
+        localStorage.setItem(probeKey, JSON.stringify({ t: Date.now() }));
+        localStorage.removeItem(probeKey);
+
+        return { ok:true, summary:'State shape, motivators, logs, and storage access look good.' };
+      }catch(e){
+        return { ok:false, summary:'Diagnostics failed due to an unexpected error.' };
+      }
+    }
+
+    /* =========================
+       Event Wiring
+    ========================== */
+
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+
+      const action = btn.getAttribute('data-action');
+
+if (action === 'dashToggle'){
+  e.preventDefault();
+  e.stopPropagation();
+  const hid = btn.getAttribute('data-habit');
+  if (!hid) return;
+  dashToggle(hid);
+  return;
+}
+
+if (action === 'toggleRecentLogs'){
+  e.preventDefault();
+  e.stopPropagation();
+
+  const hid = btn.getAttribute('data-habit');
+  if (!hid) return;
+
+  appData.ui = safeObj(appData.ui);
+  appData.ui.recentOpen = safeObj(appData.ui.recentOpen);
+
+  const next = !appData.ui.recentOpen[hid];
+  appData.ui.recentOpen[hid] = next;
+  saveData({ toast:false });
+
+  const body = document.getElementById(`recent-${hid}`);
+  const b = document.getElementById(`recentBtn-${hid}`);
+  if (body) body.hidden = !next;
+  if (b){
+    b.setAttribute('aria-expanded', next ? 'true' : 'false');
+    b.textContent = next ? 'Hide' : 'Show';
+  }
+  return;
+}
+
+if (action === 'setInsightRange'){
+  e.preventDefault();
+  e.stopPropagation();
+
+  const hid = btn.getAttribute('data-habit');
+  const rk = btn.getAttribute('data-range');
+  if (!hid || !INSIGHT_RANGES[rk]) return;
+
+  appData.ui = safeObj(appData.ui);
+  appData.ui.insightsRange = safeObj(appData.ui.insightsRange);
+  appData.ui.insightsRange[hid] = rk;
+  saveData({ toast:false });
+
+  const h = getHabit(hid);
+  const panel = document.getElementById(`panel-${hid}-insights`);
+  if (h && panel){
+    panel.innerHTML = renderHabitInsightsPanel(h);
+    const chartEl = document.getElementById(`habit-${hid}-chart`);
+    if (chartEl) renderChartSVG(h, chartEl, rk);
+  }
+  return;
+}
+
+      if (action === 'switchTab'){
+        const tab = btn.getAttribute('data-tab');
+        if (!tab) return;
+        appData.ui.activeTab = tab;
+        saveData({ toast:false });
+        applyActiveTab();
+        renderNavActive();
+        // If switching to dashboard, ensure charts can render after any open details
+        if (tab === 'dashboard') setTimeout(hydrateVisibleCharts, 0);
+        return;
+      }
+
+      if (action === 'toggleCreate'){
+        toggleCreate();
+        return;
+      }
+
+      if (action === 'cancelCreate'){
+        toggleCreate(false);
+        clearCreateFields();
+        showToast('Cancelled', 'Nothing was saved.', { icon:'↺', ms:1800 });
+        return;
+      }
+
+      if (action === 'saveCreate'){
+        createHabitFromForm();
+        return;
+      }
+
+      if (action === 'habitSubtab'){
+        const hid = btn.getAttribute('data-habit');
+        const sub = btn.getAttribute('data-subtab');
+        if (!hid || !sub) return;
+        setHabitSubtab(hid, sub);
+        return;
+      }
+
+      if (action === 'saveHabit'){
+        const hid = btn.getAttribute('data-habit');
+        if (!hid) return;
+        saveHabit(hid);
+        return;
+      }
+
+      if (action === 'deleteHabit'){
+        const hid = btn.getAttribute('data-habit');
+        if (!hid) return;
+        deleteHabit(hid);
+        return;
+      }
+
+      if (action === 'saveLog'){
+        const hid = btn.getAttribute('data-habit');
+        if (!hid) return;
+        saveLog(hid);
+        return;
+      }
+
+      if (action === 'deleteLog'){
+        const hid = btn.getAttribute('data-habit');
+        const date = btn.getAttribute('data-date');
+        if (!hid || !date) return;
+        deleteLog(hid, date);
+        return;
+      }
+
+      if (action === 'clearLogInputs'){
+        const hid = btn.getAttribute('data-habit');
+        if (!hid) return;
+        clearLogInputs(hid);
+        return;
+      }
+
+      if (action === 'openExport'){
+        openExport();
+        return;
+      }
+
+      if (action === 'openImport'){
+        openImport();
+        return;
+      }
+
+      if (action === 'closeModal'){
+        closeModal();
+        return;
+      }
+
+      if (action === 'importMerge'){
+        importData('merge');
+        return;
+      }
+
+      if (action === 'importReplace'){
+        importData('replace');
+        return;
+      }
+
+      if (action === 'copyExport'){
+        const text = $('#exportText')?.value || '';
+        copyToClipboard(text).then(() => showToast('Copied', 'JSON copied to clipboard.', { icon:'⧉', ms:2000 }));
+        return;
+      }
+
+      if (action === 'downloadExport'){
+        const text = $('#exportText')?.value || '';
+        const filename = `atomic-habits-backup-${todayISO()}.json`;
+        downloadText(filename, text);
+        showToast('Downloaded', 'Backup saved as a file.', { icon:'↓', ms:2000 });
+        return;
+      }
+
+      if (action === 'clearAll'){
+        clearAll();
+        return;
+      }
+
+      if (action === 'quickBackup'){
+        quickBackup();
+        return;
+      }
+
+      if (action === 'saveReview'){
+        const wk = btn.getAttribute('data-week');
+        if (!wk) return;
+        saveReview(wk);
+        return;
+      }
+
+      if (action === 'copyReviewPrompt'){
+        copyReviewPrompt();
+        return;
+      }
+
+      if (action === 'shiftWeek'){
+        const dir = Number(btn.getAttribute('data-dir') || '0');
+        if (!dir) return;
+        shiftReviewWeek(dir);
+        return;
+      }
+    });
+
+    // Click outside modal to close
+    $('#modal').addEventListener('click', (e) => {
+      if (e.target === $('#modal')) closeModal();
+    });
+
+    // Input auto-save delegation
+    document.addEventListener('input', (e) => {
+      const el = e.target;
+      if (!(el instanceof HTMLElement)) return;
+
+      if (el.hasAttribute('data-bind') && el.hasAttribute('data-habit')){
+        handleBoundInput(el);
+        return;
+      }
+
+      if (el.hasAttribute('data-logdate') && el.hasAttribute('data-logfield') && el.hasAttribute('data-habit')){
+        handleLogEdit(el);
+        return;
+      }
+
+      if (el.hasAttribute('data-review-week')){
+        handleReviewInput(el);
+        return;
+      }
+    });
+
+    // When a habit opens, render chart if insights active (lazy)
+    document.addEventListener('toggle', (e) => {
+      const det = e.target;
+      if (!(det instanceof HTMLDetailsElement)) return;
+      if (!det.classList.contains('habit')) return;
+      if (det.open){
+        const hid = det.getAttribute('data-habit');
+        if (!hid) return;
+        const sub = appData.ui.habitSubtabs?.[hid] || 'track';
+        if (sub === 'insights'){
+          const h = getHabit(hid);
+          const chartEl = document.getElementById(`habit-${hid}-chart`);
+          if (h && chartEl) renderChartSVG(h, chartEl, getInsightRangeKey(hid));
+        }
+      }
+    }, true);
+
+    // ESC closes modal
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && $('#modal').classList.contains('active')){
+        closeModal();
+      }
+    });
+
+    /* =========================
+       Initial render & sanity
+    ========================== */
+
+    function initialSelfSanity(){
+      // Non-destructive sanity checks to avoid common failures.
+      // 1) Ensure we can save & reload shape
+      const before = JSON.stringify(appData);
+      saveData({ toast:false });
+      const re = loadData();
+      if (!re || re.version !== SCHEMA_VERSION) {
+        showToast('Warning', 'Storage may be blocked; persistence could fail.', { icon:'!' });
+      }
+      // restore appData (in memory) from before to avoid unexpected mutation
+      try{ appData = normalizeData(JSON.parse(before)); }catch(e){ appData = normalizeData(null); }
+    }
+
+    initialSelfSanity();
+ensureDefaultLogsUpToToday();
+    render();
+
+    // Ensure active tab in UI is applied, and charts can load for any open details.
+    setTimeout(() => {
+      applyActiveTab();
+      renderNavActive();
+      hydrateVisibleCharts();
+    }, 0);
+
+  })();
+  </script>
+</body>
+
