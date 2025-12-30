@@ -5,7 +5,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0B1220" />
-  <title>Atomic Habits — Offline Habit Builder</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Atomic Habits — Calm Habit System</title>
   <style>
     :root{
       --bg:#0B1220;
@@ -179,6 +182,13 @@ body::after{
 
     .card + .card{ margin-top:12px; }
 
+    .heroCard{
+      background:
+        radial-gradient(120% 140% at 0% 0%, rgba(122,167,255,.18), rgba(18,30,52,.10)),
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border-color: rgba(122,167,255,.35);
+    }
+
     .cardHeader{
       padding: 14px 14px 12px;
       border-bottom:1px solid var(--line);
@@ -282,6 +292,15 @@ body::after{
       border-radius: 12px;
     }
     .btn.wide{ width:100%; }
+
+    @keyframes btnPulse{
+      0%{ transform: scale(1); }
+      35%{ transform: scale(1.04); }
+      100%{ transform: scale(1); }
+    }
+    .btn.pulse{
+      animation: btnPulse .28s ease-out;
+    }
 
     /* Insights range segmented control */
     .seg{
@@ -1085,8 +1104,8 @@ input[type="date"]{
     <header>
       <div class="topbar">
         <div class="brand">
-          <div class="title">Atomic Habits — Offline Builder</div>
-          <div class="subtitle">Identity • Design • Tracking • Weekly review</div>
+          <div class="title">Atomic Habits — Calm Habit System</div>
+          <div class="subtitle">Offline • Private • Daily check-ins • Weekly review</div>
         </div>
         <div class="pill" id="headerPill" aria-live="polite">
           <span class="dot"></span>
@@ -1185,7 +1204,8 @@ input[type="date"]{
 
     function uid(){
       // small but safe-ish for local app
-      if (crypto && crypto.randomUUID) return crypto.randomUUID();
+      const c = (typeof window !== 'undefined') ? window.crypto : null;
+      if (c && typeof c.randomUUID === 'function') return c.randomUUID();
       return 'h_' + Math.random().toString(16).slice(2) + '_' + Date.now().toString(16);
     }
 
@@ -1226,6 +1246,11 @@ input[type="date"]{
         .replaceAll('>','&gt;')
         .replaceAll('"','&quot;')
         .replaceAll("'","&#039;");
+    }
+
+    function cssEscape(s){
+      if (window.CSS && typeof window.CSS.escape === 'function') return window.CSS.escape(s);
+      return String(s ?? '').replace(/[^a-zA-Z0-9_-]/g, '_');
     }
 
     function formatUnit(unit, n){
@@ -1290,7 +1315,7 @@ input[type="date"]{
 
     function motivationalLine(h){
       const identity = (safeObj(h.motivator).identity || '').trim();
-      if (!identity) return 'Each small action is a vote for the person you’re becoming.';
+      if (!identity) return 'Small win. Same direction.';
       // avoid double punctuation
       const id = identity.replace(/\s+$/,'');
       return `Another calm vote for: “${id}”`;
@@ -1318,7 +1343,12 @@ input[type="date"]{
       if (!out.ui.activeTab) out.ui.activeTab = 'dashboard';
       if (typeof out.ui.createOpen !== 'boolean') out.ui.createOpen = false;
       if (!out.ui.habitSubtabs || typeof out.ui.habitSubtabs !== 'object') out.ui.habitSubtabs = {};
-if (!out.ui.insightsRange || typeof out.ui.insightsRange !== 'object') out.ui.insightsRange = {};
+      if (typeof out.ui.onboardingSeen !== 'boolean') out.ui.onboardingSeen = false;
+      if (!out.ui.insightsRange || typeof out.ui.insightsRange !== 'object') out.ui.insightsRange = {};
+      if (!out.ui.recentOpen || typeof out.ui.recentOpen !== 'object') out.ui.recentOpen = {};
+      if (!out.ui.reviewNudgeDismissed) out.ui.reviewNudgeDismissed = '';
+      if (!out.ui.streakShield || typeof out.ui.streakShield !== 'object') out.ui.streakShield = {};
+      if (typeof out.ui.storageWarning !== 'boolean') out.ui.storageWarning = false;
 
 
       out.reviews = safeObj(d.reviews);
@@ -1339,6 +1369,8 @@ if (!out.ui.insightsRange || typeof out.ui.insightsRange !== 'object') out.ui.in
           const design = safeObj(hh.design);
           const loop = safeObj(design.loop);
           const laws = safeObj(design.laws);
+          const plan = safeObj(design.plan);
+          const friction = safeObj(plan.friction);
 
           const logs = safeObj(hh.logs);
 
@@ -1391,6 +1423,16 @@ cleanLogs[k] = {
                 attractive: String(laws.attractive ?? '').slice(0, 900),
                 easy: String(laws.easy ?? '').slice(0, 900),
                 satisfying: String(laws.satisfying ?? '').slice(0, 900)
+              },
+              plan: {
+                ifThen: String(plan.ifThen ?? '').slice(0, 400),
+                cuePlan: String(plan.cuePlan ?? '').slice(0, 400),
+                twoMinute: String(plan.twoMinute ?? '').slice(0, 240),
+                friction: {
+                  removeCue: !!friction.removeCue,
+                  addDelay: !!friction.addDelay,
+                  addBarrier: !!friction.addBarrier
+                }
               }
             },
             logs: cleanLogs,
@@ -1424,9 +1466,11 @@ cleanLogs[k] = {
       appData.updatedAt = new Date().toISOString();
       try{
         localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+        appData.ui.storageWarning = false;
       }catch(e){
         // localStorage may fail (quota). Surface calm error.
-        showToast('Couldn’t save', 'Storage is full or blocked in this browser. Try exporting a backup.', { icon: '!' });
+        appData.ui.storageWarning = true;
+        showToast('Couldn’t save', 'Storage is full or blocked. Backup now (Export), then consider clearing old logs if needed.', { icon: '!' });
         return;
       }
       if (toast){
@@ -1452,6 +1496,37 @@ cleanLogs[k] = {
       el.classList.add('active');
       window.clearTimeout(showToast._t);
       showToast._t = window.setTimeout(() => el.classList.remove('active'), ms);
+    }
+
+        function softHaptic(){
+      if (navigator.vibrate) navigator.vibrate(12);
+    }
+
+    function pulseEl(el){
+      if (!el) return;
+      el.classList.remove('pulse');
+      void el.offsetWidth;
+      el.classList.add('pulse');
+      setTimeout(() => el.classList.remove('pulse'), 350);
+    }
+
+    let lastModalFocus = null;
+
+    function setAppAriaHidden(hidden){
+      const header = document.querySelector('header');
+      const main = document.querySelector('main');
+      const nav = document.querySelector('nav');
+      [header, main, nav].forEach(el => {
+        if (!el) return;
+        if (hidden) el.setAttribute('aria-hidden','true');
+        else el.removeAttribute('aria-hidden');
+      });
+    }
+
+    function getModalFocusable(){
+      const modal = $('#modal');
+      const nodes = $$('textarea, input, button, select, [tabindex]:not([tabindex="-1"])', modal);
+      return nodes.filter(el => !el.hasAttribute('disabled') && el.getAttribute('aria-hidden') !== 'true');
     }
 
     function getHabit(id){
@@ -1536,8 +1611,10 @@ function windowConsistencyPercent(h, days){
       for (let i=0; i<3650; i++){
         const d = addDays(today, -i);
         const iso = toISODate(d);
+        const shield = (typeof getShield === 'function') ? getShield(h.id) : { used: {} };
+        const shielded = !!safeObj(shield.used)[iso];
         const entry = logs[iso];
-        if (entry && entry.status === succ){
+        if ((entry && entry.status === succ) || shielded){
           streak++;
         } else {
           break;
@@ -1584,6 +1661,16 @@ function windowConsistencyPercent(h, days){
         if (d >= start && d <= end){
           if ((logs[k]?.status) === succ) c++;
         }
+      }
+      return c;
+    }
+
+    function totalSuccessCount(h){
+      const succ = successStatusForType(h.type);
+      const logs = safeObj(h.logs);
+      let c = 0;
+      for (const k of Object.keys(logs)){
+        if ((logs[k]?.status) === succ) c++;
       }
       return c;
     }
@@ -1864,6 +1951,278 @@ function renderChartSVG(h, container, rangeKey){
       });
     }
 
+    function getTodayInsightLine(){
+      const habits = safeArr(appData.habits);
+      if (!habits.length) return 'Small starts count. One calm win today is enough.';
+      const lines = [];
+      const iso = todayISO();
+      const dSeed = iso.split('-').join('');
+      const seed = Number(dSeed.slice(-3)) || 0;
+
+      habits.forEach(h => {
+        const id = (safeObj(h.motivator).identity || '').trim();
+        if (id) lines.push(`Today’s vote: ${id}`);
+      });
+
+      const any = habits[seed % habits.length];
+      if (any){
+        const c7 = windowConsistencyPercent(any, 7);
+        if (c7 < 50) lines.push('Make it easy today: 2 minutes still counts.');
+        else lines.push('Consistency beats intensity. Keep the loop gentle.');
+      }
+
+      if (!lines.length) lines.push('Keep it shame-free. A miss is data, not a verdict.');
+      return lines[seed % lines.length];
+    }
+
+    function renderOnboardingHero(){
+      return `
+        <div class="card heroCard" style="margin-bottom:12px;">
+          <div class="cardHeader">
+            <div class="left">
+              <p class="hTitle">Start with a calm win</p>
+              <div class="hMeta">
+                <span class="muted2">Offline by default • Private • Edit anytime</span>
+              </div>
+            </div>
+          </div>
+          <div class="content">
+            <div class="muted small" style="margin-bottom:10px;">
+              Pick a starter habit (10 seconds). You’ll get a ready-to-track setup with an identity statement.
+            </div>
+            <div class="row">
+              <button class="btn primary" data-action="createTemplate" data-template="walk">🚶 Walk after lunch</button>
+              <button class="btn primary" data-action="createTemplate" data-template="read">📖 Read 10 minutes</button>
+              <button class="btn primary" data-action="createTemplate" data-template="no_sugar">🍬 Reduce sugar</button>
+            </div>
+            <div class="hr"></div>
+            <button class="btn ghost wide" data-action="toggleCreate">Create a custom habit</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function createHabitFromTemplate(key){
+      const t = {
+        walk: {
+          name: 'Walk after lunch',
+          type: 'positive',
+          unit: 'week',
+          target: 4,
+          desc: 'A short walk after lunch. The goal is to start—duration can grow later.',
+          ident: 'I am the kind of person who moves daily.',
+          outcome: 'More energy and better mood over time.',
+          why: 'Because I want a calm, reliable body and mind.'
+        },
+        read: {
+          name: 'Read 10 minutes',
+          type: 'positive',
+          unit: 'week',
+          target: 5,
+          desc: 'Read for 10 minutes. If low energy, read 2 minutes.',
+          ident: 'I am the kind of person who learns consistently.',
+          outcome: 'More clarity and skill over months.',
+          why: 'Because I want to keep growing without pressure.'
+        },
+        no_sugar: {
+          name: 'Reduce sugar',
+          type: 'negative',
+          unit: 'week',
+          target: 5,
+          desc: 'Track days you resisted added sugar snacks. Relapse is data, not shame.',
+          ident: 'I am the kind of person who chooses what helps future-me.',
+          outcome: 'More stable energy and fewer cravings.',
+          why: 'Because I want steadier days and fewer spikes.'
+        }
+      }[key];
+
+      if (!t) return;
+
+      const habit = {
+        id: uid(),
+        name: t.name,
+        type: t.type,
+        description: t.desc,
+        startDate: todayISO(),
+        frequency: { unit: t.unit, target: t.target },
+        motivator: { identity: t.ident, outcome: t.outcome, why: t.why },
+        design: {
+          loop: { cue:'', craving:'', response:'', reward:'' },
+          laws: { obvious:'', attractive:'', easy:'', satisfying:'' },
+          plan: {
+            ifThen: '',
+            cuePlan: '',
+            twoMinute: '',
+            friction: { removeCue:false, addDelay:false, addBarrier:false }
+          }
+        },
+        logs: {
+          [todayISO()]: {
+            date: todayISO(),
+            status: failStatusForType(t.type),
+            note: '',
+            count: 0,
+            auto: true,
+            updatedAt: new Date().toISOString()
+          }
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      appData.habits.push(habit);
+      appData.ui.createOpen = false;
+      saveData({ toast:true, toastMsg:'Starter habit created. Tap “Done” for your first win.' });
+      render();
+
+      requestAnimationFrame(() => {
+        const det = document.getElementById(`habit-${habit.id}`);
+        if (det && det.tagName === 'DETAILS'){
+          det.open = true;
+          appData.ui.habitSubtabs[habit.id] = 'track';
+          saveData({ toast:false });
+        }
+      });
+    }
+
+    function renderTodayCard(){
+      const habits = safeArr(appData.habits);
+      const iso = todayISO();
+
+      const undone = habits.filter(h => {
+        const e = safeObj(safeObj(h.logs)[iso]);
+        const succ = successStatusForType(h.type);
+        const unit = safeObj(h.frequency).unit;
+        const target = Math.max(1, Math.round(Number(safeObj(h.frequency).target) || 1));
+        const st = String(e.status || '').toLowerCase();
+        const done = (unit === 'day')
+          ? (st === succ && Number(e.count || 0) >= target)
+          : (st === succ);
+        return !done;
+      });
+
+      const insight = getTodayInsightLine();
+
+      return `
+        <div class="card heroCard" style="margin-bottom:12px;">
+          <div class="cardHeader">
+            <div class="left">
+              <p class="hTitle">Today</p>
+              <div class="hMeta">
+                <span class="tag muted">${undone.length} left</span>
+                <span class="muted2">One calm check-in. Then you’re done.</span>
+              </div>
+            </div>
+            <div class="right">
+              <button class="btn small primary" data-action="openTodayFocus">Focus</button>
+            </div>
+          </div>
+          <div class="content">
+            <div class="muted small" style="margin-bottom:8px;">Tap Focus for a one-screen checklist.</div>
+            <div class="small muted2">Insight: ${escapeHtml(insight)}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTodayFocusBody(){
+      const habits = safeArr(appData.habits);
+      const iso = todayISO();
+
+      const rows = habits.map(h => {
+        const s = dashboardState(h);
+        const isDone = (s.btnLabel === 'Reset' || s.btnLabel === 'Undo');
+        const plan = safeObj(safeObj(h.design).plan);
+        const twoMinute = String(plan.twoMinute || '').trim();
+        const hint = twoMinute ? `2-minute version: ${escapeHtml(twoMinute)}` : '';
+
+        return `
+          <div class="panel" style="margin-bottom:10px; opacity:${isDone ? 0.6 : 1};">
+            <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
+              <div style="min-width:0;">
+                <div style="font-weight:950; line-height:1.2;" class="nowrapEllip">${escapeHtml(h.name || 'Untitled habit')}</div>
+                <div class="tiny muted2">${escapeHtml(formatUnit(h.frequency.unit, h.frequency.target))} • ${escapeHtml(s.labelRight)}</div>
+                ${hint ? `<div class="tiny muted" style="margin-top:6px;">${hint}</div>` : ''}
+              </div>
+              <button
+                class="btn small ${escapeHtml(s.btnClass)}"
+                data-action="dashToggle"
+                data-habit="${escapeHtml(h.id)}"
+              >${escapeHtml(s.btnLabel)}</button>
+            </div>
+            <div class="sumProgressStrip" style="margin-top:10px;">
+              <div class="sumProgressFill" style="--p:${clamp(s.ratio,0,1).toFixed(3)}"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const allDone = habits.length && habits.every(h => {
+        const e = safeObj(safeObj(h.logs)[iso]);
+        const succ = successStatusForType(h.type);
+        const unit = safeObj(h.frequency).unit;
+        const target = Math.max(1, Math.round(Number(safeObj(h.frequency).target) || 1));
+        const st = String(e.status || '').toLowerCase();
+        return (unit === 'day')
+          ? (st === succ && Number(e.count || 0) >= target)
+          : (st === succ);
+      });
+
+      const doneCard = allDone ? `
+        <div class="panel" style="margin-top:12px;">
+          <div style="font-weight:950; margin-bottom:6px;">You’re done for today</div>
+          <div class="muted small">Nice work. Close the loop and enjoy the rest of your day.</div>
+        </div>
+      ` : '';
+
+      return `
+        <div class="muted small" style="margin-bottom:10px;">
+          Quick check-in. No shame. If you miss, it’s data.
+        </div>
+        <div id="todayFocusList">${rows || '<div class="panel"><div class="muted small">No habits yet.</div></div>'}</div>
+        ${doneCard}
+      `;
+    }
+
+    function openTodayFocus(){
+      openModal(
+        'Today Focus',
+        renderTodayFocusBody(),
+        `<button class="btn primary" data-action="closeModal">Done</button>`
+      );
+    }
+
+    function isReviewComplete(weekISO){
+      const w = safeObj(appData.reviews?.[weekISO]?.global);
+      const any = ['wins','learn','next','identity'].some(k => String(w[k] || '').trim().length > 0);
+      return any;
+    }
+
+    function renderReviewNudge(){
+      const weekISO = getReviewWeekISO();
+      if (isReviewComplete(weekISO)) return '';
+
+      appData.ui = safeObj(appData.ui);
+      if (appData.ui.reviewNudgeDismissed === weekISO) return '';
+
+      return `
+        <div class="card heroCard" style="margin-bottom:12px;">
+          <div class="cardHeader">
+            <div class="left">
+              <p class="hTitle">Weekly review is ready</p>
+              <div class="hMeta">
+                <span class="muted2">One tweak can make next week easier.</span>
+              </div>
+            </div>
+            <div class="right">
+              <button class="btn small ghost" data-action="dismissReviewNudge" data-week="${escapeHtml(weekISO)}">Dismiss</button>
+              <button class="btn small primary" data-action="switchTab" data-tab="review">Open</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
     function applyActiveTab(){
       const tab = appData.ui.activeTab || 'dashboard';
       $$('.section').forEach(s => s.classList.remove('active'));
@@ -1878,7 +2237,20 @@ function renderChartSVG(h, container, rangeKey){
       const habitCount = appData.habits.length;
       const canCreate = habitCount < MAX_HABITS;
 
+      if (habitCount === 0 && !appData.ui.onboardingSeen){
+        appData.ui.createOpen = true;
+        appData.ui.onboardingSeen = true;
+        saveData({ toast:false });
+      }
+
+      const onboarding = (habitCount === 0) ? renderOnboardingHero() : '';
+      const todayCard = (habitCount > 0) ? renderTodayCard() : '';
+      const reviewNudge = (habitCount > 0) ? renderReviewNudge() : '';
+
       const createHtml = `
+        ${onboarding}
+        ${reviewNudge}
+        ${todayCard}
         <div class="createWrap ${createOpen ? 'open':''}" id="createWrap">
           <div class="createHead">
   <button class="btn primary wide" data-action="toggleCreate" aria-expanded="${createOpen ? 'true':'false'}">
@@ -1901,11 +2273,11 @@ function renderChartSVG(h, container, rangeKey){
               <p class="hTitle">Your habits</p>
               <div class="hMeta">
                 <span class="tag muted">${habitCount}/${MAX_HABITS} used</span>
-                <span class="muted2">Tap a habit to expand.</span>
+                <span class="muted2">Check in fast, then adjust the system when needed.</span>
               </div>
             </div>
             <div class="right">
-              <button class="btn small ghost" data-action="quickBackup" title="Export JSON backup">Export</button>
+                <button class="btn small ghost" data-action="quickBackup" title="Backup (recommended)">Backup</button>
             </div>
           </div>
 
@@ -1924,12 +2296,12 @@ function renderChartSVG(h, container, rangeKey){
       return `
         <div class="grid two">
           <div class="field">
-            <label for="c_name">Habit name *</label>
-            <input id="c_name" type="text" placeholder="e.g., Walk after lunch" autocomplete="off" maxlength="120" />
+            <label for="c_name">Habit name</label>
+            <input id="c_name" type="text" placeholder="e.g., Walk after lunch (small is good)" autocomplete="off" maxlength="120" />
             <div class="help">Keep it concrete and action-based.</div>
           </div>
           <div class="field">
-            <label for="c_type">Habit type *</label>
+            <label for="c_type">Habit type</label>
             <select id="c_type">
               <option value="positive">Positive (build)</option>
               <option value="negative">Negative (reduce)</option>
@@ -1938,18 +2310,13 @@ function renderChartSVG(h, container, rangeKey){
           </div>
         </div>
 
-        <div class="field" style="margin-top:12px;">
-          <label for="c_desc">Description *</label>
-          <textarea id="c_desc" placeholder="What does success look like? Keep it shame-free." maxlength="1200"></textarea>
-        </div>
-
         <div class="inline freqRow" style="margin-top:12px;">
           <div class="field compact2">
-            <label for="c_start">Start date *</label>
+            <label for="c_start">Start date</label>
             <input id="c_start" type="date" value="${d}" />
           </div>
           <div class="field compact">
-            <label for="c_unit">Frequency unit *</label>
+            <label for="c_unit">Frequency unit</label>
 <select id="c_unit">
   <option value="week" selected>Week</option>
   <option value="day">Day</option>
@@ -1957,29 +2324,34 @@ function renderChartSVG(h, container, rangeKey){
 </select>
           </div>
           <div class="field compact">
-            <label for="c_target">Target # *</label>
+            <label for="c_target">Target #</label>
             <input id="c_target" type="number" min="1" step="1" value="1" inputmode="numeric" />
           </div>
         </div>
 
         <div class="hr"></div>
+      
+        <div class="field">
+          <label for="c_ident">Identity (one sentence)</label>
+          <input id="c_ident" type="text" placeholder="I am the kind of person who…" maxlength="220" />
+          <div class="help">This should feel true even on hard days.</div>
+        </div>
 
-        <div class="grid two">
-          <div class="field">
-            <label for="c_ident">Identity statement * <span class="muted2">(required)</span></label>
-            <input id="c_ident" type="text" placeholder="I am the kind of person who…" maxlength="220" />
-            <div class="help">Example: “I am the kind of person who moves daily.”</div>
+        <details class="panel" style="margin-top:12px;">
+          <summary style="font-weight:900; cursor:pointer;">Optional details (pre-filled if left blank)</summary>
+          <div class="field" style="margin-top:10px;">
+            <label for="c_desc">What does “done” mean?</label>
+            <textarea id="c_desc" placeholder="Define success in one sentence. Keep it kind." maxlength="1200"></textarea>
           </div>
-          <div class="field">
-            <label for="c_outcome">Long-term outcome *</label>
+          <div class="field" style="margin-top:10px;">
+            <label for="c_outcome">Long-term outcome</label>
             <input id="c_outcome" type="text" placeholder="What does this enable over months/years?" maxlength="260" />
           </div>
-        </div>
-
-        <div class="field" style="margin-top:12px;">
-          <label for="c_why">Why this matters *</label>
-          <textarea id="c_why" placeholder="A calm, honest reason you can return to." maxlength="420"></textarea>
-        </div>
+          <div class="field" style="margin-top:10px;">
+            <label for="c_why">Why this matters</label>
+            <textarea id="c_why" placeholder="A calm, honest reason you can return to." maxlength="420"></textarea>
+          </div>
+        </details>
 
         <div id="createErr" style="margin-top:12px;"></div>
 
@@ -2105,19 +2477,21 @@ function dashToggle(habitId){
 
   const isDone = (st === succ) && c >= target;
 
-  if (isDone){
-    // Reset
-    e.status = fail;
-    e.count = 0;
-    e.updatedAt = new Date().toISOString();
-    showToast('Reset', 'Back to zero for today. You can check it off again anytime.', { icon:'↺', ms:1800 });
-  } else {
-    // One tap = complete the full daily target
-    e.status = succ;
-    e.count = target;
-    e.updatedAt = new Date().toISOString();
-    showToast('Nice', motivationalLine(h), { icon:'✓', ms:5000 });
-  }
+    if (isDone){
+      // Reset
+      e.status = fail;
+      e.count = 0;
+      e.updatedAt = new Date().toISOString();
+      showToast('Reset', 'Reset for today. You can log it again anytime.', { icon:'↺', ms:1800 });
+    } else {
+      // One tap = complete the full daily target
+      e.status = succ;
+      e.count = target;
+      e.updatedAt = new Date().toISOString();
+      showToast('Done', motivationalLine(h), { icon:'✓', ms:5000 });
+      softHaptic();
+      pulseEl(document.querySelector(`button[data-action="dashToggle"][data-habit="${cssEscape(habitId)}"]`));
+    }
 }
 
   } else {
@@ -2126,12 +2500,14 @@ function dashToggle(habitId){
       e.status = fail;
       e.count = 0;
       e.updatedAt = new Date().toISOString();
-      showToast('Undone', 'Your log was updated.', { icon:'↺', ms:1800 });
+      showToast('Undid for today', 'Your log was updated.', { icon:'↺', ms:1800 });
     } else {
       e.status = succ;
       e.count = 1;
       e.updatedAt = new Date().toISOString();
-      showToast('Nice', motivationalLine(h), { icon:'✓', ms:2600 });
+      showToast('Done', motivationalLine(h), { icon:'✓', ms:2600 });
+      softHaptic();
+      pulseEl(document.querySelector(`button[data-action="dashToggle"][data-habit="${cssEscape(habitId)}"]`));
     }
   }
 
@@ -2142,6 +2518,11 @@ function dashToggle(habitId){
   updateDashboardQuick(habitId);
   hydrateVisibleCharts();
   pulseDashboardQuick(habitId);
+
+  const list = document.getElementById('todayFocusList');
+  if (list && $('#modal').classList.contains('active')){
+    $('#modalBody').innerHTML = renderTodayFocusBody();
+  }
 }
 
 
@@ -2151,7 +2532,7 @@ function renderHabitList(){
     return `
       <div class="content">
         <div class="panel">
-          <div style="font-weight:950; margin-bottom:6px;">No habits yet</div>
+          <div style="font-weight:950; margin-bottom:6px;">Start with one small habit</div>
           <div class="muted small">Create your first habit. Start small, make it obvious, and let the system carry you.</div>
         </div>
       </div>
@@ -2210,42 +2591,47 @@ function renderHabitList(){
           <div class="subtabs" role="tablist" aria-label="Habit sections">
             <button class="tabBtn ${subtab==='track'?'active':''}"
               data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="track"
-              role="tab" aria-selected="${subtab==='track'?'true':'false'}">Track</button>
+              role="tab" id="tab-${escapeHtml(h.id)}-track" aria-controls="panel-${escapeHtml(h.id)}-track"
+              aria-selected="${subtab==='track'?'true':'false'}" tabindex="${subtab==='track'?'0':'-1'}">Track</button>
 
             <button class="tabBtn ${subtab==='design'?'active':''}"
               data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="design"
-              role="tab" aria-selected="${subtab==='design'?'true':'false'}">Design</button>
+              role="tab" id="tab-${escapeHtml(h.id)}-design" aria-controls="panel-${escapeHtml(h.id)}-design"
+              aria-selected="${subtab==='design'?'true':'false'}" tabindex="${subtab==='design'?'0':'-1'}">Plan</button>
 
             <button class="tabBtn ${subtab==='insights'?'active':''}"
               data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="insights"
-              role="tab" aria-selected="${subtab==='insights'?'true':'false'}">Insights</button>
+              role="tab" id="tab-${escapeHtml(h.id)}-insights" aria-controls="panel-${escapeHtml(h.id)}-insights"
+              aria-selected="${subtab==='insights'?'true':'false'}" tabindex="${subtab==='insights'?'0':'-1'}">Insights</button>
 
             <button class="tabBtn ${subtab==='motivation'?'active':''}"
               data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="motivation"
-              role="tab" aria-selected="${subtab==='motivation'?'true':'false'}">Motivator</button>
+              role="tab" id="tab-${escapeHtml(h.id)}-motivation" aria-controls="panel-${escapeHtml(h.id)}-motivation"
+              aria-selected="${subtab==='motivation'?'true':'false'}" tabindex="${subtab==='motivation'?'0':'-1'}">Motivator</button>
 
             <button class="tabBtn ${subtab==='edit'?'active':''}"
               data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="edit"
-              role="tab" aria-selected="${subtab==='edit'?'true':'false'}">Edit</button>
+              role="tab" id="tab-${escapeHtml(h.id)}-edit" aria-controls="panel-${escapeHtml(h.id)}-edit"
+              aria-selected="${subtab==='edit'?'true':'false'}" tabindex="${subtab==='edit'?'0':'-1'}">Edit</button>
           </div>
 
-          <div class="panel ${subtab==='track'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-track" role="tabpanel">
+          <div class="panel ${subtab==='track'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-track" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-track">
             ${renderHabitTrackPanel(h, { succStatus, failStatus })}
           </div>
 
-          <div class="panel ${subtab==='design'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-design" role="tabpanel">
+          <div class="panel ${subtab==='design'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-design" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-design">
             ${renderHabitDesignPanel(h)}
           </div>
 
-          <div class="panel ${subtab==='insights'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-insights" role="tabpanel">
+          <div class="panel ${subtab==='insights'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-insights" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-insights">
             ${renderHabitInsightsPanel(h)}
           </div>
 
-          <div class="panel ${subtab==='motivation'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-motivation" role="tabpanel">
+          <div class="panel ${subtab==='motivation'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-motivation" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-motivation">
             ${renderHabitMotivationPanel(h)}
           </div>
 
-          <div class="panel ${subtab==='edit'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-edit" role="tabpanel">
+          <div class="panel ${subtab==='edit'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-edit" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-edit">
             ${renderHabitEditPanel(h)}
           </div>
 
@@ -2272,6 +2658,7 @@ function renderHabitList(){
       const c90 = windowConsistencyPercent(h, 90);
       const streak = pre?.streak ?? currentDailyStreak(h);
       const last12 = pre?.last12 ?? actualCountLast12Months(h);
+      const votes = totalSuccessCount(h);
       const freqTxt = formatUnit(h.frequency.unit, h.frequency.target);
 
       const ratio = clamp(prog.ratio, 0, 1);
@@ -2284,6 +2671,19 @@ function renderHabitList(){
         ? `Identity: “${identity}”`
         : 'Identity: “I return to the path.”';
       const msg = `${msgA} ${msgB}`;
+
+      const y = canUseShieldForYesterday(h);
+      const shieldUI = y ? `
+        <div class="panel" style="margin-top:12px;">
+          <div style="font-weight:950; margin-bottom:6px;">Streak recovery</div>
+          <div class="muted small" style="margin-bottom:10px;">
+            Yesterday didn’t go to plan. Want to protect your streak once this week?
+          </div>
+          <button class="btn small primary" data-action="useShield" data-habit="${escapeHtml(h.id)}" data-date="${escapeHtml(y)}">
+            Use streak shield for ${escapeHtml(y)}
+          </button>
+        </div>
+      ` : '';
 
       return `
         <div class="stats" aria-label="Tracking summary">
@@ -2305,7 +2705,7 @@ function renderHabitList(){
           <div class="stat">
             <div class="k">Streak</div>
             <div class="v">${escapeHtml(String(streak))}d</div>
-            <div class="s">90d ${escapeHtml(String(c90))}% • 12mo ${escapeHtml(String(last12))}</div>
+            <div class="s">90d ${escapeHtml(String(c90))}% • Votes ${escapeHtml(String(votes))}</div>
           </div>
         </div>
 
@@ -2319,6 +2719,7 @@ function renderHabitList(){
           </div>
           <div class="progressMsg">${escapeHtml(msg)}</div>
         </div>
+        ${shieldUI}
       `;
     }
 
@@ -2333,7 +2734,7 @@ function renderHabitEditPanel(h){
 
       <div class="grid two">
         <div class="field">
-          <label>Habit name *</label>
+          <label>Habit name</label>
           <input
             type="text"
             data-bind="name"
@@ -2345,7 +2746,7 @@ function renderHabitEditPanel(h){
         </div>
 
         <div class="field">
-          <label>Start date *</label>
+          <label>Start date</label>
           <input
             type="date"
             data-bind="startDate"
@@ -2356,17 +2757,17 @@ function renderHabitEditPanel(h){
       </div>
 
       <div class="field" style="margin-top:12px;">
-        <label>Description *</label>
+        <label>What does “done” mean?</label>
         <textarea
           data-bind="description"
           data-habit="${escapeHtml(h.id)}"
           maxlength="1200"
-          placeholder="What does success look like? Keep it shame-free.">${escapeHtml(h.description || '')}</textarea>
+          placeholder="Define success in one sentence. Keep it kind.">${escapeHtml(h.description || '')}</textarea>
       </div>
 
       <div class="inline freqRow" style="margin-top:12px;">
         <div class="field compact">
-          <label>Frequency unit *</label>
+          <label>Frequency unit</label>
           <select data-bind="frequency.unit" data-habit="${escapeHtml(h.id)}">
             <option value="day" ${unit==='day'?'selected':''}>Day</option>
             <option value="week" ${unit==='week'?'selected':''}>Week</option>
@@ -2375,7 +2776,7 @@ function renderHabitEditPanel(h){
         </div>
 
         <div class="field compact">
-          <label>Target # *</label>
+          <label>Target #</label>
           <input
             type="number"
             min="1"
@@ -2440,7 +2841,7 @@ function updateHabitHeader(habitId){
       return `
         <div class="grid two">
           <div class="field">
-            <label>Identity statement *</label>
+            <label>Identity (one sentence)</label>
             <input type="text"
               data-bind="motivator.identity"
               data-habit="${escapeHtml(h.id)}"
@@ -2450,7 +2851,7 @@ function updateHabitHeader(habitId){
             <div class="help">This should feel true even on hard days.</div>
           </div>
           <div class="field">
-            <label>Long-term outcome *</label>
+            <label>Long-term outcome</label>
             <input type="text"
               data-bind="motivator.outcome"
               data-habit="${escapeHtml(h.id)}"
@@ -2460,7 +2861,7 @@ function updateHabitHeader(habitId){
           </div>
         </div>
         <div class="field" style="margin-top:12px;">
-          <label>Why this matters *</label>
+            <label>Long-term outcome</label>
           <textarea
             data-bind="motivator.why"
             data-habit="${escapeHtml(h.id)}"
@@ -2479,10 +2880,51 @@ function updateHabitHeader(habitId){
     function renderHabitDesignPanel(h){
       const loop = safeObj(safeObj(h.design).loop);
       const laws = safeObj(safeObj(h.design).laws);
+      const plan = safeObj(safeObj(h.design).plan);
+      const friction = safeObj(plan.friction);
       const labels = lawLabelsForType(h.type);
 
       return `
         <div class="panel" style="border:none; background:transparent; padding:0;">
+          <div style="font-weight:950; margin-bottom:8px;">Plan</div>
+          <div class="grid two">
+            <div class="field">
+              <label>If–Then plan</label>
+              <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.plan.ifThen" placeholder="If X happens, then I will Y.">${escapeHtml(plan.ifThen || '')}</textarea>
+              <div class="help">Example: “If it’s 7pm, then I’ll read for 10 minutes.”</div>
+            </div>
+            <div class="field">
+              <label>After I do ___, I will ___</label>
+              <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.plan.cuePlan" placeholder="After I make coffee, I will journal for 2 minutes.">${escapeHtml(plan.cuePlan || '')}</textarea>
+              <div class="help">Anchor your habit to an existing routine.</div>
+            </div>
+            <div class="field">
+              <label>2-minute version</label>
+              <input type="text" data-habit="${escapeHtml(h.id)}" data-bind="design.plan.twoMinute" placeholder="The smallest possible start." value="${escapeHtml(plan.twoMinute || '')}" maxlength="240" />
+              <div class="help">Low-energy option for consistency.</div>
+            </div>
+          </div>
+
+          ${h.type === 'negative' ? `
+            <div class="panel" style="margin-top:12px;">
+              <div style="font-weight:900; margin-bottom:8px;">Friction (speed bumps)</div>
+              <label style="display:flex; gap:10px; align-items:center; font-size:13px; font-weight:800; color:var(--accent2);">
+                <input type="checkbox" data-habit="${escapeHtml(h.id)}" data-bind="design.plan.friction.removeCue" ${friction.removeCue ? 'checked' : ''} />
+                Remove a cue (make it less visible)
+              </label>
+              <label style="display:flex; gap:10px; align-items:center; font-size:13px; font-weight:800; color:var(--accent2); margin-top:8px;">
+                <input type="checkbox" data-habit="${escapeHtml(h.id)}" data-bind="design.plan.friction.addDelay" ${friction.addDelay ? 'checked' : ''} />
+                Add a delay (wait 5–10 minutes)
+              </label>
+              <label style="display:flex; gap:10px; align-items:center; font-size:13px; font-weight:800; color:var(--accent2); margin-top:8px;">
+                <input type="checkbox" data-habit="${escapeHtml(h.id)}" data-bind="design.plan.friction.addBarrier" ${friction.addBarrier ? 'checked' : ''} />
+                Add a barrier (extra steps)
+              </label>
+            </div>
+          ` : ''}
+
+          <div class="hr"></div>
+
           <div style="font-weight:950; margin-bottom:8px;">Habit loop</div>
           <div class="grid two">
             <div class="field">
@@ -2614,17 +3056,33 @@ const plannedInRange = Math.round(plannedRate * w.days);
     function renderHabitTrackPanel(h, { succStatus, failStatus }){
       const today = todayISO();
       const existing = safeObj(h.logs)[today];
-      const defaultStatus = existing?.status || succStatus;
+      const defaultStatus = (existing && existing.status) ? existing.status : failStatus;
 
       const noteVal = String(existing?.note ?? '');
       const statusLabelA = (h.type === 'negative') ? 'Resisted' : 'Completed';
       const statusLabelB = (h.type === 'negative') ? 'Relapsed' : 'Missed';
+
+      const plan = safeObj(safeObj(h.design).plan);
+      const ifThen = String(plan.ifThen || '').trim();
+      const cuePlan = String(plan.cuePlan || '').trim();
+      const twoMinute = String(plan.twoMinute || '').trim();
+
+      const planHtml = (ifThen || cuePlan || twoMinute) ? `
+        <div class="panel" style="margin-bottom:12px;">
+          <div style="font-weight:900; margin-bottom:6px;">Today plan</div>
+          ${ifThen ? `<div class="muted small">If–Then: ${escapeHtml(ifThen)}</div>` : ''}
+          ${cuePlan ? `<div class="muted small" style="margin-top:6px;">After I do: ${escapeHtml(cuePlan)}</div>` : ''}
+          ${twoMinute ? `<div class="muted small" style="margin-top:6px;">2-minute version: ${escapeHtml(twoMinute)}</div>` : ''}
+        </div>
+      ` : '';
 
       const recentHtml = renderRecentLogs(h);
 
       return `
         <div class="panel" style="border:none; background:transparent; padding:0;">
           <div style="font-weight:950; margin-bottom:8px;">Daily logging</div>
+
+         ${planHtml}
 
           <div class="inline">
             <div class="field compact2">
@@ -2652,9 +3110,6 @@ const plannedInRange = Math.round(plannedRate * w.days);
 
           <div class="hr"></div>
 
-          <div style="font-weight:950; margin-bottom:8px;">Recent logs</div>
-          <div class="muted small" style="margin-bottom:10px;">Edit notes anytime. Status changes update your graph and progress immediately.</div>
-
           <div id="habit-${escapeHtml(h.id)}-logslist">
             ${recentHtml}
           </div>
@@ -2664,7 +3119,15 @@ const plannedInRange = Math.round(plannedRate * w.days);
 
 function renderRecentLogs(h){
   const logs = safeObj(h.logs);
-  const keys = Object.keys(logs).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k));
+  const fail = failStatusForType(h.type);
+  const keys = Object.keys(logs).filter(k => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(k)) return false;
+    const e = safeObj(logs[k]);
+    const st = String(e.status || '').toLowerCase();
+    const note = String(e.note || '').trim();
+    const isAutoFailEmpty = !!e.auto && st === fail && !note;
+    return !isAutoFailEmpty;
+  });
   keys.sort((a,b) => (a < b ? 1 : -1));
 
   // Persisted open/closed state per habit
@@ -2675,7 +3138,7 @@ function renderRecentLogs(h){
   // Build inner rows
   let inner = '';
   if (!keys.length){
-    inner = `<div class="panel"><div class="muted small">No logs yet. Start with a single calm entry today.</div></div>`;
+    inner = `<div class="panel"><div class="muted small">No entries yet. Start with today—one calm check-in.</div></div>`;
   } else {
     const show = keys.slice(0, 30);
     const isNeg = h.type === 'negative';
@@ -2730,6 +3193,7 @@ function renderRecentLogs(h){
         aria-expanded="${open ? 'true' : 'false'}"
       >${open ? 'Hide' : 'Show'}</button>
     </div>
+    <div class="muted small" style="margin-top:6px;">Edit notes anytime. Status changes update your graph and progress immediately.</div>
 
     <div class="recentBody" id="recent-${escapeHtml(h.id)}" ${open ? '' : 'hidden'}>
       ${inner}
@@ -2747,6 +3211,13 @@ function renderRecentLogs(h){
 
       const global = safeObj(appData.reviews?.[weekStartISO]?.global);
       const notes = safeObj(appData.reviews?.[weekStartISO]?.notes);
+      const tweak = String(global.next || '').trim();
+      const tweakLine = tweak ? `
+        <div class="panel" style="margin-bottom:12px;">
+          <div style="font-weight:900; margin-bottom:6px;">One tweak locked in</div>
+          <div class="muted small">${escapeHtml(tweak)}</div>
+        </div>
+      ` : '';
 
       const habitBlocks = habits.length ? habits.map(h => {
         const n = safeObj(notes?.[h.id]);
@@ -2812,9 +3283,11 @@ function renderRecentLogs(h){
         <div class="reviewHero">
           <p class="big">Weekly review</p>
           <p class="smallp">
-            Calm reflection, no shame. Use what happened as data to improve the system (cues, friction, environment).
+            A calm check-in. Use what happened to make next week easier.
           </p>
         </div>
+
+        ${tweakLine}
 
         <div class="card">
           <div class="cardHeader">
@@ -2851,11 +3324,11 @@ function renderRecentLogs(h){
 
             <div class="row" style="margin-top:12px;">
               <button class="btn primary wide" data-action="saveReview" data-week="${escapeHtml(weekStartISO)}">Save review</button>
-              <button class="btn ghost wide" data-action="copyReviewPrompt">Copy prompts</button>
+              <button class="btn ghost wide" data-action="copyReviewPrompt">Copy prompts (share or journal)</button>
             </div>
 
             <div class="muted tiny" style="margin-top:10px;">
-              Everything saves instantly, but “Save review” gives you a clear checkpoint.
+              Everything saves instantly, but “Save review” saves a clear weekly checkpoint.
             </div>
           </div>
         </div>
@@ -2869,6 +3342,14 @@ function renderRecentLogs(h){
       const updated = appData.updatedAt ? new Date(appData.updatedAt).toLocaleString() : '—';
 
       const diag = runDiagnostics();
+      const storageWarn = appData.ui.storageWarning ? `
+        <div class="error" style="margin-bottom:12px;">
+          <strong>Storage warning</strong>
+          <div class="small muted" style="margin-top:6px;">
+            This browser may be blocking or full. Backup now (Export), then consider clearing old logs.
+          </div>
+        </div>
+      ` : '';
 
       root.innerHTML = `
         <div class="card">
@@ -2883,6 +3364,7 @@ function renderRecentLogs(h){
           </div>
 
           <div class="content">
+            ${storageWarn}
             <div class="panel">
               <div style="font-weight:950; margin-bottom:8px;">Backup & restore</div>
               <div class="row">
@@ -2890,7 +3372,7 @@ function renderRecentLogs(h){
                 <button class="btn ghost wide" data-action="openImport">Import JSON</button>
               </div>
               <div class="muted small" style="margin-top:10px;">
-                Export regularly if this matters to you. Import supports merge or replace (with validation).
+                Backup regularly if this matters to you. Import supports merge or replace (with validation).
               </div>
             </div>
 
@@ -2928,7 +3410,7 @@ function renderRecentLogs(h){
         if (!hid) return;
         const sub = appData.ui.habitSubtabs?.[hid] || 'track';
         if (sub !== 'insights') return;
-        const chartEl = $(`#habit-${CSS.escape(hid)}-chart`);
+        const chartEl = $(`#habit-${cssEscape(hid)}-chart`);
         const h = getHabit(hid);
         if (chartEl && h){
           renderChartSVG(h, chartEl, getInsightRangeKey(hid));
@@ -2940,7 +3422,7 @@ function renderRecentLogs(h){
       const h = getHabit(habitId);
       if (!h) return;
 
-      const sumWrap = $(`#habit-${CSS.escape(habitId)}-summary`);
+      const sumWrap = $(`#habit-${cssEscape(habitId)}-summary`);
       if (sumWrap){
         const prog = periodProgress(h);
         const c7 = windowConsistencyPercent(h, 7);
@@ -2952,9 +3434,63 @@ function renderRecentLogs(h){
       // If insights panel visible, update chart
       const sub = appData.ui.habitSubtabs?.[habitId] || 'track';
       if (sub === 'insights'){
-        const chartEl = $(`#habit-${CSS.escape(habitId)}-chart`);
+        const chartEl = $(`#habit-${cssEscape(habitId)}-chart`);
         if (chartEl) renderChartSVG(h, chartEl, getInsightRangeKey(habitId));
       }
+    }
+
+    /* =========================
+       Streak shield (gentle recovery)
+    ========================== */
+
+    function getShield(habitId){
+      appData.ui = safeObj(appData.ui);
+      appData.ui.streakShield = safeObj(appData.ui.streakShield);
+
+      const wk = toISODate(startOfWeekMonday(new Date()));
+      const s = safeObj(appData.ui.streakShield[habitId]);
+
+      if (s.weekISO !== wk){
+        appData.ui.streakShield[habitId] = { weekISO: wk, credits: 1, used: {} };
+        saveData({ toast:false });
+      }
+      return safeObj(appData.ui.streakShield[habitId]);
+    }
+
+    function canUseShieldForYesterday(h){
+      const hid = h.id;
+      const shield = getShield(hid);
+      if ((shield.credits || 0) <= 0) return null;
+
+      const y = toISODate(addDays(parseISODate(todayISO()), -1));
+      const logs = safeObj(h.logs);
+      const succ = successStatusForType(h.type);
+      const already = !!safeObj(shield.used)[y];
+
+      const e = safeObj(logs[y]);
+      const isSuccess = (String(e.status || '').toLowerCase() === succ);
+      if (already || isSuccess) return null;
+
+      return y;
+    }
+
+    function useShield(habitId, dateISO){
+      const h = getHabit(habitId);
+      if (!h) return;
+      const shield = getShield(habitId);
+      if ((shield.credits || 0) <= 0) return;
+
+      shield.used = safeObj(shield.used);
+      if (shield.used[dateISO]) return;
+
+      shield.used[dateISO] = true;
+      shield.credits = Math.max(0, (Number(shield.credits) || 0) - 1);
+
+      saveData({ toast:false });
+      showToast('Streak protected', 'One gentle shield used. Keep going—trajectory matters.', { icon:'🛡', ms:2600 });
+
+      updateHabitVisuals(habitId);
+      renderDashboard();
     }
 
     /* =========================
@@ -3088,6 +3624,19 @@ function ensureDefaultLogsUpToToday(){
       if (err) err.innerHTML = '';
     }
 
+    function defaultCreateCopy(name, type, ident){
+      const safeName = name || 'this habit';
+      const isNeg = type === 'negative';
+      const desc = `Show up for ${safeName}. Small is good.`;
+      const outcome = isNeg
+        ? 'More freedom and fewer impulse loops over time.'
+        : 'More consistency and energy over time.';
+      const why = ident
+        ? `Because ${ident.replace(/^I am the kind of person who/i, 'I want to be the kind of person who').trim()}`
+        : 'Because future-me deserves a calm, reliable system.';
+      return { desc, outcome, why };
+    }
+
     function validateCreate(){
       const name = ($('#c_name')?.value || '').trim();
       const type = ($('#c_type')?.value || 'positive').trim();
@@ -3103,16 +3652,13 @@ function ensureDefaultLogsUpToToday(){
       const errors = [];
 
       if (!name) errors.push('Habit name is required.');
-      if (!desc) errors.push('Description is required.');
       if (!parseISODate(start)) errors.push('Start date is invalid.');
       const target = Number(targetRaw);
       if (!Number.isFinite(target) || target <= 0) errors.push('Frequency target must be a positive number.');
       if (!['day','week','month'].includes(unit)) errors.push('Frequency unit is invalid.');
       if (!['positive','negative'].includes(type)) errors.push('Habit type is invalid.');
 
-      if (!ident) errors.push('Identity statement is required.');
-      if (!outcome) errors.push('Long-term outcome is required.');
-      if (!why) errors.push('Why this matters is required.');
+      if (!ident) errors.push('Identity is required.');
 
       return { ok: errors.length === 0, errors, value: { name, type, desc, start, unit, target: Math.round(target), ident, outcome, why } };
     }
@@ -3135,6 +3681,10 @@ function ensureDefaultLogsUpToToday(){
       }
 
       const x = v.value;
+      const defaults = defaultCreateCopy(x.name, x.type, x.ident);
+      if (!x.desc) x.desc = defaults.desc;
+      if (!x.outcome) x.outcome = defaults.outcome;
+      if (!x.why) x.why = defaults.why;
       const habit = {
         id: uid(),
         name: x.name,
@@ -3145,7 +3695,13 @@ function ensureDefaultLogsUpToToday(){
         motivator: { identity: x.ident, outcome: x.outcome, why: x.why },
         design: {
           loop: { cue:'', craving:'', response:'', reward:'' },
-          laws: { obvious:'', attractive:'', easy:'', satisfying:'' }
+          laws: { obvious:'', attractive:'', easy:'', satisfying:'' },
+          plan: {
+            ifThen: '',
+            cuePlan: '',
+            twoMinute: '',
+            friction: { removeCue:false, addDelay:false, addBarrier:false }
+          }
         },
         logs: {
   [todayISO()]: {
@@ -3215,7 +3771,7 @@ function ensureDefaultLogsUpToToday(){
         // focus first missing
         const first = missing[0];
         const selector = first.startsWith('Identity') ? 'motivator.identity' : first.startsWith('Long') ? 'motivator.outcome' : 'motivator.why';
-        const input = document.querySelector(`[data-habit="${CSS.escape(habitId)}"][data-bind="${selector}"]`);
+        const input = document.querySelector(`[data-habit="${cssEscape(habitId)}"][data-bind="${selector}"]`);
         if (input) input.focus();
         return;
       }
@@ -3235,10 +3791,11 @@ function ensureDefaultLogsUpToToday(){
       if (!det) return;
 
       // buttons
-      $$(`[data-action="habitSubtab"][data-habit="${CSS.escape(habitId)}"]`, det).forEach(btn => {
+      $$(`[data-action="habitSubtab"][data-habit="${cssEscape(habitId)}"]`, det).forEach(btn => {
         const isActive = btn.getAttribute('data-subtab') === subtab;
         btn.classList.toggle('active', isActive);
         btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        btn.setAttribute('tabindex', isActive ? '0' : '-1');
       });
 
       // panels
@@ -3261,9 +3818,9 @@ function ensureDefaultLogsUpToToday(){
       if (!h) return;
 
       const det = document.getElementById(`habit-${habitId}`);
-      const dateEl = det?.querySelector(`[data-track="date"][data-habit="${CSS.escape(habitId)}"]`);
-      const statusEl = det?.querySelector(`[data-track="status"][data-habit="${CSS.escape(habitId)}"]`);
-      const noteEl = det?.querySelector(`[data-track="note"][data-habit="${CSS.escape(habitId)}"]`);
+      const dateEl = det?.querySelector(`[data-track="date"][data-habit="${cssEscape(habitId)}"]`);
+      const statusEl = det?.querySelector(`[data-track="status"][data-habit="${cssEscape(habitId)}"]`);
+      const noteEl = det?.querySelector(`[data-track="note"][data-habit="${cssEscape(habitId)}"]`);
 
       const date = (dateEl?.value || '').trim();
       const status = (statusEl?.value || '').trim().toLowerCase();
@@ -3296,6 +3853,7 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
 
       saveData({ toast:false });
       updateHabitVisuals(habitId);
+      updateDashboardQuick(habitId);
 
       // update recent logs list without re-rendering whole app
       const list = document.getElementById(`habit-${habitId}-logslist`);
@@ -3306,9 +3864,16 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
 
       const succ = successStatusForType(h.type);
       if (status === succ){
-        showToast('Nice', motivationalLine(h), { icon:'✓', ms:5000 });
+        showToast('Done', motivationalLine(h), { icon:'✓', ms:5000 });
+        softHaptic();
+        pulseEl(document.querySelector(`button[data-action="dashToggle"][data-habit="${cssEscape(habitId)}"]`));
       } else {
         showToast('Logged', 'No shame. This is just data to improve the system.', { icon:'•', ms:2600 });
+      }
+
+      const list = document.getElementById('todayFocusList');
+      if (list && $('#modal').classList.contains('active')){
+        $('#modalBody').innerHTML = renderTodayFocusBody();
       }
     }
 
@@ -3333,13 +3898,13 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
     function clearLogInputs(habitId){
       const det = document.getElementById(`habit-${habitId}`);
       if (!det) return;
-      const dateEl = det.querySelector(`[data-track="date"][data-habit="${CSS.escape(habitId)}"]`);
-      const statusEl = det.querySelector(`[data-track="status"][data-habit="${CSS.escape(habitId)}"]`);
-      const noteEl = det.querySelector(`[data-track="note"][data-habit="${CSS.escape(habitId)}"]`);
+      const dateEl = det.querySelector(`[data-track="date"][data-habit="${cssEscape(habitId)}"]`);
+      const statusEl = det.querySelector(`[data-track="status"][data-habit="${cssEscape(habitId)}"]`);
+      const noteEl = det.querySelector(`[data-track="note"][data-habit="${cssEscape(habitId)}"]`);
       if (dateEl) dateEl.value = todayISO();
       if (statusEl){
         const h = getHabit(habitId);
-        if (h) statusEl.value = successStatusForType(h.type);
+        if (h) statusEl.value = failStatusForType(h.type);
       }
       if (noteEl) noteEl.value = '';
       showToast('Cleared', 'Fields cleared (no saved data changed).', { icon:'↺', ms:1800 });
@@ -3347,14 +3912,16 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
 
     function openModal(title, bodyHtml, footHtml=''){
       const modal = $('#modal');
+      lastModalFocus = document.activeElement;
       $('#modalTitle').textContent = title;
       $('#modalBody').innerHTML = bodyHtml;
       $('#modalFoot').innerHTML = footHtml;
       modal.classList.add('active');
       modal.setAttribute('aria-hidden','false');
+      setAppAriaHidden(true);
       // focus first focusable
       setTimeout(() => {
-        const focusable = modal.querySelector('textarea, input, button, select, [tabindex]:not([tabindex="-1"])');
+        const focusable = getModalFocusable()[0];
         if (focusable) focusable.focus();
       }, 0);
     }
@@ -3363,13 +3930,15 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
       const modal = $('#modal');
       modal.classList.remove('active');
       modal.setAttribute('aria-hidden','true');
+      setAppAriaHidden(false);
+      if (lastModalFocus && typeof lastModalFocus.focus === 'function') lastModalFocus.focus();
     }
 
     function openExport(){
       const json = JSON.stringify(appData, null, 2);
       const body = `
         <div class="muted small" style="margin-bottom:10px;">
-          Copy this JSON somewhere safe. (This app runs offline; backups are your safety net.)
+          Backup (recommended). This app runs offline; backups are your safety net.
         </div>
         <textarea id="exportText" readonly>${escapeHtml(json)}</textarea>
       `;
@@ -3410,7 +3979,7 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
       for (const h of normalized.habits){
         const m = safeObj(h.motivator);
         if (!String(m.identity||'').trim() || !String(m.outcome||'').trim() || !String(m.why||'').trim()){
-          return { ok:false, error:`Import blocked: habit “${h.name || 'Untitled'}” is missing required motivator fields.` };
+          return { ok:false, error:`This import is missing Identity / Outcome / Why for habit “${h.name || 'Untitled'}”. Add those fields and try again.` };
         }
       }
 
@@ -3533,7 +4102,9 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
 
     function saveReview(weekISO){
       ensureReviewWeek(weekISO);
-      saveData({ toast:true, toastMsg:'Weekly review saved.' });
+      saveData({ toast:false });
+      showToast('Checkpoint saved', 'Weekly review saved. A calm checkpoint for the week.', { icon:'✓', ms:2600 });
+      softHaptic();
     }
 
     function copyReviewPrompt(){
@@ -3565,7 +4136,7 @@ Per habit:
       const h = getHabit(habitId);
       if (!h) return;
 
-      let val = el.value;
+      let val = (el.type === 'checkbox') ? el.checked : el.value;
 
 if (path === 'name'){
   const trimmed = String(val || '').trim();
@@ -3685,6 +4256,10 @@ function handleLogEdit(el){
     updateHabitVisuals(habitId);
     updateDashboardQuick(habitId); // keeps the collapsed "Done/Undo/Reset" button correct if date is today
     hydrateVisibleCharts();
+    const list = document.getElementById('todayFocusList');
+    if (list && $('#modal').classList.contains('active')){
+      $('#modalBody').innerHTML = renderTodayFocusBody();
+    }
     return;
   }
 
@@ -3780,6 +4355,34 @@ if (action === 'dashToggle'){
   const hid = btn.getAttribute('data-habit');
   if (!hid) return;
   dashToggle(hid);
+  return;
+}
+
+if (action === 'openTodayFocus'){
+  e.preventDefault();
+  openTodayFocus();
+  return;
+}
+
+if (action === 'createTemplate'){
+  e.preventDefault();
+  const key = btn.getAttribute('data-template');
+  createHabitFromTemplate(key);
+  return;
+}
+
+if (action === 'dismissReviewNudge'){
+  const wk = btn.getAttribute('data-week');
+  appData.ui.reviewNudgeDismissed = wk;
+  saveData({ toast:false });
+  renderDashboard();
+  return;
+}
+
+if (action === 'useShield'){
+  const hid = btn.getAttribute('data-habit');
+  const date = btn.getAttribute('data-date');
+  if (hid && date) useShield(hid, date);
   return;
 }
 
@@ -4017,8 +4620,24 @@ if (action === 'setInsightRange'){
 
     // ESC closes modal
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && $('#modal').classList.contains('active')){
-        closeModal();
+      if ($('#modal').classList.contains('active')){
+        if (e.key === 'Escape'){
+          closeModal();
+          return;
+        }
+        if (e.key === 'Tab'){
+          const focusable = getModalFocusable();
+          if (!focusable.length) return;
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (e.shiftKey && document.activeElement === first){
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last){
+            e.preventDefault();
+            first.focus();
+          }
+        }
       }
     });
 
@@ -4034,12 +4653,20 @@ if (action === 'setInsightRange'){
       const re = loadData();
       if (!re || re.version !== SCHEMA_VERSION) {
         showToast('Warning', 'Storage may be blocked; persistence could fail.', { icon:'!' });
+        appData.ui.storageWarning = true;
       }
       // restore appData (in memory) from before to avoid unexpected mutation
       try{ appData = normalizeData(JSON.parse(before)); }catch(e){ appData = normalizeData(null); }
     }
 
+    function initPWA(){
+      if (!('serviceWorker' in navigator)) return;
+      if (!window.isSecureContext) return;
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+
     initialSelfSanity();
+    initPWA();
 ensureDefaultLogsUpToToday();
     render();
 
