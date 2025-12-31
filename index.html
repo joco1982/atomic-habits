@@ -532,149 +532,115 @@ body::after{
       flex-direction:column;
       gap:12px;
     }
-    details.habit{
+    .habitItem{
       border:1px solid var(--line);
       border-radius: 18px;
       background: rgba(255,255,255,.03);
       overflow:hidden;
-    }
-    details.habit > summary{
-      list-style:none;
-      cursor:pointer;
       padding: 14px;
       display:flex;
       flex-direction:column;
-      align-items:stretch;
-      justify-content:flex-start;
-      gap:10px;
-      min-height: var(--tap);
-      user-select:none;
-      -webkit-tap-highlight-color: transparent;
-      background: rgba(255,255,255,.02);
+      gap:12px;
+      cursor:pointer;
+      transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
     }
-
-/* Top row inside summary: left content + right action button */
-.sumRowTop{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:12px;
-}
-
-/* Dashboard bar: keep pill shape, but inset by summary padding (already) */
-.dashMini{
-  width:100%;
-  min-width:0;
-}
-.dashMini .bar{
-  width:100%;
-  height:14px;
-  margin-top:0;
-}
-
-/* Summary inner layout */
-.sumTopRow{
-  padding: 14px;
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:12px;
-}
-
-.sumTodayLine{
-  margin-top:10px;
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  font-size:11px;
-  font-weight:800;
-  color: var(--muted2);
-}
-
-/* Full-width summary progress strip */
-.sumProgressStrip{
-  width:100%;
-  height:10px;
-  background: rgba(255,255,255,.08);
-  border-top: 1px solid rgba(255,255,255,.10);
-  overflow:hidden;
-}
-
-.sumProgressFill{
-  height:100%;
-  width: calc(var(--p, 0) * 100%);
-  background: linear-gradient(90deg, rgba(41,211,154,.90), rgba(122,167,255,.80));
-  transition: width .35s ease;
-  position:relative;
-}
-
-.sumProgressFill::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0));
-  opacity:.45;
-}
-
-details.habit > summary::-webkit-details-marker{ display:none; }
-details.habit > summary::marker{ content:""; } /* Firefox */
-
-details.habit[open]{
-  /* subtle “selected card” ring without changing layout */
-  box-shadow: inset 0 0 0 1px rgba(122,167,255,.22);
-  background: rgba(255,255,255,.01);
-}
-
-details.habit[open] > summary{
-  /* accent + clarity, but doesn’t shift the Done button or bar */
-  background:
-    linear-gradient(90deg, rgba(122,167,255,.18), rgba(255,255,255,.04) 32%),
-    rgba(255,255,255,.04);
-  border-bottom:1px solid var(--line);
-}
-
-details.habit[open] .detailsBody{
-  /* make expanded content feel separate from the “main box” */
-  background: rgba(11,18,32,.18);
-}
-
-
-    .sumLeft{
+    .habitItem:hover{
+      border-color: rgba(122,167,255,.25);
+      box-shadow: 0 12px 24px rgba(0,0,0,.18);
+      transform: translateY(-1px);
+    }
+    .habitItem:focus-visible{
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+    .habitTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .habitInfo{
       min-width:0;
       display:flex;
       flex-direction:column;
-      gap:7px;
+      gap:8px;
     }
-    .sumTop{
+    .habitTitleRow{
       display:flex;
+      flex-wrap:wrap;
       gap:8px;
       align-items:center;
-      flex-wrap:wrap;
     }
-    .sumName{
+    .habitName{
       font-weight:900;
-      font-size:15px;
+      font-size:16px;
       line-height:1.2;
       word-break:break-word;
     }
-    .sumDesc{
+    .habitDesc{
       color: var(--muted);
-      font-size: 12px;
+      font-size:12px;
       line-height:1.35;
-      overflow:hidden;
       display:-webkit-box;
-      line-clamp:2;
       -webkit-box-orient: vertical;
-      flex: 0 0 100%;
-      order: 99;
-      width: 100%;
-
+      line-clamp:2;
+      overflow:hidden;
     }
-    .sumRight{
+    .habitActions{
       flex:0 0 auto;
       display:flex;
+      flex-direction:column;
       gap:8px;
+      align-items:flex-end;
+    }
+    .habitMetaRow{
+      display:flex;
       align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      font-size:12px;
+      color: var(--muted2);
+      font-weight:800;
+    }
+    .habitMetaRow .chev{
+      color: var(--accent2);
+      font-weight:900;
+    }
+
+    /* Dashboard bar: keep pill shape, but inset by summary padding (already) */
+    .dashMini{
+      width:100%;
+      min-width:0;
+    }
+    .dashMini .bar{
+      width:100%;
+      height:14px;
+      margin-top:0;
+    }
+
+    /* Full-width summary progress strip */
+    .sumProgressStrip{
+      width:100%;
+      height:10px;
+      background: rgba(255,255,255,.08);
+      border-top: 1px solid rgba(255,255,255,.10);
+      overflow:hidden;
+    }
+
+    .sumProgressFill{
+      height:100%;
+      width: calc(var(--p, 0) * 100%);
+      background: linear-gradient(90deg, rgba(41,211,154,.90), rgba(122,167,255,.80));
+      transition: width .35s ease;
+      position:relative;
+    }
+
+    .sumProgressFill::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0));
+   
     }
 
     .detailsBody{
@@ -1114,6 +1080,7 @@ details.habit[open] .detailsBody{
       padding-bottom: calc(14px + var(--safe-b));
     }
     .modal.active{ display:flex; align-items:flex-end; justify-content:center; }
+    .modal.centered{ align-items:center; }
     .sheet{
       width:100%;
       max-width: 720px;
@@ -1204,6 +1171,17 @@ details.habit[open] .detailsBody{
       line-height:1.35;
     }
 
+    .cardFooter{
+      padding: 12px 14px 14px;
+      border-top:1px solid var(--line);
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      justify-content:space-between;
+      align-items:center;
+      background: rgba(255,255,255,.02);
+    }
+
     /* Create Habit accordion */
     .createWrap{
       border-radius: var(--radius2);
@@ -1249,6 +1227,32 @@ details.habit[open] .detailsBody{
     }
     .createWrap.open .createBody{ display:block; }
 
+    .createInline{
+      margin: 12px 14px 0;
+      border:1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255,255,255,.02);
+      overflow:hidden;
+    }
+    .createInlineHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding: 12px 12px 10px;
+    }
+    .createInlineHead .meta{
+      font-size:12px;
+      color: var(--muted);
+      line-height:1.35;
+    }
+    .createInlineBody{
+      padding: 12px;
+      border-top:1px solid var(--line);
+      display:none;
+    }
+    .createInline.open .createInlineBody{ display:block; }
+
     .quickCreate{
       display:flex;
       flex-direction:column;
@@ -1260,6 +1264,14 @@ details.habit[open] .detailsBody{
       background:
         radial-gradient(120% 140% at 0% 0%, rgba(41,211,154,.18), rgba(18,30,52,.10)),
         linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+    }
+    @keyframes todayGlow{
+      0%{ box-shadow: 0 0 0 rgba(41,211,154,0); }
+      35%{ box-shadow: 0 0 0 6px rgba(41,211,154,.25); }
+      100%{ box-shadow: 0 0 0 rgba(41,211,154,0); }
+    }
+    .todayCard.celebrate{
+      animation: todayGlow .6s ease-out;
     }
 
     .focusItem{
@@ -2706,12 +2718,7 @@ function renderChartSVG(h, container, rangeKey){
       render();
 
       requestAnimationFrame(() => {
-        const det = document.getElementById(`habit-${habit.id}`);
-        if (det && det.tagName === 'DETAILS'){
-          det.open = true;
-          appData.ui.habitSubtabs[habit.id] = 'track';
-          saveData({ toast:false });
-        }
+        openHabitDetail(habit.id, 'track');
       });
       closeModal();
     }
@@ -2860,12 +2867,7 @@ function renderChartSVG(h, container, rangeKey){
       render();
 
       requestAnimationFrame(() => {
-        const det = document.getElementById(`habit-${habit.id}`);
-        if (det && det.tagName === 'DETAILS'){
-          det.open = true;
-          appData.ui.habitSubtabs[habit.id] = 'track';
-          saveData({ toast:false });
-        }
+        openHabitDetail(habit.id, 'track');
       });
     }
 
@@ -2911,7 +2913,7 @@ function renderChartSVG(h, container, rangeKey){
               <div class="hMeta">
                 ${allDone
                   ? `<span class="tag good">All complete</span>`
-                  : `<span class="tag muted">${completion.remaining} left</span>`
+                  : `<span class="tag muted">${completion.doneCount}/${completion.total} done • ${completion.remaining} left</span>`
                 }
                 <span class="muted2">${allDone ? 'You did it. Enjoy the momentum.' : 'One calm check-in. Then you’re done.'}</span>
               </div>
@@ -2928,6 +2930,23 @@ function renderChartSVG(h, container, rangeKey){
           </div>
         </div>
       `;
+    }
+
+    function updateTodayCard({ animate=false } = {}){
+      const slot = document.getElementById('todayCardSlot');
+      if (!slot) return;
+      if (!appData.habits.length){
+        slot.innerHTML = '';
+        return;
+      }
+      const prevCard = slot.querySelector('.todayCard');
+      const wasDone = !!prevCard && prevCard.classList.contains('done');
+      slot.innerHTML = renderTodayCard();
+      const nextCard = slot.querySelector('.todayCard');
+      if (nextCard && animate && !wasDone && nextCard.classList.contains('done')){
+        nextCard.classList.add('celebrate');
+        setTimeout(() => nextCard.classList.remove('celebrate'), 800);
+      }
     }
 
     function renderTodayFocusBody(){
@@ -3093,25 +3112,16 @@ function renderChartSVG(h, container, rangeKey){
       const todayCard = (habitCount > 0) ? renderTodayCard() : '';
       const reviewNudge = (habitCount > 0) ? renderReviewNudge() : '';
 
-      const createHtml = `
-        ${onboarding}
-        ${reviewNudge}
-        ${todayCard}
-        <div class="createWrap ${createOpen ? 'open':''}" id="createWrap">
-          <div class="createHead">
-            <div class="createTitle">
-              <p class="t">Create a habit</p>
-              <p class="s">Pick a guided setup or add a quick starter habit.</p>
-            </div>
-            <div class="createActions">
-              <button class="btn small primary" data-action="startCreateWizard">Guided setup</button>
-              <button class="btn small ghost" data-action="toggleCreate" aria-expanded="${createOpen ? 'true':'false'}">
-                ${createOpen ? 'Hide quick add' : 'Quick add'}
-              </button>
+      const createInline = `
+        <div class="createInline ${createOpen ? 'open' : ''}" id="createWrap">
+          <div class="createInlineHead">
+            <div>
+              <div style="font-weight:900; margin-bottom:4px;">Quick add habit</div>
+              <div class="meta">Add the essentials now. You can refine the system details later.</div>
             </div>
           </div>
 
-          <div class="createBody" aria-label="Quick add habit form">
+          <div class="createInlineBody" aria-label="Quick add habit form">
             ${canCreate ? renderCreateForm() : `
               <div class="error">
                 You’ve reached the maximum of ${MAX_HABITS} habits. If you want, delete one first (you can export a backup before deleting).
@@ -3119,6 +3129,12 @@ function renderChartSVG(h, container, rangeKey){
             `}
           </div>
         </div>
+      `;
+
+      const createHtml = `
+        ${onboarding}
+        ${reviewNudge}
+        <div id="todayCardSlot">${todayCard}</div>
 
         <div class="card">
           <div class="cardHeader">
@@ -3130,11 +3146,20 @@ function renderChartSVG(h, container, rangeKey){
               </div>
             </div>
             <div class="right">
-                <button class="btn small ghost" data-action="quickBackup" title="Backup (recommended)">Backup</button>
+              <button class="btn small primary" data-action="startCreateWizard">Guided setup</button>
+              <button class="btn small ghost" data-action="toggleCreate" aria-expanded="${createOpen ? 'true':'false'}">
+                ${createOpen ? 'Hide quick add' : 'Quick add'}
+              </button>
             </div>
           </div>
 
+          ${createInline}
           ${renderHabitList()}
+
+          <div class="cardFooter">
+            <div class="muted small">Back up your habits to keep them safe offline.</div>
+            <button class="btn small ghost" data-action="quickBackup" title="Backup (recommended)">Backup</button>
+          </div>
         </div>
       `;
 
@@ -3161,7 +3186,7 @@ function renderChartSVG(h, container, rangeKey){
       return `
         <div class="quickCreate">
           <div class="panel">
-            <div style="font-weight:950; margin-bottom:8px;">Quick add</div>
+            <div style="font-weight:950; margin-bottom:8px;">Essentials</div>
             <div class="muted small" style="margin-bottom:10px;">
               Add the essential details now. You can refine cues, plans, and insights later.
             </div>
@@ -3287,11 +3312,17 @@ function updateDashboardQuick(habitId){
 
   // Update every dashboard toggle button for this habit (prevents mismatched labels)
   document
-    .querySelectorAll(`button[data-action="dashToggle"][data-habit="${habitId}"]`)
+    .querySelectorAll(`button[data-action="dashToggle"][data-habit="${cssEscape(habitId)}"]`)
     .forEach((btn) => {
       btn.textContent = s.btnLabel;
       btn.classList.toggle('primary', s.btnClass === 'primary');
       btn.classList.toggle('ghost', s.btnClass === 'ghost');
+    });
+
+  document
+    .querySelectorAll(`[data-sum="today"][data-habit="${cssEscape(habitId)}"]`)
+    .forEach((el) => {
+      el.textContent = `Today: ${s.labelRight}`;
     });
 
   // Update the progress bar for this habit (supports either fill class name)
@@ -3396,6 +3427,7 @@ function dashToggle(habitId){
   updateDashboardQuick(habitId);
   hydrateVisibleCharts();
   pulseDashboardQuick(habitId);
+  updateTodayCard({ animate:true });
   maybeCelebrateDay();
 
   const list = document.getElementById('todayFocusList');
@@ -3433,6 +3465,7 @@ function adjustDailyCount(habitId, delta){
   updateHabitVisuals(habitId);
   updateDashboardQuick(habitId);
   hydrateVisibleCharts();
+  updateTodayCard({ animate:true });
   maybeCelebrateDay();
 
   if ($('#modal').classList.contains('active')){
@@ -3484,11 +3517,7 @@ function renderHabitList(){
     const tagClass = isNeg ? 'bad' : 'good';
     const typeLabel = isNeg ? 'Negative' : 'Positive';
     const freqTxt = formatUnit(h.frequency.unit, h.frequency.target);
-
-    const prog = periodProgress(h);
-    const c7 = windowConsistencyPercent(h, 7);
-
-    const subtab = appData.ui.habitSubtabs?.[h.id] || 'track';
+    const s = dashboardState(h);
 
     const succStatus = successStatusForType(h.type);
     const failStatus = failStatusForType(h.type);
