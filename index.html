@@ -589,7 +589,7 @@ details.habit[open] .detailsBody{
       line-height:1.35;
       overflow:hidden;
       display:-webkit-box;
-      -webkit-line-clamp:2;
+      line-clamp:2;
       -webkit-box-orient: vertical;
       flex: 0 0 100%;
       order: 99;
@@ -715,6 +715,23 @@ details.habit[open] .detailsBody{
   white-space:nowrap;
 }
 
+.countControls{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.04);
+  border-radius:999px;
+  padding:4px 6px;
+}
+.countValue{
+  min-width:42px;
+  text-align:center;
+  font-size:12px;
+  font-weight:800;
+  color: var(--text);
+}
+
 /* Satisfying completion pulse */
 @keyframes dashPop{
   0%{ transform: scale(1); }
@@ -743,30 +760,35 @@ details.habit[open] .detailsBody{
     /* Tabs inside habit */
     .subtabs{
       display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-      gap:8px;
+      grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+      gap:6px;
       border:1px solid var(--line);
-      background: rgba(255,255,255,.02);
-      padding:8px;
-      border-radius: 18px;
+      background: rgba(255,255,255,.04);
+      padding:6px;
+      border-radius: 999px;
+      position:sticky;
+      top: calc(52px + var(--safe-t));
+      z-index:4;
+      backdrop-filter: blur(10px);
     }
     .tabBtn{
-      min-height: var(--tap);
-      padding: 8px 10px;
-      border-radius: 14px;
+      min-height: 40px;
+      padding: 6px 10px;
+      border-radius: 999px;
       border:1px solid transparent;
       background: transparent;
       font-weight:800;
-      font-size:12px;
+      font-size:11px;
       color: var(--muted);
       text-align:center;
       user-select:none;
       display:flex;
-      flex-direction:column;
+      flex-direction:row;
       align-items:center;
       justify-content:center;
-      gap:4px;
+      flex-direction:row;
       letter-spacing:.2px;
+      transition: background .15s ease, color .15s ease, border-color .15s ease;
     }
     .tabBtn .tabIcon{
       width:18px;
@@ -852,6 +874,70 @@ details.habit[open] .detailsBody{
     .pillStat .k{ font-size:11px; color: var(--muted2); font-weight:800; letter-spacing:.2px; }
     .pillStat .v{ font-size:14px; font-weight:900; margin-top:6px; line-height:1.15; }
     .pillStat .s{ font-size:11px; color: var(--muted); margin-top:4px; line-height:1.2; }
+
+    .wizard{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .wizardHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .wizardHeader .step{
+      font-size:12px;
+      font-weight:800;
+      color: var(--muted2);
+      letter-spacing:.2px;
+      text-transform: uppercase;
+    }
+    .wizardProgress{
+      height:6px;
+      border-radius:999px;
+      background: rgba(255,255,255,.08);
+      overflow:hidden;
+    }
+    .wizardProgress .fill{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, rgba(122,167,255,.8), rgba(41,211,154,.8));
+      transition: width .2s ease;
+    }
+    .wizardCard{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      border-radius: 18px;
+      padding: 12px;
+    }
+    .wizardRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .wizardRow .btn{ flex:1 1 120px; }
+    .wizardHint{
+      font-size:12px;
+      color: var(--muted);
+      line-height:1.4;
+    }
+    .wizardPreview{
+      border:1px dashed rgba(255,255,255,.2);
+      padding:12px;
+      border-radius:14px;
+      background: rgba(255,255,255,.02);
+    }
+    .wizardFooter{
+      display:flex;
+      gap:10px;
+    }
+    .wizardFooter .btn{ flex:1 1 auto; }
+    .stepTags{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
 
     /* Chart */
     .chartWrap{
@@ -1247,7 +1333,7 @@ input[type="date"]{
     ========================== */
 
     const STORAGE_KEY = 'appData_v1';
-    const SCHEMA_VERSION = 1;
+    const SCHEMA_VERSION = 2;
     const MAX_HABITS = 20;
 
     const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
@@ -1405,7 +1491,15 @@ input[type="date"]{
         updatedAt: new Date().toISOString(),
         habits: [],
         reviews: {},
-        ui: { activeTab: 'dashboard', createOpen: false, habitSubtabs: {} }
+        ui: {
+          activeTab: 'dashboard',
+          createOpen: false,
+          habitSubtabs: {},
+          onboardingSeen: false,
+          onboardingComplete: false,
+          onboardingActive: false,
+          wizard: { open:false, mode:'create', step:0, draft: blankWizardDraft() }
+        }
       };
 
       const d = safeObj(raw);
@@ -1422,6 +1516,14 @@ input[type="date"]{
       if (!out.ui.habitSubtabs || typeof out.ui.habitSubtabs !== 'object') out.ui.habitSubtabs = {};
       if (typeof out.ui.onboardingSeen !== 'boolean') out.ui.onboardingSeen = false;
       if (!out.ui.insightsRange || typeof out.ui.insightsRange !== 'object') out.ui.insightsRange = {};
+            if (typeof out.ui.onboardingComplete !== 'boolean') out.ui.onboardingComplete = false;
+      if (typeof out.ui.onboardingActive !== 'boolean') out.ui.onboardingActive = false;
+      if (!out.ui.wizard || typeof out.ui.wizard !== 'object'){
+        out.ui.wizard = { open:false, mode:'create', step:0, draft: blankWizardDraft() };
+      } else {
+        if (typeof out.ui.wizard.open !== 'boolean') out.ui.wizard.open = false;
+        if (!out.ui.wizard.draft) out.ui.wizard.draft = blankWizardDraft();
+      }
       if (!out.ui.recentOpen || typeof out.ui.recentOpen !== 'object') out.ui.recentOpen = {};
       if (!out.ui.reviewNudgeDismissed) out.ui.reviewNudgeDismissed = '';
       if (!out.ui.streakShield || typeof out.ui.streakShield !== 'object') out.ui.streakShield = {};
@@ -2016,6 +2118,7 @@ function renderChartSVG(h, container, rangeKey){
       renderReview();
       renderSettings();
       applyActiveTab();
+      maybeTriggerOnboarding();
     }
 
     function renderNavActive(){
@@ -2057,26 +2160,435 @@ function renderChartSVG(h, container, rangeKey){
         <div class="card heroCard" style="margin-bottom:12px;">
           <div class="cardHeader">
             <div class="left">
-              <p class="hTitle">Start with a calm win</p>
+              <p class="hTitle">Start Here</p>
               <div class="hMeta">
-                <span class="muted2">Offline by default • Private • Edit anytime</span>
+                <span class="muted2">A guided setup that teaches the system as you build it.</span>
               </div>
             </div>
           </div>
           <div class="content">
             <div class="muted small" style="margin-bottom:10px;">
-              Pick a starter habit (10 seconds). You’ll get a ready-to-track setup with an identity statement.
+              Create your first habit in about a minute. You’ll get a clear next action and a confident first check-in.
             </div>
-            <div class="row">
-              <button class="btn primary" data-action="createTemplate" data-template="walk">🚶 Walk after lunch</button>
-              <button class="btn primary" data-action="createTemplate" data-template="read">📖 Read 10 minutes</button>
-              <button class="btn primary" data-action="createTemplate" data-template="no_sugar">🍬 Reduce sugar</button>
-            </div>
-            <div class="hr"></div>
-            <button class="btn ghost wide" data-action="toggleCreate">Create a custom habit</button>
+            <button class="btn primary wide" data-action="startOnboarding">Begin guided setup</button>
+            <div class="muted tiny" style="margin-top:10px;">Private, offline-first, and editable anytime.</div>
           </div>
         </div>
       `;
+    }
+
+    function blankWizardDraft(){
+      return {
+        type: 'positive',
+        name: '',
+        description: '',
+        frequency: { unit: 'day', target: 1 },
+        motivator: { identity: '', outcome: '', why: '' },
+        design: {
+          plan: { ifThen: '', cuePlan: '', twoMinute: '' },
+          laws: { obvious: '', attractive: '', easy: '', satisfying: '' }
+        }
+      };
+    }
+
+    function openWizard(mode='create'){
+      appData.ui = safeObj(appData.ui);
+      appData.ui.wizard = {
+        open: true,
+        mode,
+        step: 0,
+        draft: blankWizardDraft()
+      };
+      saveData({ toast:false });
+      renderWizardModal();
+    }
+
+    function closeWizard(){
+      if (appData.ui?.wizard) appData.ui.wizard.open = false;
+      appData.ui.onboardingActive = false;
+      saveData({ toast:false });
+      closeModal();
+    }
+
+    function wizardStepsTotal(){
+      return 9;
+    }
+
+    function wizardProgress(step){
+      return Math.round(((step + 1) / wizardStepsTotal()) * 100);
+    }
+
+    function renderWizardModal(){
+      const wiz = safeObj(appData.ui?.wizard);
+      if (!wiz.open) return;
+      const step = Number(wiz.step || 0);
+      const draft = safeObj(wiz.draft);
+      const total = wizardStepsTotal();
+      const title = (wiz.mode === 'onboarding') ? 'Start Here' : 'Create Habit';
+
+      openModal(
+        title,
+        renderWizardStep(step, draft),
+        renderWizardFoot(step, total)
+      );
+    }
+
+    function renderWizardFoot(step, total){
+      const back = step > 0 ? `<button class="btn ghost" data-action="wizardBack">Back</button>` : '';
+      const nextLabel = (step === total - 1) ? 'Finish' : 'Next';
+      const next = `<button class="btn primary" data-action="wizardNext">${nextLabel}</button>`;
+      return `<div class="wizardFooter">${back}${next}</div>`;
+    }
+
+    function renderWizardStep(step, draft){
+      const lawLabels = lawLabelsForType(draft.type);
+      const twoMinuteLabel = draft.type === 'negative' ? '2-minute replacement (strongly suggested)' : '2-minute version (required)';
+      const previewDesc = draft.description || draft.name || 'Your habit summary will appear here.';
+      const previewNext = draft.design?.plan?.twoMinute || draft.design?.plan?.ifThen || draft.design?.plan?.cuePlan || 'A tiny start you can do today.';
+      const freqLabel = formatUnit(draft.frequency?.unit || 'day', draft.frequency?.target || 1);
+
+      return `
+        <div class="wizard">
+          <div class="wizardHeader">
+            <div>
+              <div class="step">Step ${step + 1} of ${wizardStepsTotal()}</div>
+              <div class="hTitle" style="margin:6px 0 0;">${escapeHtml(wizardStepTitle(step, draft.type))}</div>
+            </div>
+            <div class="tiny muted2">${escapeHtml(wizardStepTag(step))}</div>
+          </div>
+          <div class="wizardProgress"><div class="fill" style="width:${wizardProgress(step)}%"></div></div>
+          <div class="wizardCard">
+            ${step === 0 ? `
+              <div class="wizardHint" style="margin-bottom:10px;">Choose whether you want to build a habit or reduce one. This shapes the language and tracking.</div>
+              <div class="wizardRow">
+                <button class="btn ${draft.type === 'positive' ? 'primary' : 'ghost'}" data-action="wizardSetType" data-value="positive">Build a habit</button>
+                <button class="btn ${draft.type === 'negative' ? 'primary' : 'ghost'}" data-action="wizardSetType" data-value="negative">Break a habit</button>
+              </div>
+            ` : ''}
+
+            ${step === 1 ? `
+              <div class="field">
+                <label>Give it a clear, action-based name</label>
+                <input type="text" data-action="wizardInput" data-field="name" value="${escapeHtml(draft.name || '')}" placeholder="e.g., Walk after lunch" maxlength="120" />
+                <div class="help">Action + time/place beats abstract goals.</div>
+              </div>
+            ` : ''}
+
+            ${step === 2 ? `
+              <div class="grid two">
+                <div class="field">
+                  <label>How often?</label>
+                  <select data-action="wizardInput" data-field="frequency.unit">
+                    <option value="day" ${draft.frequency?.unit === 'day' ? 'selected' : ''}>Daily</option>
+                    <option value="week" ${draft.frequency?.unit === 'week' ? 'selected' : ''}>Weekly</option>
+                    <option value="month" ${draft.frequency?.unit === 'month' ? 'selected' : ''}>Monthly</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Target count</label>
+                  <input type="number" min="1" step="1" inputmode="numeric" data-action="wizardInput" data-field="frequency.target" value="${escapeHtml(String(draft.frequency?.target || 1))}" />
+                  <div class="help">Start smaller than you think. Consistency wins.</div>
+                </div>
+              </div>
+              <div class="stepTags" style="margin-top:10px;">
+                <button class="btn ghost small" data-action="wizardSuggestTarget" data-value="1">Start at 1</button>
+                <button class="btn ghost small" data-action="wizardSuggestTarget" data-value="3">Try 3</button>
+                <button class="btn ghost small" data-action="wizardSuggestTarget" data-value="5">Try 5</button>
+              </div>
+            ` : ''}
+
+            ${step === 3 ? `
+              <div class="field">
+                <label>Identity statement (required)</label>
+                <input type="text" data-action="wizardInput" data-field="motivator.identity" value="${escapeHtml(draft.motivator?.identity || '')}" placeholder="I am the kind of person who…" maxlength="220" />
+                <div class="help">Make it believable today. This becomes your daily vote.</div>
+              </div>
+              <div class="field" style="margin-top:10px;">
+                <label>Long-term outcome (optional)</label>
+                <input type="text" data-action="wizardInput" data-field="motivator.outcome" value="${escapeHtml(draft.motivator?.outcome || '')}" placeholder="Over time, this enables…" maxlength="260" />
+              </div>
+              <div class="field" style="margin-top:10px;">
+                <label>Why it matters (optional)</label>
+                <textarea data-action="wizardInput" data-field="motivator.why" maxlength="420" placeholder="A calm reason you can return to.">${escapeHtml(draft.motivator?.why || '')}</textarea>
+              </div>
+            ` : ''}
+
+            ${step === 4 ? `
+              <div class="field">
+                <label>Implementation intention (If–Then)</label>
+                <textarea data-action="wizardInput" data-field="design.plan.ifThen" placeholder="If it’s 7pm, then I will…">${escapeHtml(draft.design?.plan?.ifThen || '')}</textarea>
+              </div>
+              <div class="field" style="margin-top:10px;">
+                <label>Habit stacking (After I…, I will…)</label>
+                <textarea data-action="wizardInput" data-field="design.plan.cuePlan" placeholder="After I make coffee, I will…">${escapeHtml(draft.design?.plan?.cuePlan || '')}</textarea>
+                <div class="help">Anchoring your action to an existing routine makes it automatic.</div>
+              </div>
+            ` : ''}
+
+            ${step === 5 ? `
+              <div class="field">
+                <label>${escapeHtml(twoMinuteLabel)}</label>
+                <input type="text" data-action="wizardInput" data-field="design.plan.twoMinute" value="${escapeHtml(draft.design?.plan?.twoMinute || '')}" placeholder="The smallest possible start" maxlength="240" />
+                <div class="help">If you can do this version, you can keep the streak alive.</div>
+              </div>
+            ` : ''}
+
+            ${step === 6 ? `
+              <div class="wizardHint" style="margin-bottom:10px;">Optional: adjust the environment so the right action is easier.</div>
+              <div class="grid two">
+                <div class="field">
+                  <label>${escapeHtml(lawLabels.obvious)}</label>
+                  <textarea data-action="wizardInput" data-field="design.laws.obvious" placeholder="Place cues where you see them.">${escapeHtml(draft.design?.laws?.obvious || '')}</textarea>
+                </div>
+                <div class="field">
+                  <label>${escapeHtml(lawLabels.attractive)}</label>
+                  <textarea data-action="wizardInput" data-field="design.laws.attractive" placeholder="Pair it with something you enjoy.">${escapeHtml(draft.design?.laws?.attractive || '')}</textarea>
+                </div>
+                <div class="field">
+                  <label>${escapeHtml(lawLabels.easy)}</label>
+                  <textarea data-action="wizardInput" data-field="design.laws.easy" placeholder="Reduce friction (or add it).">${escapeHtml(draft.design?.laws?.easy || '')}</textarea>
+                </div>
+                <div class="field">
+                  <label>${escapeHtml(lawLabels.satisfying)}</label>
+                  <textarea data-action="wizardInput" data-field="design.laws.satisfying" placeholder="Reward the action quickly.">${escapeHtml(draft.design?.laws?.satisfying || '')}</textarea>
+                </div>
+              </div>
+            ` : ''}
+
+            ${step === 7 ? `
+              <div class="wizardPreview">
+                <div class="summaryLabel">Preview</div>
+                <div style="font-weight:900; margin-top:6px;">${escapeHtml(draft.name || 'Untitled habit')}</div>
+                <div class="muted small" style="margin-top:4px;">${escapeHtml(previewDesc)}</div>
+                <div class="stepTags" style="margin-top:10px;">
+                  <span class="tag muted">${escapeHtml(freqLabel)}</span>
+                  <span class="tag ${draft.type === 'negative' ? 'bad' : 'good'}">${draft.type === 'negative' ? 'Break' : 'Build'}</span>
+                </div>
+                <div class="summaryAction" style="margin-top:10px;">
+                  <div class="summaryLabel">Next tiny action</div>
+                  <div class="summaryValue">${escapeHtml(previewNext)}</div>
+                </div>
+              </div>
+              <div class="field" style="margin-top:12px;">
+                <label>What does “done” mean?</label>
+                <textarea data-action="wizardInput" data-field="description" maxlength="1200" placeholder="Define success in one sentence.">${escapeHtml(draft.description || '')}</textarea>
+                <div class="help">This becomes the habit’s short description in your list.</div>
+              </div>
+              <div class="wizardHint" style="margin-top:10px;">Looks good? Next you’ll take your first tiny action.</div>
+            ` : ''}
+
+            ${step === 8 ? `
+              <div class="wizardHint" style="margin-bottom:10px;">You’re ready. Small, immediate actions build trust in the system.</div>
+              <div class="panel" style="margin-bottom:10px;">
+                <div style="font-weight:900; margin-bottom:6px;">You’re ready 🎉</div>
+                <div class="muted small">Want to log your first tiny action now?</div>
+              </div>
+              <div class="wizardRow">
+                <button class="btn primary" data-action="wizardLogFirst">Log first tiny action</button>
+                <button class="btn ghost" data-action="wizardFinish">Not yet</button>
+              </div>
+ 
+          </div>
+        </div>
+      `;
+    }
+
+    function wizardStepTitle(step, type){
+      const titles = [
+        'Choose your direction',
+        'Name the habit',
+        'Pick a frequency',
+        'Identity statement',
+        'Plan the cue',
+        '2-minute version',
+        'Make it easier',
+        'Preview',
+        'First check-in'
+      ];
+      return titles[step] || 'Habit setup';
+    }
+
+    function wizardStepTag(step){
+      const tags = [
+        'Build or break',
+        'Clear action',
+        'Small target',
+        'Believable',
+        'If–Then / After I',
+        'Make it easy',
+        'Optional',
+        'What “done” means',
+        'Celebrate'
+      ];
+      return tags[step] || '';
+    }
+
+    function updateWizardDraft(path, rawValue){
+      if (!appData.ui?.wizard) return;
+      const draft = safeObj(appData.ui.wizard.draft);
+      let value = rawValue;
+      if (path === 'frequency.target'){
+        const n = Math.max(1, Math.round(Number(rawValue || 1)));
+        value = Number.isFinite(n) ? n : 1;
+      }
+      setByPath(draft, path, value);
+      appData.ui.wizard.draft = draft;
+      saveData({ toast:false });
+    }
+
+    function wizardValidateStep(step, draft){
+      if (step === 1 && !String(draft.name || '').trim()){
+        showToast('Name needed', 'Give your habit a clear, action-based name.', { icon:'!' });
+        return false;
+      }
+      if (step === 2){
+        const target = Number(draft.frequency?.target || 0);
+        if (!Number.isFinite(target) || target <= 0){
+          showToast('Pick a target', 'Choose a frequency target of at least 1.', { icon:'!' });
+          return false;
+        }
+      }
+      if (step === 3 && !String(draft.motivator?.identity || '').trim()){
+        showToast('Identity needed', 'Add a believable identity statement.', { icon:'!' });
+        return false;
+      }
+      if (step === 4){
+        const ifThen = String(draft.design?.plan?.ifThen || '').trim();
+        const cuePlan = String(draft.design?.plan?.cuePlan || '').trim();
+        if (!ifThen && !cuePlan){
+          showToast('Add a cue plan', 'Try an If–Then or After-I plan so the habit has a trigger.', { icon:'!' });
+          return false;
+        }
+      }
+      if (step === 5){
+        const twoMinute = String(draft.design?.plan?.twoMinute || '').trim();
+        if (draft.type === 'positive' && !twoMinute){
+          showToast('Tiny version needed', 'Add a 2-minute version to make it easy to start.', { icon:'!' });
+          return false;
+        }
+        if (draft.type === 'negative' && !twoMinute){
+          showToast('Suggestion', 'Consider adding a 2-minute replacement. You can also add it later.', { icon:'✓', ms:2600 });
+        }
+      }
+      return true;
+    }
+
+    function wizardBack(){
+      if (!appData.ui?.wizard) return;
+      appData.ui.wizard.step = Math.max(0, Number(appData.ui.wizard.step || 0) - 1);
+      saveData({ toast:false });
+      renderWizardModal();
+    }
+
+    function wizardNext(){
+      if (!appData.ui?.wizard) return;
+      const step = Number(appData.ui.wizard.step || 0);
+      const draft = safeObj(appData.ui.wizard.draft);
+      if (!wizardValidateStep(step, draft)) return;
+      if (step >= wizardStepsTotal() - 1){
+        wizardFinish(false);
+        return;
+      }
+      appData.ui.wizard.step = step + 1;
+      saveData({ toast:false });
+      renderWizardModal();
+    }
+
+    function wizardFinish(logFirst){
+      const wiz = safeObj(appData.ui?.wizard);
+      const draft = safeObj(wiz.draft);
+      if (appData.habits.length >= MAX_HABITS){
+        showToast('Limit reached', `You can have up to ${MAX_HABITS} habits.`, { icon:'!' });
+        return;
+      }
+      const habit = createHabitFromDraft(draft, !!logFirst);
+      if (!habit) return;
+      if (wiz.mode === 'onboarding'){
+        appData.ui.onboardingComplete = true;
+      }
+      appData.ui.wizard.open = false;
+      appData.ui.onboardingActive = false;
+      saveData({ toast:true, toastMsg:'Habit created and ready to track.' });
+      render();
+
+      requestAnimationFrame(() => {
+        const det = document.getElementById(`habit-${habit.id}`);
+        if (det && det.tagName === 'DETAILS'){
+          det.open = true;
+          appData.ui.habitSubtabs[habit.id] = 'track';
+          saveData({ toast:false });
+        }
+      });
+      closeModal();
+    }
+
+    function createHabitFromDraft(draft, logFirst){
+      const name = String(draft.name || '').trim();
+      if (!name) return null;
+      const type = (draft.type === 'negative') ? 'negative' : 'positive';
+      const unit = (draft.frequency?.unit === 'week' || draft.frequency?.unit === 'month') ? draft.frequency.unit : 'day';
+      const target = Math.max(1, Math.round(Number(draft.frequency?.target || 1)));
+      const desc = String(draft.description || '').trim() || (type === 'negative'
+        ? `Reduce or resist: ${name}.`
+        : `Complete: ${name}.`);
+      const iso = todayISO();
+      const succ = successStatusForType(type);
+      const fail = failStatusForType(type);
+
+      const habit = {
+        id: uid(),
+        name,
+        type,
+        description: desc,
+        startDate: iso,
+        frequency: { unit, target },
+        motivator: {
+          identity: String(draft.motivator?.identity || '').trim(),
+          outcome: String(draft.motivator?.outcome || '').trim(),
+          why: String(draft.motivator?.why || '').trim()
+        },
+        design: {
+          loop: { cue:'', craving:'', response:'', reward:'' },
+          laws: {
+            obvious: String(draft.design?.laws?.obvious || '').trim(),
+            attractive: String(draft.design?.laws?.attractive || '').trim(),
+            easy: String(draft.design?.laws?.easy || '').trim(),
+            satisfying: String(draft.design?.laws?.satisfying || '').trim()
+          },
+          plan: {
+            ifThen: String(draft.design?.plan?.ifThen || '').trim(),
+            cuePlan: String(draft.design?.plan?.cuePlan || '').trim(),
+            twoMinute: String(draft.design?.plan?.twoMinute || '').trim(),
+            friction: { removeCue:false, addDelay:false, addBarrier:false }
+          }
+        },
+        logs: {},
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      if (logFirst){
+        habit.logs[iso] = {
+          date: iso,
+          status: succ,
+          note: '',
+          count: (unit === 'day') ? target : 1,
+          auto: false,
+          updatedAt: new Date().toISOString()
+        };
+      } else {
+        habit.logs[iso] = {
+          date: iso,
+          status: fail,
+          note: '',
+          count: 0,
+          auto: true,
+          updatedAt: new Date().toISOString()
+        };
+      }
+
+      appData.habits.push(habit);
+      return habit;
     }
 
     function createHabitFromTemplate(key){
@@ -2149,6 +2661,7 @@ function renderChartSVG(h, container, rangeKey){
 
       appData.habits.push(habit);
       appData.ui.createOpen = false;
+      appData.ui.onboardingComplete = true;
       saveData({ toast:true, toastMsg:'Starter habit created. Tap “Done” for your first win.' });
       render();
 
@@ -2212,6 +2725,15 @@ function renderChartSVG(h, container, rangeKey){
         const plan = safeObj(safeObj(h.design).plan);
         const twoMinute = String(plan.twoMinute || '').trim();
         const hint = twoMinute ? `2-minute version: ${escapeHtml(twoMinute)}` : '';
+        const unit = safeObj(h.frequency).unit;
+        const target = Math.max(1, Math.round(Number(safeObj(h.frequency).target) || 1));
+        const countControls = (unit === 'day' && target > 1) ? `
+          <div class="countControls" role="group" aria-label="Adjust today count">
+            <button class="btn ghost small" data-action="adjustCount" data-habit="${escapeHtml(h.id)}" data-delta="-1" aria-label="Decrease count">−</button>
+            <div class="countValue">${escapeHtml(s.labelRight)}</div>
+            <button class="btn ghost small" data-action="adjustCount" data-habit="${escapeHtml(h.id)}" data-delta="1" aria-label="Increase count">+</button>
+          </div>
+        ` : '';
 
         return `
           <div class="panel" style="margin-bottom:10px; opacity:${isDone ? 0.6 : 1};">
@@ -2221,11 +2743,14 @@ function renderChartSVG(h, container, rangeKey){
                 <div class="tiny muted2">${escapeHtml(formatUnit(h.frequency.unit, h.frequency.target))} • ${escapeHtml(s.labelRight)}</div>
                 ${hint ? `<div class="tiny muted" style="margin-top:6px;">${hint}</div>` : ''}
               </div>
-              <button
-                class="btn small ${escapeHtml(s.btnClass)}"
-                data-action="dashToggle"
-                data-habit="${escapeHtml(h.id)}"
-              >${escapeHtml(s.btnLabel)}</button>
+              <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
+                ${countControls}
+                <button
+                  class="btn small ${escapeHtml(s.btnClass)}"
+                  data-action="dashToggle"
+                  data-habit="${escapeHtml(h.id)}"
+                >${escapeHtml(s.btnLabel)}</button>
+    
             </div>
             <div class="sumProgressStrip" style="margin-top:10px;">
               <div class="sumProgressFill" style="--p:${clamp(s.ratio,0,1).toFixed(3)}"></div>
@@ -2307,18 +2832,23 @@ function renderChartSVG(h, container, rangeKey){
       if (el) el.classList.add('active');
     }
 
+    function maybeTriggerOnboarding(){
+      if (appData.habits.length > 0) return;
+      if (appData.ui.onboardingComplete) return;
+      if (appData.ui.onboardingSeen) return;
+      if (appData.ui.onboardingActive) return;
+      appData.ui.onboardingActive = true;
+      appData.ui.onboardingSeen = true;
+      saveData({ toast:false });
+      openWizard('onboarding');
+    }
+
     function renderDashboard(){
       const root = $('#tab-dashboard');
       const createOpen = !!appData.ui.createOpen;
 
       const habitCount = appData.habits.length;
       const canCreate = habitCount < MAX_HABITS;
-
-      if (habitCount === 0 && !appData.ui.onboardingSeen){
-        appData.ui.createOpen = true;
-        appData.ui.onboardingSeen = true;
-        saveData({ toast:false });
-      }
 
       const onboarding = (habitCount === 0) ? renderOnboardingHero() : '';
       const todayCard = (habitCount > 0) ? renderTodayCard() : '';
@@ -2382,72 +2912,14 @@ function renderChartSVG(h, container, rangeKey){
     }
 
     function renderCreateForm(){
-      const d = todayISO();
       return `
-        <div class="grid two">
-          <div class="field">
-            <label for="c_name">Habit name</label>
-            <input id="c_name" type="text" placeholder="e.g., Walk after lunch (small is good)" autocomplete="off" maxlength="120" />
-            <div class="help">Keep it concrete and action-based.</div>
+        <div class="panel">
+          <div style="font-weight:950; margin-bottom:8px;">Guided setup</div>
+          <div class="muted small" style="margin-bottom:10px;">
+            Create a habit in a few short steps. You’ll define the cue, the 2-minute version, and a clear first action.
           </div>
-          <div class="field">
-            <label for="c_type">Habit type</label>
-            <select id="c_type">
-              <option value="positive">Positive (build)</option>
-              <option value="negative">Negative (reduce)</option>
-            </select>
-            <div class="help">Negative habits track “Resisted / Relapsed”.</div>
-          </div>
-        </div>
-
-        <div class="inline freqRow" style="margin-top:12px;">
-          <div class="field compact2">
-            <label for="c_start">Start date</label>
-            <input id="c_start" type="date" value="${d}" />
-          </div>
-          <div class="field compact">
-            <label for="c_unit">Frequency unit</label>
-<select id="c_unit">
-  <option value="week" selected>Week</option>
-  <option value="day">Day</option>
-  <option value="month">Month</option>
-</select>
-          </div>
-          <div class="field compact">
-            <label for="c_target">Target #</label>
-            <input id="c_target" type="number" min="1" step="1" value="1" inputmode="numeric" />
-          </div>
-        </div>
-
-        <div class="hr"></div>
-      
-        <div class="field">
-          <label for="c_ident">Identity (one sentence)</label>
-          <input id="c_ident" type="text" placeholder="I am the kind of person who…" maxlength="220" />
-          <div class="help">This should feel true even on hard days.</div>
-        </div>
-
-        <details class="panel" style="margin-top:12px;">
-          <summary style="font-weight:900; cursor:pointer;">Optional details (pre-filled if left blank)</summary>
-          <div class="field" style="margin-top:10px;">
-            <label for="c_desc">What does “done” mean?</label>
-            <textarea id="c_desc" placeholder="Define success in one sentence. Keep it kind." maxlength="1200"></textarea>
-          </div>
-          <div class="field" style="margin-top:10px;">
-            <label for="c_outcome">Long-term outcome</label>
-            <input id="c_outcome" type="text" placeholder="What does this enable over months/years?" maxlength="260" />
-          </div>
-          <div class="field" style="margin-top:10px;">
-            <label for="c_why">Why this matters</label>
-            <textarea id="c_why" placeholder="A calm, honest reason you can return to." maxlength="420"></textarea>
-          </div>
-        </details>
-
-        <div id="createErr" style="margin-top:12px;"></div>
-
-        <div class="row" style="margin-top:12px;">
-          <button class="btn primary wide" data-action="saveCreate">Save habit</button>
-          <button class="btn ghost wide" data-action="cancelCreate">Cancel</button>
+          <button class="btn primary wide" data-action="startCreateWizard">Start guided setup</button>
+          <div class="muted tiny" style="margin-top:8px;">You can edit any detail later in the Edit tab.</div>
         </div>
       `;
     }
@@ -2572,7 +3044,11 @@ function dashToggle(habitId){
       e.status = fail;
       e.count = 0;
       e.updatedAt = new Date().toISOString();
-      showToast('Reset', 'Reset for today. You can log it again anytime.', { icon:'↺', ms:1800 });
+      if (h.type === 'negative'){
+        showToast('Relapse noted', 'No shame. Adjust the environment for the next cue.', { icon:'↺', ms:2400 });
+      } else {
+        showToast('Reset', 'Reset for today. You can log it again anytime.', { icon:'↺', ms:1800 });
+      }
     } else {
       // One tap = complete the full daily target
       e.status = succ;
@@ -2590,7 +3066,11 @@ function dashToggle(habitId){
       e.status = fail;
       e.count = 0;
       e.updatedAt = new Date().toISOString();
-      showToast('Undid for today', 'Your log was updated.', { icon:'↺', ms:1800 });
+      if (h.type === 'negative'){
+        showToast('Relapse noted', 'No shame. Look for a cue you can remove or delay.', { icon:'↺', ms:2400 });
+      } else {
+        showToast('Undid for today', 'Your log was updated.', { icon:'↺', ms:1800 });
+      }
     } else {
       e.status = succ;
       e.count = 1;
@@ -2611,6 +3091,41 @@ function dashToggle(habitId){
 
   const list = document.getElementById('todayFocusList');
   if (list && $('#modal').classList.contains('active')){
+    $('#modalBody').innerHTML = renderTodayFocusBody();
+  }
+}
+
+function adjustDailyCount(habitId, delta){
+  const h = getHabit(habitId);
+  if (!h) return;
+
+  const unit = safeObj(h.frequency).unit;
+  if (unit !== 'day') return;
+
+  const iso = todayISO();
+  if (!h.logs || typeof h.logs !== 'object') h.logs = {};
+  if (!h.logs[iso]){
+    h.logs[iso] = { date: iso, status: failStatusForType(h.type), note:'', count:0, auto:true, updatedAt: new Date().toISOString() };
+  }
+  const e = h.logs[iso];
+  const succ = successStatusForType(h.type);
+  const fail = failStatusForType(h.type);
+  const target = Math.max(1, Math.round(Number(safeObj(h.frequency).target) || 1));
+  let c = Number(e.count || 0);
+  if (!Number.isFinite(c) || c < 0) c = 0;
+  c = clamp(Math.round(c + delta), 0, target);
+  e.count = c;
+  e.status = c > 0 ? succ : fail;
+  e.auto = false;
+  e.updatedAt = new Date().toISOString();
+
+  h.updatedAt = new Date().toISOString();
+  saveData({ toast:false });
+  updateHabitVisuals(habitId);
+  updateDashboardQuick(habitId);
+  hydrateVisibleCharts();
+
+  if ($('#modal').classList.contains('active')){
     $('#modalBody').innerHTML = renderTodayFocusBody();
   }
 }
@@ -2662,8 +3177,6 @@ function renderHabitList(){
 
     const prog = periodProgress(h);
     const c7 = windowConsistencyPercent(h, 7);
-    const streak = currentDailyStreak(h);
-    const last12 = actualCountLast12Months(h);
 
     const subtab = appData.ui.habitSubtabs?.[h.id] || 'track';
 
@@ -2700,11 +3213,12 @@ function renderHabitList(){
 
         <div class="detailsBody">
           <div id="habit-${escapeHtml(h.id)}-summary">
-            ${renderHabitSummary(h, { prog, c7, streak, last12 })}
+            ${renderHabitSummary(h, { prog, c7 })}
           </div>
 
           <div class="subtabs" role="tablist" aria-label="Habit sections">
             <button class="tabBtn ${subtab==='track'?'active':''}"
+              id="tab-${escapeHtml(h.id)}-track"
               data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="track"
               aria-selected="${subtab==='track'?'true':'false'}" tabindex="${subtab==='track'?'0':'-1'}">
               ${renderTabIcon('track')}
@@ -2712,6 +3226,7 @@ function renderHabitList(){
             </button>
 
             <button class="tabBtn ${subtab==='design'?'active':''}"
+              id="tab-${escapeHtml(h.id)}-design"
               data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="design"
               aria-selected="${subtab==='design'?'true':'false'}" tabindex="${subtab==='design'?'0':'-1'}">
               ${renderTabIcon('design')}
@@ -2719,6 +3234,7 @@ function renderHabitList(){
             </button>
 
             <button class="tabBtn ${subtab==='insights'?'active':''}"
+              id="tab-${escapeHtml(h.id)}-insights"
               data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="insights"
               aria-selected="${subtab==='insights'?'true':'false'}" tabindex="${subtab==='insights'?'0':'-1'}">
               ${renderTabIcon('insights')}
@@ -2726,6 +3242,7 @@ function renderHabitList(){
             </button>
 
             <button class="tabBtn ${subtab==='motivation'?'active':''}"
+              id="tab-${escapeHtml(h.id)}-motivation"
               data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="motivation"
               aria-selected="${subtab==='motivation'?'true':'false'}" tabindex="${subtab==='motivation'?'0':'-1'}">
               ${renderTabIcon('motivation')}
@@ -2733,6 +3250,7 @@ function renderHabitList(){
             </button>
 
             <button class="tabBtn ${subtab==='edit'?'active':''}"
+              id="tab-${escapeHtml(h.id)}-edit"
               data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="edit"
               aria-selected="${subtab==='edit'?'true':'false'}" tabindex="${subtab==='edit'?'0':'-1'}">
               ${renderTabIcon('edit')}
@@ -2772,7 +3290,6 @@ function renderHabitList(){
       const isNeg = h.type === 'negative';
       const prog = pre?.prog || periodProgress(h);
       const c7 = pre?.c7 ?? windowConsistencyPercent(h, 7);
-      const streak = pre?.streak ?? currentDailyStreak(h);
       const freqTxt = formatUnit(h.frequency.unit, h.frequency.target);
 
       const ratio = clamp(prog.ratio, 0, 1);
@@ -2837,11 +3354,6 @@ function renderHabitList(){
               <div class="k">Consistency</div>
               <div class="v">${escapeHtml(String(c7))}%</div>
               <div class="s">Last 7 days</div>
-            </div>
-            <div class="pillStat">
-              <div class="k">Streak</div>
-              <div class="v">${escapeHtml(String(streak))}d</div>
-              <div class="s">Current run</div>
             </div>
           </div>
 
@@ -3005,7 +3517,7 @@ function updateHabitHeader(habitId){
           </div>
         </div>
         <div class="field" style="margin-top:12px;">
-            <label>Long-term outcome</label>
+            <label>Why this matters</label>
           <textarea
             data-bind="motivator.why"
             data-habit="${escapeHtml(h.id)}"
@@ -3067,56 +3579,59 @@ function updateHabitHeader(habitId){
             </div>
           ` : ''}
 
-          <div class="hr"></div>
+          <details class="panel" style="margin-top:12px;">
+            <summary style="font-weight:900; cursor:pointer;">More behavior design (optional)</summary>
+            <div class="hr"></div>
 
-          <div style="font-weight:950; margin-bottom:8px;">Habit loop</div>
-          <div class="grid two">
-            <div class="field">
-              <label>Cue</label>
-              <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.loop.cue" placeholder="What triggers it?">${escapeHtml(loop.cue || '')}</textarea>
+            <div style="font-weight:950; margin-bottom:8px;">Habit loop</div>
+            <div class="grid two">
+              <div class="field">
+                <label>Cue</label>
+                <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.loop.cue" placeholder="What triggers it?">${escapeHtml(loop.cue || '')}</textarea>
+              </div>
+              <div class="field">
+                <label>Craving</label>
+                <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.loop.craving" placeholder="What feeling/want does it promise?">${escapeHtml(loop.craving || '')}</textarea>
+              </div>
+              <div class="field">
+                <label>Response</label>
+                <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.loop.response" placeholder="What do you actually do?">${escapeHtml(loop.response || '')}</textarea>
+              </div>
+              <div class="field">
+                <label>Reward</label>
+                <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.loop.reward" placeholder="What immediate payoff happens?">${escapeHtml(loop.reward || '')}</textarea>
+              </div>
             </div>
-            <div class="field">
-              <label>Craving</label>
-              <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.loop.craving" placeholder="What feeling/want does it promise?">${escapeHtml(loop.craving || '')}</textarea>
-            </div>
-            <div class="field">
-              <label>Response</label>
-              <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.loop.response" placeholder="What do you actually do?">${escapeHtml(loop.response || '')}</textarea>
-            </div>
-            <div class="field">
-              <label>Reward</label>
-              <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.loop.reward" placeholder="What immediate payoff happens?">${escapeHtml(loop.reward || '')}</textarea>
-            </div>
-          </div>
 
-          <div class="hr"></div>
+            <div class="hr"></div>
 
-          <div style="font-weight:950; margin-bottom:8px;">Four laws of behavior change</div>
-          <div class="grid two">
-            <div class="field">
-              <label>${escapeHtml(labels.obvious)}</label>
-              <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.laws.obvious" placeholder="Environment & cues...">${escapeHtml(laws.obvious || '')}</textarea>
+            <div style="font-weight:950; margin-bottom:8px;">Four laws of behavior change</div>
+            <div class="grid two">
+              <div class="field">
+                <label>${escapeHtml(labels.obvious)}</label>
+                <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.laws.obvious" placeholder="Environment & cues...">${escapeHtml(laws.obvious || '')}</textarea>
+              </div>
+              <div class="field">
+                <label>${escapeHtml(labels.attractive)}</label>
+                <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.laws.attractive" placeholder="Make it appealing (or not)...">${escapeHtml(laws.attractive || '')}</textarea>
+              </div>
+              <div class="field">
+                <label>${escapeHtml(labels.easy)}</label>
+                <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.laws.easy" placeholder="Reduce friction (or add it)...">${escapeHtml(laws.easy || '')}</textarea>
+              </div>
+              <div class="field">
+                <label>${escapeHtml(labels.satisfying)}</label>
+                <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.laws.satisfying" placeholder="Reward & tracking (or consequence)...">${escapeHtml(laws.satisfying || '')}</textarea>
+              </div>
             </div>
-            <div class="field">
-              <label>${escapeHtml(labels.attractive)}</label>
-              <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.laws.attractive" placeholder="Make it appealing (or not)...">${escapeHtml(laws.attractive || '')}</textarea>
-            </div>
-            <div class="field">
-              <label>${escapeHtml(labels.easy)}</label>
-              <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.laws.easy" placeholder="Reduce friction (or add it)...">${escapeHtml(laws.easy || '')}</textarea>
-            </div>
-            <div class="field">
-              <label>${escapeHtml(labels.satisfying)}</label>
-              <textarea data-habit="${escapeHtml(h.id)}" data-bind="design.laws.satisfying" placeholder="Reward & tracking (or consequence)...">${escapeHtml(laws.satisfying || '')}</textarea>
-            </div>
-          </div>
 
-          <div class="success" style="margin-top:12px;">
-            <strong>System > willpower.</strong>
-            <div class="small muted" style="margin-top:6px;">
-              If it’s hard to follow through, adjust the environment. Make the “right thing” the easy thing.
+            <div class="success" style="margin-top:12px;">
+              <strong>System > willpower.</strong>
+              <div class="small muted" style="margin-top:6px;">
+                If it’s hard to follow through, adjust the environment. Make the “right thing” the easy thing.
+              </div>
             </div>
-          </div>
+          </details>
         </div>
       `;
     }
@@ -3192,6 +3707,9 @@ const plannedInRange = Math.round(plannedRate * w.days);
       <ul class="small muted" style="margin:0; padding-left:18px; line-height:1.5;">
         ${s.map(x => `<li>${escapeHtml(x)}</li>`).join('')}
       </ul>
+      <div class="row" style="margin-top:12px;">
+        <button class="btn ghost wide" data-action="jumpToPlan" data-habit="${escapeHtml(h.id)}">Make it easier</button>
+      </div>
     </div>
   `;
 }
@@ -3548,6 +4066,15 @@ function renderRecentLogs(h){
                 Inspired by Atomic Habits principles. Not affiliated with or endorsed by James Clear.
               </div>
             </div>
+
+            <div class="panel" style="margin-top:12px;">
+              <div style="font-weight:950; margin-bottom:8px;">How this works</div>
+              <ul class="small muted" style="margin:0; padding-left:18px; line-height:1.5;">
+                <li>Make habits identity-based: each check-in is a vote for who you want to be.</li>
+                <li>Use cues and tiny starts to lower friction and make consistency easier.</li>
+                <li>Misses are data, not verdicts. Adjust the environment instead of blaming yourself.</li>
+              </ul>
+            </div>
           </div>
         </div>
       `;
@@ -3578,9 +4105,7 @@ function renderRecentLogs(h){
       if (sumWrap){
         const prog = periodProgress(h);
         const c7 = windowConsistencyPercent(h, 7);
-        const streak = currentDailyStreak(h);
-        const last12 = actualCountLast12Months(h);
-        sumWrap.innerHTML = renderHabitSummary(h, { prog, c7, streak, last12 });
+        sumWrap.innerHTML = renderHabitSummary(h, { prog, c7 });
       }
 
       // If insights panel visible, update chart
@@ -4083,7 +4608,11 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
       modal.classList.remove('active');
       modal.setAttribute('aria-hidden','true');
       setAppAriaHidden(false);
-      if (lastModalFocus && typeof lastModalFocus.focus === 'function') lastModalFocus.focus();
+      if (appData.ui?.wizard?.open){
+        appData.ui.wizard.open = false;
+        appData.ui.onboardingActive = false;
+        saveData({ toast:false });
+      }
     }
 
     function openExport(){
@@ -4127,11 +4656,12 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
       }
       const normalized = normalizeData(parsed);
 
-      // required: motivator must be present and filled (per habit)
+
+      // required: identity must be present (per habit)
       for (const h of normalized.habits){
         const m = safeObj(h.motivator);
-        if (!String(m.identity||'').trim() || !String(m.outcome||'').trim() || !String(m.why||'').trim()){
-          return { ok:false, error:`This import is missing Identity / Outcome / Why for habit “${h.name || 'Untitled'}”. Add those fields and try again.` };
+        if (!String(m.identity||'').trim()){
+          return { ok:false, error:`This import is missing an identity statement for habit “${h.name || 'Untitled'}”. Add one and try again.` };
         }
       }
 
@@ -4468,8 +4998,8 @@ function handleLogEdit(el){
           if (!['day','week','month'].includes(f.unit)) return { ok:false, summary:`Habit “${h.name}” has invalid frequency unit.` };
           if (!Number.isFinite(Number(f.target)) || Number(f.target) <= 0) return { ok:false, summary:`Habit “${h.name}” has invalid target.` };
           const m = safeObj(h.motivator);
-          if (!String(m.identity||'').trim() || !String(m.outcome||'').trim() || !String(m.why||'').trim()){
-            return { ok:false, summary:`Habit “${h.name}” is missing required motivator fields.` };
+          if (!String(m.identity||'').trim()){
+            return { ok:false, summary:`Habit “${h.name}” is missing an identity statement.` };
           }
           // logs validity
           const logs = safeObj(h.logs);
@@ -4501,12 +5031,69 @@ function handleLogEdit(el){
 
       const action = btn.getAttribute('data-action');
 
+      if (action === 'startOnboarding'){
+        e.preventDefault();
+        appData.ui.onboardingActive = true;
+        openWizard('onboarding');
+        return;
+      }
+
+      if (action === 'startCreateWizard'){
+        e.preventDefault();
+        openWizard('create');
+        return;
+      }
+
+      if (action === 'wizardSetType'){
+        const value = btn.getAttribute('data-value') || 'positive';
+        updateWizardDraft('type', value);
+        renderWizardModal();
+        return;
+      }
+
+      if (action === 'wizardSuggestTarget'){
+        const value = Number(btn.getAttribute('data-value') || 1);
+        updateWizardDraft('frequency.target', value);
+        renderWizardModal();
+        return;
+      }
+
+      if (action === 'wizardBack'){
+        wizardBack();
+        return;
+      }
+
+      if (action === 'wizardNext'){
+        wizardNext();
+        return;
+      }
+
+      if (action === 'wizardFinish'){
+        wizardFinish(false);
+        return;
+      }
+
+      if (action === 'wizardLogFirst'){
+        wizardFinish(true);
+        return;
+      }
+
 if (action === 'dashToggle'){
   e.preventDefault();
   e.stopPropagation();
   const hid = btn.getAttribute('data-habit');
   if (!hid) return;
   dashToggle(hid);
+  return;
+}
+
+if (action === 'adjustCount'){
+  e.preventDefault();
+  e.stopPropagation();
+  const hid = btn.getAttribute('data-habit');
+  const delta = Number(btn.getAttribute('data-delta') || 0);
+  if (!hid || !delta) return;
+  adjustDailyCount(hid, delta);
   return;
 }
 
@@ -4528,6 +5115,15 @@ if (action === 'dismissReviewNudge'){
   appData.ui.reviewNudgeDismissed = wk;
   saveData({ toast:false });
   renderDashboard();
+  return;
+}
+
+if (action === 'jumpToPlan'){
+  const hid = btn.getAttribute('data-habit');
+  if (!hid) return;
+  const det = document.getElementById(`habit-${hid}`);
+  if (det && det.tagName === 'DETAILS') det.open = true;
+  setHabitSubtab(hid, 'design');
   return;
 }
 
@@ -4691,7 +5287,7 @@ if (action === 'setInsightRange'){
 
       if (action === 'downloadExport'){
         const text = $('#exportText')?.value || '';
-        const filename = `atomic-habits-backup-${todayISO()}.json`;
+        const filename = `quiet-habits-backup-${todayISO()}.json`;
         downloadText(filename, text);
         showToast('Downloaded', 'Backup saved as a file.', { icon:'↓', ms:2000 });
         return;
@@ -4737,7 +5333,13 @@ if (action === 'setInsightRange'){
       const el = e.target;
       if (!(el instanceof HTMLElement)) return;
 
-      if (el.hasAttribute('data-bind') && el.hasAttribute('data-habit')){
+      if (el.getAttribute('data-action') === 'wizardInput'){
+        const field = el.getAttribute('data-field');
+        if (!field) return;
+        updateWizardDraft(field, el.value);
+        return;
+      }
+
         handleBoundInput(el);
         return;
       }
@@ -4754,6 +5356,16 @@ if (action === 'setInsightRange'){
     });
 
     // When a habit opens, render chart if insights active (lazy)
+    document.addEventListener('change', (e) => {
+      const el = e.target;
+      if (!(el instanceof HTMLElement)) return;
+      if (el.getAttribute('data-action') === 'wizardInput'){
+        const field = el.getAttribute('data-field');
+        if (!field) return;
+        updateWizardDraft(field, el.value);
+      }
+    });
+
     document.addEventListener('toggle', (e) => {
       const det = e.target;
       if (!(det instanceof HTMLDetailsElement)) return;
