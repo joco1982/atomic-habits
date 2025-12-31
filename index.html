@@ -403,6 +403,74 @@ body::after{
       color:var(--accent2);
       letter-spacing:.2px;
     }
+    .wizard label{
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .infoIcon{
+      width:18px;
+      height:18px;
+      border-radius:999px;
+      border:1px solid rgba(122,167,255,.45);
+      background: rgba(122,167,255,.12);
+      color: var(--accent2);
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:11px;
+      font-weight:800;
+      line-height:1;
+      position:relative;
+      flex:0 0 auto;
+    }
+    .infoIcon::after{
+      content: attr(data-info);
+      position:absolute;
+      bottom: calc(100% + 10px);
+      left:50%;
+      transform: translateX(-50%) translateY(4px);
+      min-width:180px;
+      max-width:260px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--line2);
+      background: rgba(11,18,32,.98);
+      color: var(--text);
+      font-size:12px;
+      font-weight:600;
+      line-height:1.35;
+      text-align:left;
+      box-shadow: var(--shadow);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .15s ease, transform .15s ease;
+      z-index:20;
+      white-space:normal;
+    }
+    .infoIcon::before{
+      content:"";
+      position:absolute;
+      bottom: calc(100% + 4px);
+      left:50%;
+      transform: translateX(-50%) translateY(4px);
+      width:10px;
+      height:10px;
+      background: rgba(11,18,32,.98);
+      border-left:1px solid var(--line2);
+      border-top:1px solid var(--line2);
+      rotate:45deg;
+      opacity:0;
+      transition: opacity .15s ease, transform .15s ease;
+      z-index:19;
+    }
+    .infoIcon:hover::after,
+    .infoIcon:focus::after,
+    .infoIcon:hover::before,
+    .infoIcon:focus::before{
+      opacity:1;
+      transform: translateX(-50%) translateY(0);
+    }
     input, textarea, select{
       width:100%;
       max-width:100%;
@@ -2322,6 +2390,10 @@ function renderChartSVG(h, container, rangeKey){
       return `<div class="wizardFooter">${back}${next}</div>`;
     }
 
+    function renderInfoIcon(text){
+      return `<button type="button" class="infoIcon" data-info="${escapeHtml(text)}" aria-label="${escapeHtml(text)}">i</button>`;
+    }
+
     function renderWizardStep(step, draft){
       const lawLabels = lawLabelsForType(draft.type);
       const twoMinuteLabel = draft.type === 'negative' ? '2-minute replacement (strongly suggested)' : '2-minute version (required)';
@@ -2350,7 +2422,7 @@ function renderChartSVG(h, container, rangeKey){
 
             ${step === 1 ? `
               <div class="field">
-                <label>Give it a clear, action-based name</label>
+                <label><span>Give it a clear, action-based name</span>${renderInfoIcon('Why: Action language makes habits easier to remember. How: Use a verb plus a time or place, like “Walk after lunch.”')}</label>
                 <input type="text" data-action="wizardInput" data-field="name" value="${escapeHtml(draft.name || '')}" placeholder="e.g., Walk after lunch" maxlength="120" />
                 <div class="help">Action + time/place beats abstract goals.</div>
               </div>
@@ -2359,7 +2431,7 @@ function renderChartSVG(h, container, rangeKey){
             ${step === 2 ? `
               <div class="grid two">
                 <div class="field">
-                  <label>How often?</label>
+                  <label><span>How often?</span>${renderInfoIcon('Why: Your rhythm sets expectations. How: Pick the most realistic cadence you can keep for a month.')}</label>
                   <select data-action="wizardInput" data-field="frequency.unit">
                     <option value="day" ${draft.frequency?.unit === 'day' ? 'selected' : ''}>Daily</option>
                     <option value="week" ${draft.frequency?.unit === 'week' ? 'selected' : ''}>Weekly</option>
@@ -2367,7 +2439,7 @@ function renderChartSVG(h, container, rangeKey){
                   </select>
                 </div>
                 <div class="field">
-                  <label>Target count</label>
+                  <label><span>Target count</span>${renderInfoIcon('Why: A small target creates early wins. How: Pick the minimum number that still counts as success.')}</label>
                   <input type="number" min="1" step="1" inputmode="numeric" data-action="wizardInput" data-field="frequency.target" value="${escapeHtml(String(draft.frequency?.target || 1))}" />
                   <div class="help">Start smaller than you think. Consistency wins.</div>
                 </div>
@@ -2381,35 +2453,36 @@ function renderChartSVG(h, container, rangeKey){
 
             ${step === 3 ? `
               <div class="field">
-                <label>Identity statement (required)</label>
+                <label><span>Identity statement (required)</span>${renderInfoIcon('Why: Identity-based habits stick. How: Write a believable “I am the kind of person who…” statement for today.')}</label>
                 <input type="text" data-action="wizardInput" data-field="motivator.identity" value="${escapeHtml(draft.motivator?.identity || '')}" placeholder="I am the kind of person who…" maxlength="220" />
                 <div class="help">Make it believable today. This becomes your daily vote.</div>
               </div>
               <div class="field" style="margin-top:10px;">
-                <label>Long-term outcome (optional)</label>
+                <label><span>Long-term outcome (optional)</span>${renderInfoIcon('Why: It connects today’s action to future you. How: Describe the longer-term benefit in one line.')}</label>
                 <input type="text" data-action="wizardInput" data-field="motivator.outcome" value="${escapeHtml(draft.motivator?.outcome || '')}" placeholder="Over time, this enables…" maxlength="260" />
               </div>
               <div class="field" style="margin-top:10px;">
-                <label>Why it matters (optional)</label>
+                <label><span>Why it matters (optional)</span>${renderInfoIcon('Why: Motivation fades without a personal reason. How: Note a calm, meaningful reason you can revisit.')}</label>
                 <textarea data-action="wizardInput" data-field="motivator.why" maxlength="420" placeholder="A calm reason you can return to.">${escapeHtml(draft.motivator?.why || '')}</textarea>
               </div>
             ` : ''}
 
             ${step === 4 ? `
               <div class="field">
-                <label>Implementation intention (If–Then)</label>
+                <label><span>Implementation intention (If–Then)</span>${renderInfoIcon('Why: A clear trigger makes action automatic. How: Write “If [cue], then I will [action].”')}</label>
                 <textarea data-action="wizardInput" data-field="design.plan.ifThen" placeholder="If it’s 7pm, then I will…">${escapeHtml(draft.design?.plan?.ifThen || '')}</textarea>
               </div>
               <div class="field" style="margin-top:10px;">
-                <label>Habit stacking (After I…, I will…)</label>
+                <label><span>Habit stacking (After I…, I will…)</span>${renderInfoIcon('Why: Linking to an existing routine boosts follow-through. How: Write “After I [existing routine], I will [habit].”')}</label>
                 <textarea data-action="wizardInput" data-field="design.plan.cuePlan" placeholder="After I make coffee, I will…">${escapeHtml(draft.design?.plan?.cuePlan || '')}</textarea>
                 <div class="help">Anchoring your action to an existing routine makes it automatic.</div>
               </div>
+              <div class="help" style="margin-top:10px;">Not sure yet? You can skip these and refine them later in the Plan section.</div>
             ` : ''}
 
             ${step === 5 ? `
               <div class="field">
-                <label>${escapeHtml(twoMinuteLabel)}</label>
+                <label><span>${escapeHtml(twoMinuteLabel)}</span>${renderInfoIcon('Why: Tiny versions remove resistance. How: Describe the smallest action you can do even on a busy day.')}</label>
                 <input type="text" data-action="wizardInput" data-field="design.plan.twoMinute" value="${escapeHtml(draft.design?.plan?.twoMinute || '')}" placeholder="The smallest possible start" maxlength="240" />
                 <div class="help">If you can do this version, you can keep the streak alive.</div>
               </div>
@@ -2419,22 +2492,23 @@ function renderChartSVG(h, container, rangeKey){
               <div class="wizardHint" style="margin-bottom:10px;">Optional: adjust the environment so the right action is easier.</div>
               <div class="grid two">
                 <div class="field">
-                  <label>${escapeHtml(lawLabels.obvious)}</label>
+                  <label><span>${escapeHtml(lawLabels.obvious)}</span>${renderInfoIcon('Why: Clear cues prompt action. How: Add a visible reminder or remove the invisible ones.')}</label>
                   <textarea data-action="wizardInput" data-field="design.laws.obvious" placeholder="Place cues where you see them.">${escapeHtml(draft.design?.laws?.obvious || '')}</textarea>
                 </div>
                 <div class="field">
-                  <label>${escapeHtml(lawLabels.attractive)}</label>
+                  <label><span>${escapeHtml(lawLabels.attractive)}</span>${renderInfoIcon('Why: Attractive actions get repeated. How: Pair this habit with something you already enjoy.')}</label>
                   <textarea data-action="wizardInput" data-field="design.laws.attractive" placeholder="Pair it with something you enjoy.">${escapeHtml(draft.design?.laws?.attractive || '')}</textarea>
                 </div>
                 <div class="field">
-                  <label>${escapeHtml(lawLabels.easy)}</label>
+                  <label><span>${escapeHtml(lawLabels.easy)}</span>${renderInfoIcon('Why: Lower friction makes it happen. How: Reduce steps, prep in advance, or make the bad habit harder.')}</label>
                   <textarea data-action="wizardInput" data-field="design.laws.easy" placeholder="Reduce friction (or add it).">${escapeHtml(draft.design?.laws?.easy || '')}</textarea>
                 </div>
                 <div class="field">
-                  <label>${escapeHtml(lawLabels.satisfying)}</label>
+                  <label><span>${escapeHtml(lawLabels.satisfying)}</span>${renderInfoIcon('Why: Immediate rewards lock in behavior. How: Add a small, quick win right after the action.')}</label>
                   <textarea data-action="wizardInput" data-field="design.laws.satisfying" placeholder="Reward the action quickly.">${escapeHtml(draft.design?.laws?.satisfying || '')}</textarea>
                 </div>
               </div>
+              <div class="help" style="margin-top:10px;">These are optional and can be filled in later from the Plan section.</div>
             ` : ''}
 
             ${step === 7 ? `
@@ -2452,7 +2526,7 @@ function renderChartSVG(h, container, rangeKey){
                 </div>
               </div>
               <div class="field" style="margin-top:12px;">
-                <label>What does “done” mean?</label>
+                <label><span>What does “done” mean?</span>${renderInfoIcon('Why: Clarity prevents ambiguity. How: Define success in one sentence you can check off.')}</label>
                 <textarea data-action="wizardInput" data-field="description" maxlength="1200" placeholder="Define success in one sentence.">${escapeHtml(draft.description || '')}</textarea>
                 <div class="help">This becomes the habit’s short description in your list.</div>
               </div>
@@ -2497,7 +2571,7 @@ function renderChartSVG(h, container, rangeKey){
         'Clear action',
         'Small target',
         'Believable',
-        'If–Then / After I',
+        'If–Then / After I (optional)',
         'Make it easy',
         'Optional',
         'What “done” means',
@@ -2539,8 +2613,7 @@ function renderChartSVG(h, container, rangeKey){
         const ifThen = String(draft.design?.plan?.ifThen || '').trim();
         const cuePlan = String(draft.design?.plan?.cuePlan || '').trim();
         if (!ifThen && !cuePlan){
-          showToast('Add a cue plan', 'Try an If–Then or After-I plan so the habit has a trigger.', { icon:'!' });
-          return false;
+          showToast('Optional step', 'You can skip cue planning now and fill it later in the Plan section.', { icon:'✓', ms:2400 });
         }
       }
       if (step === 5){
