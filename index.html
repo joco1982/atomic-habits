@@ -458,26 +458,32 @@ body::after{
     }
 
     /* Habit list */
-    details.habit{
-      border-top:1px solid var(--line);
+    .habitList{
+      padding: 12px 14px 14px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
     }
-    details.habit:first-of-type{
-      border-top: none;
+    details.habit{
+      border:1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,.03);
+      overflow:hidden;
     }
     details.habit > summary{
-  list-style:none;
-  cursor:pointer;
-  padding: 14px;
-  display:flex;
-  flex-direction:column;         /* <— allows the bar to span full width */
-  align-items:stretch;
-  justify-content:flex-start;
-  gap:10px;                      /* space between top row and bar */
-  min-height: var(--tap);
-  user-select:none;
-  -webkit-tap-highlight-color: transparent;
-  background: rgba(255,255,255,.02);
-}
+      list-style:none;
+      cursor:pointer;
+      padding: 14px;
+      display:flex;
+      flex-direction:column;
+      align-items:stretch;
+      justify-content:flex-start;
+      gap:10px;
+      min-height: var(--tap);
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+      background: rgba(255,255,255,.02);
+    }
 
 /* Top row inside summary: left content + right action button */
 .sumRowTop{
@@ -608,6 +614,7 @@ details.habit[open] .detailsBody{
       display:flex;
       flex-direction:column;
       gap:12px;
+      border-top:1px solid var(--line);
     }
 
     .stats{
@@ -1141,6 +1148,12 @@ details.habit[open] .detailsBody{
       justify-content:space-between;
       gap:12px;
     }
+    .createActions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
     .createTitle{
       display:flex;
       flex-direction:column;
@@ -1164,6 +1177,59 @@ details.habit[open] .detailsBody{
       display:none;
     }
     .createWrap.open .createBody{ display:block; }
+
+    .quickCreate{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .todayCard.done{
+      border-color: rgba(41,211,154,.45);
+      background:
+        radial-gradient(120% 140% at 0% 0%, rgba(41,211,154,.18), rgba(18,30,52,.10)),
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+    }
+
+    .focusItem{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .focusRow{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+    }
+    .focusMain{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .focusTitle{
+      font-weight:950;
+      line-height:1.2;
+    }
+    .focusMeta{
+      font-size:12px;
+      color: var(--muted2);
+      font-weight:800;
+    }
+    .focusHint{
+      font-size:12px;
+      color: var(--muted);
+    }
+    .focusActions{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      align-items:flex-end;
+    }
+    .focusProgress{
+      margin-top:2px;
+    }
 
     /* Review page */
     .reviewHero{
@@ -1256,6 +1322,20 @@ input[type="date"]{
   .inline > .field.compact,
   .inline > .field.compact2{
     flex: 1 1 100%;
+  }
+
+  .focusRow{
+    flex-direction:column;
+    align-items:stretch;
+  }
+  .focusActions{
+    width:100%;
+    flex-direction:row;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .focusActions .btn{
+    flex:0 0 auto;
   }
 }
 </style>
@@ -1498,7 +1578,8 @@ input[type="date"]{
           onboardingSeen: false,
           onboardingComplete: false,
           onboardingActive: false,
-          wizard: { open:false, mode:'create', step:0, draft: blankWizardDraft() }
+          wizard: { open:false, mode:'create', step:0, draft: blankWizardDraft() },
+          lastCelebratedISO: ''
         }
       };
 
@@ -1524,6 +1605,7 @@ input[type="date"]{
         if (typeof out.ui.wizard.open !== 'boolean') out.ui.wizard.open = false;
         if (!out.ui.wizard.draft) out.ui.wizard.draft = blankWizardDraft();
       }
+      if (typeof out.ui.lastCelebratedISO !== 'string') out.ui.lastCelebratedISO = '';
       if (!out.ui.recentOpen || typeof out.ui.recentOpen !== 'object') out.ui.recentOpen = {};
       if (!out.ui.reviewNudgeDismissed) out.ui.reviewNudgeDismissed = '';
       if (!out.ui.streakShield || typeof out.ui.streakShield !== 'object') out.ui.streakShield = {};
@@ -2676,11 +2758,12 @@ function renderChartSVG(h, container, rangeKey){
       });
     }
 
-    function renderTodayCard(){
-      const habits = safeArr(appData.habits);
+    function getTodayCompletionState(habits){
+      const list = safeArr(habits);
       const iso = todayISO();
+      let doneCount = 0;
 
-      const undone = habits.filter(h => {
+      list.forEach(h => {
         const e = safeObj(safeObj(h.logs)[iso]);
         const succ = successStatusForType(h.type);
         const unit = safeObj(h.frequency).unit;
@@ -2689,27 +2772,47 @@ function renderChartSVG(h, container, rangeKey){
         const done = (unit === 'day')
           ? (st === succ && Number(e.count || 0) >= target)
           : (st === succ);
-        return !done;
+        if (done) doneCount += 1;
       });
 
+      return {
+        total: list.length,
+        doneCount,
+        remaining: Math.max(0, list.length - doneCount),
+        allDone: list.length > 0 && doneCount === list.length
+      };
+    }
+
+    function renderTodayCard(){
+      const habits = safeArr(appData.habits);
+      const completion = getTodayCompletionState(habits);
+
       const insight = getTodayInsightLine();
+      const allDone = completion.allDone && completion.total > 0;
+      const focusLabel = allDone ? 'Celebrate' : 'Focus';
+      const focusAction = allDone ? 'celebrateDay' : 'openTodayFocus';
 
       return `
-        <div class="card heroCard" style="margin-bottom:12px;">
+        <div class="card heroCard todayCard ${allDone ? 'done' : ''}" style="margin-bottom:12px;">
           <div class="cardHeader">
             <div class="left">
               <p class="hTitle">Today</p>
               <div class="hMeta">
-                <span class="tag muted">${undone.length} left</span>
-                <span class="muted2">One calm check-in. Then you’re done.</span>
+                ${allDone
+                  ? `<span class="tag good">All complete</span>`
+                  : `<span class="tag muted">${completion.remaining} left</span>`
+                }
+                <span class="muted2">${allDone ? 'You did it. Enjoy the momentum.' : 'One calm check-in. Then you’re done.'}</span>
               </div>
             </div>
             <div class="right">
-              <button class="btn small primary" data-action="openTodayFocus">Focus</button>
+              <button class="btn small primary" data-action="${focusAction}">${focusLabel}</button>
             </div>
           </div>
           <div class="content">
-            <div class="muted small" style="margin-bottom:8px;">Tap Focus for a one-screen checklist.</div>
+            <div class="muted small" style="margin-bottom:8px;">
+              ${allDone ? 'You completed every habit on your list.' : 'Tap Focus for a one-screen checklist.'}
+            </div>
             <div class="small muted2">Insight: ${escapeHtml(insight)}</div>
           </div>
         </div>
@@ -2718,7 +2821,7 @@ function renderChartSVG(h, container, rangeKey){
 
     function renderTodayFocusBody(){
       const habits = safeArr(appData.habits);
-      const iso = todayISO();
+      const completion = getTodayCompletionState(habits);
 
       const rows = habits.map(h => {
         const s = dashboardState(h);
@@ -2737,44 +2840,36 @@ function renderChartSVG(h, container, rangeKey){
         ` : '';
 
         return `
-          <div class="panel" style="margin-bottom:10px; opacity:${isDone ? 0.6 : 1};">
-            <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
-              <div style="min-width:0;">
-                <div style="font-weight:950; line-height:1.2;" class="nowrapEllip">${escapeHtml(h.name || 'Untitled habit')}</div>
-                <div class="tiny muted2">${escapeHtml(formatUnit(h.frequency.unit, h.frequency.target))} • ${escapeHtml(s.labelRight)}</div>
-                ${hint ? `<div class="tiny muted" style="margin-top:6px;">${hint}</div>` : ''}
+          <div class="panel focusItem" style="margin-bottom:10px; opacity:${isDone ? 0.6 : 1};">
+            <div class="focusRow">
+              <div class="focusMain">
+                <div class="focusTitle nowrapEllip">${escapeHtml(h.name || 'Untitled habit')}</div>
+                <div class="focusMeta">${escapeHtml(formatUnit(h.frequency.unit, h.frequency.target))} • ${escapeHtml(s.labelRight)}</div>
+                ${hint ? `<div class="focusHint">${hint}</div>` : ''}
               </div>
-              <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
+              <div class="focusActions">
                 ${countControls}
                 <button
                   class="btn small ${escapeHtml(s.btnClass)}"
                   data-action="dashToggle"
                   data-habit="${escapeHtml(h.id)}"
                 >${escapeHtml(s.btnLabel)}</button>
-    
+              </div>
             </div>
-            <div class="sumProgressStrip" style="margin-top:10px;">
+            <div class="sumProgressStrip focusProgress">
               <div class="sumProgressFill" style="--p:${clamp(s.ratio,0,1).toFixed(3)}"></div>
             </div>
           </div>
         `;
       }).join('');
 
-      const allDone = habits.length && habits.every(h => {
-        const e = safeObj(safeObj(h.logs)[iso]);
-        const succ = successStatusForType(h.type);
-        const unit = safeObj(h.frequency).unit;
-        const target = Math.max(1, Math.round(Number(safeObj(h.frequency).target) || 1));
-        const st = String(e.status || '').toLowerCase();
-        return (unit === 'day')
-          ? (st === succ && Number(e.count || 0) >= target)
-          : (st === succ);
-      });
-
-      const doneCard = allDone ? `
+      const doneCard = completion.allDone && completion.total > 0 ? `
         <div class="panel" style="margin-top:12px;">
           <div style="font-weight:950; margin-bottom:6px;">You’re done for today</div>
           <div class="muted small">Nice work. Close the loop and enjoy the rest of your day.</div>
+          <div style="margin-top:10px;">
+            <button class="btn primary" data-action="celebrateDay">Celebrate</button>
+          </div>
         </div>
       ` : '';
 
@@ -2793,6 +2888,38 @@ function renderChartSVG(h, container, rangeKey){
         renderTodayFocusBody(),
         `<button class="btn primary" data-action="closeModal">Done</button>`
       );
+    }
+
+    function celebrateDay(){
+      const completion = getTodayCompletionState(appData.habits);
+      if (!completion.total) return;
+      openModal(
+        'All done today',
+        `
+          <div class="panel">
+            <div style="font-weight:950; margin-bottom:6px;">You did it.</div>
+            <div class="muted small" style="margin-bottom:8px;">
+              ${completion.doneCount} of ${completion.total} habits completed today. Keep the streak gentle and sustainable.
+            </div>
+            <div class="summaryAction">
+              <div class="summaryLabel">Encouragement</div>
+              <div class="summaryValue">Small wins are the system working.</div>
+            </div>
+          </div>
+        `,
+        `<button class="btn primary" data-action="closeModal">Close</button>`
+      );
+    }
+
+    function maybeCelebrateDay(){
+      const completion = getTodayCompletionState(appData.habits);
+      if (!completion.allDone) return;
+      const iso = todayISO();
+      appData.ui = safeObj(appData.ui);
+      if (appData.ui.lastCelebratedISO === iso) return;
+      appData.ui.lastCelebratedISO = iso;
+      saveData({ toast:false });
+      showToast('All habits complete', 'You kept every promise today. Enjoy the calm momentum.', { icon:'🎉', ms:4500 });
     }
 
     function isReviewComplete(weekISO){
@@ -2861,12 +2988,19 @@ function renderChartSVG(h, container, rangeKey){
         ${todayCard}
         <div class="createWrap ${createOpen ? 'open':''}" id="createWrap">
           <div class="createHead">
-  <button class="btn primary wide" data-action="toggleCreate" aria-expanded="${createOpen ? 'true':'false'}">
-    + Create Habit
-  </button>
-</div>
+            <div class="createTitle">
+              <p class="t">Create a habit</p>
+              <p class="s">Pick a guided setup or add a quick starter habit.</p>
+            </div>
+            <div class="createActions">
+              <button class="btn small primary" data-action="startCreateWizard">Guided setup</button>
+              <button class="btn small ghost" data-action="toggleCreate" aria-expanded="${createOpen ? 'true':'false'}">
+                ${createOpen ? 'Hide quick add' : 'Quick add'}
+              </button>
+            </div>
+          </div>
 
-          <div class="createBody" aria-label="Create Habit Form">
+          <div class="createBody" aria-label="Quick add habit form">
             ${canCreate ? renderCreateForm() : `
               <div class="error">
                 You’ve reached the maximum of ${MAX_HABITS} habits. If you want, delete one first (you can export a backup before deleting).
@@ -2914,13 +3048,75 @@ function renderChartSVG(h, container, rangeKey){
 
     function renderCreateForm(){
       return `
-        <div class="panel">
-          <div style="font-weight:950; margin-bottom:8px;">Guided setup</div>
-          <div class="muted small" style="margin-bottom:10px;">
-            Create a habit in a few short steps. You’ll define the cue, the 2-minute version, and a clear first action.
+        <div class="quickCreate">
+          <div class="panel">
+            <div style="font-weight:950; margin-bottom:8px;">Quick add</div>
+            <div class="muted small" style="margin-bottom:10px;">
+              Add the essential details now. You can refine cues, plans, and insights later.
+            </div>
+            <div class="grid two">
+              <div class="field">
+                <label>Habit name</label>
+                <input id="c_name" type="text" placeholder="e.g., Walk after lunch" maxlength="120" />
+              </div>
+              <div class="field">
+                <label>Habit type</label>
+                <select id="c_type">
+                  <option value="positive" selected>Build</option>
+                  <option value="negative">Break</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Start date</label>
+                <input id="c_start" type="date" value="${todayISO()}" />
+              </div>
+              <div class="field">
+                <label>Identity statement</label>
+                <input id="c_ident" type="text" placeholder="I am the kind of person who..." maxlength="220" />
+                <div class="help">Required. Keep it kind and actionable.</div>
+              </div>
+              <div class="field" style="grid-column:1/-1;">
+                <label>Definition of success</label>
+                <textarea id="c_desc" placeholder="Define success in one sentence." maxlength="1200"></textarea>
+              </div>
+            </div>
+            <div class="inline freqRow" style="margin-top:12px;">
+              <div class="field compact">
+                <label>Frequency unit</label>
+                <select id="c_unit">
+                  <option value="day" selected>Per day</option>
+                  <option value="week">Per week</option>
+                  <option value="month">Per month</option>
+                </select>
+              </div>
+              <div class="field compact2">
+                <label>Target</label>
+                <input id="c_target" type="number" min="1" step="1" value="1" inputmode="numeric" />
+              </div>
+            </div>
           </div>
-          <button class="btn primary wide" data-action="startCreateWizard">Start guided setup</button>
-          <div class="muted tiny" style="margin-top:8px;">You can edit any detail later in the Edit tab.</div>
+
+          <div class="panel">
+            <div style="font-weight:900; margin-bottom:6px;">Motivation (optional)</div>
+            <div class="grid two">
+              <div class="field">
+                <label>Long-term outcome</label>
+                <input id="c_outcome" type="text" placeholder="Over time, this enables..." maxlength="260" />
+              </div>
+              <div class="field" style="grid-column:1/-1;">
+                <label>Why this matters</label>
+                <textarea id="c_why" placeholder="A calm reason you can return to." maxlength="420"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div id="createErr"></div>
+
+          <div class="wizardFooter">
+            <button class="btn ghost" data-action="cancelCreate">Cancel</button>
+            <button class="btn primary" data-action="saveCreate">Create habit</button>
+          </div>
+          <div class="muted tiny">Prefer a guided flow? Use the Guided setup button above.</div>
         </div>
       `;
     }
@@ -3089,6 +3285,7 @@ function dashToggle(habitId){
   updateDashboardQuick(habitId);
   hydrateVisibleCharts();
   pulseDashboardQuick(habitId);
+  maybeCelebrateDay();
 
   const list = document.getElementById('todayFocusList');
   if (list && $('#modal').classList.contains('active')){
@@ -3125,6 +3322,7 @@ function adjustDailyCount(habitId, delta){
   updateHabitVisuals(habitId);
   updateDashboardQuick(habitId);
   hydrateVisibleCharts();
+  maybeCelebrateDay();
 
   if ($('#modal').classList.contains('active')){
     $('#modalBody').innerHTML = renderTodayFocusBody();
@@ -3283,7 +3481,7 @@ function renderHabitList(){
     `;
   }).join('');
 
-  return items;
+  return `<div class="habitList">${items}</div>`;
 }
 
 
@@ -4289,7 +4487,7 @@ function ensureDefaultLogsUpToToday(){
         if (!el) return;
         if (el.tagName === 'SELECT') {
           if (id === 'c_type') el.value = 'positive';
-          if (id === 'c_unit') el.value = 'week';
+          if (id === 'c_unit') el.value = 'day';
         } else if (el.type === 'date') {
           el.value = todayISO();
         } else if (el.type === 'number') {
@@ -5101,6 +5299,12 @@ if (action === 'adjustCount'){
 if (action === 'openTodayFocus'){
   e.preventDefault();
   openTodayFocus();
+  return;
+}
+
+if (action === 'celebrateDay'){
+  e.preventDefault();
+  celebrateDay();
   return;
 }
 
