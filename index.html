@@ -640,6 +640,7 @@ body::after{
       position:absolute;
       inset:0;
       background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0));
+     opacity:.45;
    
     }
 
@@ -3519,109 +3520,159 @@ function renderHabitList(){
     const freqTxt = formatUnit(h.frequency.unit, h.frequency.target);
     const s = dashboardState(h);
 
-    const succStatus = successStatusForType(h.type);
-    const failStatus = failStatusForType(h.type);
-
     return `
-      <details class="habit" id="habit-${escapeHtml(h.id)}" data-habit="${escapeHtml(h.id)}">
-        <summary>
-          <div class="sumRowTop">
-            <div class="sumLeft">
-              <div class="sumTop">
-                <div class="sumName" data-sum="name">${escapeHtml(h.name || 'Untitled habit')}</div>
-
-                <span class="tag ${tagClass}">${typeLabel}</span>
-                <span class="tag muted" data-sum="freq">${escapeHtml(freqTxt)}</span>
-
-                <div class="sumDesc" data-sum="desc">${escapeHtml(h.description || '')}</div>
-              </div>
+      <div class="habitItem" id="habit-${escapeHtml(h.id)}" data-habit="${escapeHtml(h.id)}" data-action="openHabitDetail" role="button" tabindex="0" aria-label="Open ${escapeHtml(h.name || 'habit')} details">
+        <div class="habitTop">
+          <div class="habitInfo">
+            <div class="habitTitleRow">
+              <div class="habitName" data-sum="name" data-habit="${escapeHtml(h.id)}">${escapeHtml(h.name || 'Untitled habit')}</div>
+              <span class="tag ${tagClass}">${typeLabel}</span>
+              <span class="tag muted" data-sum="freq" data-habit="${escapeHtml(h.id)}">${escapeHtml(freqTxt)}</span>
             </div>
-
-            <div class="sumRight">
-              <button
-                class="btn small ${escapeHtml(dashboardState(h).btnClass)} dashBtn"
-                data-action="dashToggle"
-                data-habit="${escapeHtml(h.id)}"
-                aria-label="Mark ${escapeHtml(h.name || 'habit')} for today"
-              >${escapeHtml(dashboardState(h).btnLabel)}</button>
-            </div>
+            <div class="habitDesc" data-sum="desc" data-habit="${escapeHtml(h.id)}">${escapeHtml(h.description || '')}</div>
           </div>
 
-          ${renderDashboardQuick(h)}
-        </summary>
-
-        <div class="detailsBody">
-          <div id="habit-${escapeHtml(h.id)}-summary">
-            ${renderHabitSummary(h, { prog, c7 })}
-          </div>
-
-          <div class="subtabs" role="tablist" aria-label="Habit sections">
-            <button class="tabBtn ${subtab==='track'?'active':''}"
-              id="tab-${escapeHtml(h.id)}-track"
-              data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="track"
-              aria-selected="${subtab==='track'?'true':'false'}" tabindex="${subtab==='track'?'0':'-1'}">
-              ${renderTabIcon('track')}
-              <span>Track</span>
-            </button>
-
-            <button class="tabBtn ${subtab==='design'?'active':''}"
-              id="tab-${escapeHtml(h.id)}-design"
-              data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="design"
-              aria-selected="${subtab==='design'?'true':'false'}" tabindex="${subtab==='design'?'0':'-1'}">
-              ${renderTabIcon('design')}
-              <span>Plan</span>
-            </button>
-
-            <button class="tabBtn ${subtab==='insights'?'active':''}"
-              id="tab-${escapeHtml(h.id)}-insights"
-              data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="insights"
-              aria-selected="${subtab==='insights'?'true':'false'}" tabindex="${subtab==='insights'?'0':'-1'}">
-              ${renderTabIcon('insights')}
-              <span>Insights</span>
-            </button>
-
-            <button class="tabBtn ${subtab==='motivation'?'active':''}"
-              id="tab-${escapeHtml(h.id)}-motivation"
-              data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="motivation"
-              aria-selected="${subtab==='motivation'?'true':'false'}" tabindex="${subtab==='motivation'?'0':'-1'}">
-              ${renderTabIcon('motivation')}
-              <span>Motivator</span>
-            </button>
-
-            <button class="tabBtn ${subtab==='edit'?'active':''}"
-              id="tab-${escapeHtml(h.id)}-edit"
-              data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="edit"
-              aria-selected="${subtab==='edit'?'true':'false'}" tabindex="${subtab==='edit'?'0':'-1'}">
-              ${renderTabIcon('edit')}
-              <span>Edit</span>
-            </button>
-          </div>
-
-          <div class="panel ${subtab==='track'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-track" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-track">
-            ${renderHabitTrackPanel(h, { succStatus, failStatus })}
-          </div>
-
-          <div class="panel ${subtab==='design'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-design" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-design">
-            ${renderHabitDesignPanel(h)}
-          </div>
-
-          <div class="panel ${subtab==='insights'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-insights" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-insights">
-            ${renderHabitInsightsPanel(h)}
-          </div>
-
-          <div class="panel ${subtab==='motivation'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-motivation" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-motivation">
-            ${renderHabitMotivationPanel(h)}
-          </div>
-
-          <div class="panel ${subtab==='edit'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-edit" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-edit">
-            ${renderHabitEditPanel(h)}
+          <div class="habitActions">
+            <button
+              class="btn small ${escapeHtml(s.btnClass)} dashBtn"
+              data-action="dashToggle"
+              data-habit="${escapeHtml(h.id)}"
+              aria-label="Mark ${escapeHtml(h.name || 'habit')} for today"
+            >${escapeHtml(s.btnLabel)}</button>
           </div>
         </div>
-      </details>
+
+        <div class="habitMetaRow">
+          <div data-sum="today" data-habit="${escapeHtml(h.id)}">Today: ${escapeHtml(s.labelRight)}</div>
+          <div class="chev">View details →</div>
+        </div>
+
+        ${renderDashboardQuick(h)}
+      </div>
     `;
   }).join('');
 
   return `<div class="habitList">${items}</div>`;
+}
+
+function renderHabitDetailBody(h){
+  const isNeg = h.type === 'negative';
+  const tagClass = isNeg ? 'bad' : 'good';
+  const typeLabel = isNeg ? 'Negative' : 'Positive';
+  const freqTxt = formatUnit(h.frequency.unit, h.frequency.target);
+
+  const prog = periodProgress(h);
+  const c7 = windowConsistencyPercent(h, 7);
+
+  const subtab = appData.ui.habitSubtabs?.[h.id] || 'track';
+
+  const succStatus = successStatusForType(h.type);
+  const failStatus = failStatusForType(h.type);
+
+  return `
+    <div id="habit-modal-${escapeHtml(h.id)}">
+      <div class="panel" style="margin-bottom:12px;">
+        <div class="summaryHeader">
+          <div>
+            <div class="summaryLabel">Habit</div>
+            <div class="summaryValue" data-sum="name" data-habit="${escapeHtml(h.id)}">${escapeHtml(h.name || 'Untitled habit')}</div>
+            <div class="summaryMeta" data-sum="desc" data-habit="${escapeHtml(h.id)}">${escapeHtml(h.description || '')}</div>
+          </div>
+          <div class="row">
+            <span class="tag ${tagClass}">${typeLabel}</span>
+            <span class="tag muted" data-sum="freq" data-habit="${escapeHtml(h.id)}">${escapeHtml(freqTxt)}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="detailsBody" style="border-top:none; padding:0;">
+        <div id="habit-${escapeHtml(h.id)}-summary">
+          ${renderHabitSummary(h, { prog, c7 })}
+        </div>
+
+        <div class="subtabs" role="tablist" aria-label="Habit sections">
+          <button class="tabBtn ${subtab==='track'?'active':''}"
+            id="tab-${escapeHtml(h.id)}-track"
+            data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="track"
+            aria-selected="${subtab==='track'?'true':'false'}" tabindex="${subtab==='track'?'0':'-1'}">
+            ${renderTabIcon('track')}
+            <span>Track</span>
+          </button>
+
+          <button class="tabBtn ${subtab==='design'?'active':''}"
+            id="tab-${escapeHtml(h.id)}-design"
+            data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="design"
+            aria-selected="${subtab==='design'?'true':'false'}" tabindex="${subtab==='design'?'0':'-1'}">
+            ${renderTabIcon('design')}
+            <span>Plan</span>
+          </button>
+
+          <button class="tabBtn ${subtab==='insights'?'active':''}"
+            id="tab-${escapeHtml(h.id)}-insights"
+            data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="insights"
+            aria-selected="${subtab==='insights'?'true':'false'}" tabindex="${subtab==='insights'?'0':'-1'}">
+            ${renderTabIcon('insights')}
+            <span>Insights</span>
+          </button>
+
+          <button class="tabBtn ${subtab==='motivation'?'active':''}"
+            id="tab-${escapeHtml(h.id)}-motivation"
+            data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="motivation"
+            aria-selected="${subtab==='motivation'?'true':'false'}" tabindex="${subtab==='motivation'?'0':'-1'}">
+            ${renderTabIcon('motivation')}
+            <span>Motivator</span>
+          </button>
+
+          <button class="tabBtn ${subtab==='edit'?'active':''}"
+            id="tab-${escapeHtml(h.id)}-edit"
+            data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="edit"
+            aria-selected="${subtab==='edit'?'true':'false'}" tabindex="${subtab==='edit'?'0':'-1'}">
+            ${renderTabIcon('edit')}
+            <span>Edit</span>
+          </button>
+        </div>
+
+        <div class="panel ${subtab==='track'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-track" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-track">
+          ${renderHabitTrackPanel(h, { succStatus, failStatus })}
+        </div>
+
+        <div class="panel ${subtab==='design'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-design" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-design">
+          ${renderHabitDesignPanel(h)}
+        </div>
+
+        <div class="panel ${subtab==='insights'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-insights" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-insights">
+          ${renderHabitInsightsPanel(h)}
+        </div>
+
+        <div class="panel ${subtab==='motivation'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-motivation" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-motivation">
+          ${renderHabitMotivationPanel(h)}
+        </div>
+
+        <div class="panel ${subtab==='edit'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-edit" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-edit">
+          ${renderHabitEditPanel(h)}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function openHabitDetail(habitId, subtab){
+  const h = getHabit(habitId);
+  if (!h) return;
+
+  if (!appData.ui.habitSubtabs) appData.ui.habitSubtabs = {};
+  if (subtab) appData.ui.habitSubtabs[habitId] = subtab;
+
+  appData.ui.activeHabitId = habitId;
+  saveData({ toast:false });
+
+  openModal(
+    h.name || 'Habit details',
+    renderHabitDetailBody(h),
+    `<button class="btn ghost" data-action="closeModal">Close</button>`,
+    { centered:true }
+  );
+  setTimeout(hydrateVisibleCharts, 0);
 }
 
 
@@ -3815,20 +3866,23 @@ function updateHabitHeader(habitId){
   const h = getHabit(habitId);
   if (!h) return;
 
-  const det = document.getElementById(`habit-${habitId}`);
-  if (!det) return;
+  const nameEls = document.querySelectorAll(`[data-sum="name"][data-habit="${cssEscape(habitId)}"]`);
+  nameEls.forEach(el => { el.textContent = h.name || 'Untitled habit'; });
 
-  const nameEl = det.querySelector('[data-sum="name"]');
-  if (nameEl) nameEl.textContent = h.name || 'Untitled habit';
+  const descEls = document.querySelectorAll(`[data-sum="desc"][data-habit="${cssEscape(habitId)}"]`);
+  descEls.forEach(el => { el.textContent = h.description || ''; });
 
-  const descEl = det.querySelector('[data-sum="desc"]');
-  if (descEl) descEl.textContent = h.description || '';
+  const freqEls = document.querySelectorAll(`[data-sum="freq"][data-habit="${cssEscape(habitId)}"]`);
+  freqEls.forEach(el => { el.textContent = formatUnit(h.frequency.unit, h.frequency.target); });
 
-  const freqEl = det.querySelector('[data-sum="freq"]');
-  if (freqEl) freqEl.textContent = formatUnit(h.frequency.unit, h.frequency.target);
-
-  const dashBtn = det.querySelector(`button[data-action="dashToggle"][data-habit="${habitId}"]`);
+  const dashBtn = document.querySelector(`button[data-action="dashToggle"][data-habit="${cssEscape(habitId)}"]`);
   if (dashBtn) dashBtn.setAttribute('aria-label', `Mark ${h.name || 'habit'} for today`);
+
+  if (appData.ui?.activeHabitId === habitId){
+    const title = h.name || 'Habit details';
+    const modalTitle = document.getElementById('modalTitle');
+    if (modalTitle) modalTitle.textContent = title;
+  }
 }
 
     function renderHabitMotivationPanel(h){
@@ -4420,20 +4474,17 @@ function renderRecentLogs(h){
     }
 
     function hydrateVisibleCharts(){
-      // Render charts for open habits whose Insights panel is visible OR chart container exists within open details.
-      // We render lazily on open, and also when logs change.
-      const openDetails = $$('details.habit[open]');
-      openDetails.forEach(det => {
-        const hid = det.getAttribute('data-habit');
-        if (!hid) return;
-        const sub = appData.ui.habitSubtabs?.[hid] || 'track';
-        if (sub !== 'insights') return;
-        const chartEl = $(`#habit-${cssEscape(hid)}-chart`);
-        const h = getHabit(hid);
-        if (chartEl && h){
-          renderChartSVG(h, chartEl, getInsightRangeKey(hid));
-        }
-      });
+      const modal = $('#modal');
+      if (!modal.classList.contains('active')) return;
+      const hid = appData.ui?.activeHabitId;
+      if (!hid) return;
+      const sub = appData.ui.habitSubtabs?.[hid] || 'track';
+      if (sub !== 'insights') return;
+      const chartEl = $(`#habit-${cssEscape(hid)}-chart`);
+      const h = getHabit(hid);
+      if (chartEl && h){
+        renderChartSVG(h, chartEl, getInsightRangeKey(hid));
+      }
     }
 
     function updateHabitVisuals(habitId){
@@ -4760,6 +4811,9 @@ function ensureDefaultLogsUpToToday(){
 
       appData.habits = appData.habits.filter(x => x.id !== habitId);
       if (appData.ui.habitSubtabs) delete appData.ui.habitSubtabs[habitId];
+      if (appData.ui?.activeHabitId === habitId){
+        closeModal();
+      }
 
       // remove review notes for this habit (optional hygiene)
       const rev = safeObj(appData.reviews);
@@ -4803,11 +4857,11 @@ function ensureDefaultLogsUpToToday(){
       appData.ui.habitSubtabs[habitId] = subtab;
       saveData({ toast:false });
 
-      const det = document.getElementById(`habit-${habitId}`);
-      if (!det) return;
+      const scope = document.getElementById(`habit-modal-${habitId}`);
+      if (!scope) return;
 
       // buttons
-      $$(`[data-action="habitSubtab"][data-habit="${cssEscape(habitId)}"]`, det).forEach(btn => {
+      $$(`[data-action="habitSubtab"][data-habit="${cssEscape(habitId)}"]`, scope).forEach(btn => {
         const isActive = btn.getAttribute('data-subtab') === subtab;
         btn.classList.toggle('active', isActive);
         btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
@@ -4833,7 +4887,7 @@ function ensureDefaultLogsUpToToday(){
       const h = getHabit(habitId);
       if (!h) return;
 
-      const det = document.getElementById(`habit-${habitId}`);
+      const det = document.getElementById(`habit-modal-${habitId}`) || document;
       const dateEl = det?.querySelector(`[data-track="date"][data-habit="${cssEscape(habitId)}"]`);
       const statusEl = det?.querySelector(`[data-track="status"][data-habit="${cssEscape(habitId)}"]`);
       const noteEl = det?.querySelector(`[data-track="note"][data-habit="${cssEscape(habitId)}"]`);
@@ -4870,6 +4924,7 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
       saveData({ toast:false });
       updateHabitVisuals(habitId);
       updateDashboardQuick(habitId);
+      updateTodayCard({ animate:true });
 
       // update recent logs list without re-rendering whole app
       const list = document.getElementById(`habit-${habitId}-logslist`);
@@ -4904,6 +4959,7 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
       h.updatedAt = new Date().toISOString();
       saveData({ toast:true, toastMsg:'Log deleted.' });
       updateHabitVisuals(habitId);
+      updateTodayCard({ animate:true });
 
       const list = document.getElementById(`habit-${habitId}-logslist`);
       if (list) list.innerHTML = renderRecentLogs(h);
@@ -4912,7 +4968,7 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
     }
 
     function clearLogInputs(habitId){
-      const det = document.getElementById(`habit-${habitId}`);
+      const det = document.getElementById(`habit-modal-${habitId}`) || document;
       if (!det) return;
       const dateEl = det.querySelector(`[data-track="date"][data-habit="${cssEscape(habitId)}"]`);
       const statusEl = det.querySelector(`[data-track="status"][data-habit="${cssEscape(habitId)}"]`);
@@ -4926,13 +4982,14 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
       showToast('Cleared', 'Fields cleared (no saved data changed).', { icon:'↺', ms:1800 });
     }
 
-    function openModal(title, bodyHtml, footHtml=''){
+    function openModal(title, bodyHtml, footHtml='', options={}){
       const modal = $('#modal');
       lastModalFocus = document.activeElement;
       $('#modalTitle').textContent = title;
       $('#modalBody').innerHTML = bodyHtml;
       $('#modalFoot').innerHTML = footHtml;
       modal.classList.add('active');
+      modal.classList.toggle('centered', !!options.centered);
       modal.setAttribute('aria-hidden','false');
       setAppAriaHidden(true);
       // focus first focusable
@@ -4945,8 +5002,10 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
     function closeModal(){
       const modal = $('#modal');
       modal.classList.remove('active');
+      modal.classList.remove('centered');
       modal.setAttribute('aria-hidden','true');
       setAppAriaHidden(false);
+      if (appData.ui) appData.ui.activeHabitId = null;
       if (appData.ui?.wizard?.open){
         appData.ui.wizard.open = false;
         appData.ui.onboardingActive = false;
@@ -5220,6 +5279,7 @@ if (path === 'frequency.target' || path === 'frequency.unit'){
 if (path === 'frequency.target' || path === 'frequency.unit' || path === 'type'){
   updateHabitVisuals(habitId);
   hydrateVisibleCharts();
+  updateTodayCard();
 }
 
 // Keep the collapsed summary header in sync (name/desc/freq)
@@ -5276,6 +5336,7 @@ function handleLogEdit(el){
 
     updateHabitVisuals(habitId);
     updateDashboardQuick(habitId); // keeps the collapsed "Done/Undo/Reset" button correct if date is today
+    updateTodayCard({ animate:true });
     hydrateVisibleCharts();
     const list = document.getElementById('todayFocusList');
     if (list && $('#modal').classList.contains('active')){
@@ -5417,6 +5478,14 @@ function handleLogEdit(el){
         return;
       }
 
+if (action === 'openHabitDetail'){
+  e.preventDefault();
+  const hid = btn.getAttribute('data-habit');
+  if (!hid) return;
+  openHabitDetail(hid);
+  return;
+}
+
 if (action === 'dashToggle'){
   e.preventDefault();
   e.stopPropagation();
@@ -5466,7 +5535,7 @@ if (action === 'dismissReviewNudge'){
 if (action === 'jumpToPlan'){
   const hid = btn.getAttribute('data-habit');
   if (!hid) return;
-  const det = document.getElementById(`habit-${hid}`);
+  openHabitDetail(hid, 'design');
   if (det && det.tagName === 'DETAILS') det.open = true;
   setHabitSubtab(hid, 'design');
   return;
@@ -5712,40 +5781,34 @@ if (action === 'setInsightRange'){
       }
     });
 
-    document.addEventListener('toggle', (e) => {
-      const det = e.target;
-      if (!(det instanceof HTMLDetailsElement)) return;
-      if (!det.classList.contains('habit')) return;
-      if (det.open){
-        const hid = det.getAttribute('data-habit');
-        if (!hid) return;
-        const sub = appData.ui.habitSubtabs?.[hid] || 'track';
-        if (sub === 'insights'){
-          const h = getHabit(hid);
-          const chartEl = document.getElementById(`habit-${hid}-chart`);
-          if (h && chartEl) renderChartSVG(h, chartEl, getInsightRangeKey(hid));
-        }
-      }
-    }, true);
-
     // ESC closes modal
     document.addEventListener('keydown', (e) => {
-      if ($('#modal').classList.contains('active')){
-        if (e.key === 'Escape'){
-          closeModal();
-          return;
+      if (!$('#modal').classList.contains('active')){
+        if (e.key === 'Enter' || e.key === ' '){
+          const card = e.target.closest?.('.habitItem[data-action="openHabitDetail"]');
+          if (card){
+            e.preventDefault();
+            const hid = card.getAttribute('data-habit');
+            if (hid) openHabitDetail(hid);
+        return;
+      }
+
+      if (e.key === 'Escape'){
+        closeModal();
+        return;
+      }
+      if (e.key === 'Tab'){
+        const focusable = getModalFocusable();
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first){
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last){
+          e.preventDefault();
+          first.focus();
         }
-        if (e.key === 'Tab'){
-          const focusable = getModalFocusable();
-          if (!focusable.length) return;
-          const first = focusable[0];
-          const last = focusable[focusable.length - 1];
-          if (e.shiftKey && document.activeElement === first){
-            e.preventDefault();
-            last.focus();
-          } else if (!e.shiftKey && document.activeElement === last){
-            e.preventDefault();
-            first.focus();
           }
         }
       }
