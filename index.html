@@ -2387,7 +2387,8 @@ function renderChartSVG(h, container, rangeKey){
                 <button class="btn primary" data-action="wizardLogFirst">Log first tiny action</button>
                 <button class="btn ghost" data-action="wizardFinish">Not yet</button>
               </div>
- 
+            ` : ''}
+
           </div>
         </div>
       `;
@@ -5340,6 +5341,7 @@ if (action === 'setInsightRange'){
         return;
       }
 
+      if (el.hasAttribute('data-bind')){
         handleBoundInput(el);
         return;
       }
@@ -5440,7 +5442,7 @@ ensureDefaultLogsUpToToday();
       renderNavActive();
       hydrateVisibleCharts();
     }, 0);
-
+    
   })();
   </script>
 </body>
