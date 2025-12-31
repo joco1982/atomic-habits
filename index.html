@@ -8,7 +8,7 @@
     <link rel="manifest" href="manifest.webmanifest" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Atomic Habits — Calm Habit System</title>
+  <title>Quiet Habits — Calm Habit System</title>
   <style>
     :root{
       --bg:#0B1220;
@@ -742,31 +742,53 @@ details.habit[open] .detailsBody{
 
     /* Tabs inside habit */
     .subtabs{
-      display:flex;
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
       gap:8px;
-      flex-wrap:wrap;
       border:1px solid var(--line);
       background: rgba(255,255,255,.02);
       padding:8px;
       border-radius: 18px;
     }
     .tabBtn{
-      flex:1 1 110px;
       min-height: var(--tap);
-      padding: 10px 12px;
+      padding: 8px 10px;
       border-radius: 14px;
       border:1px solid transparent;
       background: transparent;
-      font-weight:900;
-      font-size:13px;
+      font-weight:800;
+      font-size:12px;
       color: var(--muted);
       text-align:center;
       user-select:none;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:4px;
+      letter-spacing:.2px;
+    }
+    .tabBtn .tabIcon{
+      width:18px;
+      height:18px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .tabBtn svg{
+      width:18px;
+      height:18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
     .tabBtn.active{
-      background: rgba(122,167,255,.14);
-      border-color: rgba(122,167,255,.30);
+      background: rgba(122,167,255,.16);
+      border-color: rgba(122,167,255,.35);
       color: var(--text);
+      box-shadow: inset 0 0 0 1px rgba(122,167,255,.15);
     }
     .panel{
       border:1px solid var(--line);
@@ -775,6 +797,61 @@ details.habit[open] .detailsBody{
       padding: 12px;
     }
     .panel.hidden{ display:none; }
+
+    .summaryCard{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      border-radius: 18px;
+      padding: 12px;
+    }
+    .summaryHeader{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px 14px;
+      align-items:flex-start;
+      justify-content:space-between;
+    }
+    .summaryLabel{
+      font-size:11px;
+      color: var(--muted2);
+      font-weight:800;
+      letter-spacing:.2px;
+      text-transform: uppercase;
+    }
+    .summaryValue{
+      font-weight:800;
+      font-size:14px;
+      margin-top:6px;
+      line-height:1.3;
+    }
+    .summaryMeta{
+      font-size:12px;
+      color: var(--muted);
+      font-weight:700;
+    }
+    .summaryAction{
+      margin-top:12px;
+      padding:10px;
+      border-radius:14px;
+      background: rgba(122,167,255,.08);
+      border:1px solid rgba(122,167,255,.18);
+    }
+    .summaryPills{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap:10px;
+      margin-top:12px;
+    }
+    .pillStat{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.02);
+      border-radius: 14px;
+      padding: 10px;
+      min-width:0;
+    }
+    .pillStat .k{ font-size:11px; color: var(--muted2); font-weight:800; letter-spacing:.2px; }
+    .pillStat .v{ font-size:14px; font-weight:900; margin-top:6px; line-height:1.15; }
+    .pillStat .s{ font-size:11px; color: var(--muted); margin-top:4px; line-height:1.2; }
 
     /* Chart */
     .chartWrap{
@@ -1104,6 +1181,7 @@ input[type="date"]{
     <header>
       <div class="topbar">
         <div class="brand">
+          <div class="title">Quiet Habits — Calm Habit System</div>
           <div class="title">Atomic Habits — Calm Habit System</div>
           <div class="subtitle">Offline • Private • Daily check-ins • Weekly review</div>
         </div>
@@ -2525,6 +2603,31 @@ function dashToggle(habitId){
   }
 }
 
+function renderTabIcon(name){
+  const base = (paths) => `
+    <span class="tabIcon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        ${paths.map(p => `<path d="${p}" />`).join('')}
+      </svg>
+    </span>
+  `;
+
+  switch (name){
+    case 'track':
+      return base(['M5 13l4 4L19 7']);
+    case 'design':
+      return base(['M4 6h16', 'M4 12h16', 'M4 18h10']);
+    case 'insights':
+      return base(['M4 18l6-6 4 4 6-8']);
+    case 'motivation':
+      return base(['M12 21s-6-4.35-8.5-7.5A5 5 0 0 1 12 6a5 5 0 0 1 8.5 7.5C18 16.65 12 21 12 21z']);
+    case 'edit':
+      return base(['M3 21h6', 'M14 4l6 6', 'M4 16l10-10 4 4-10 10H4v-4z']);
+    default:
+      return base(['M5 13l4 4L19 7']);
+  }
+}
+
 
 function renderHabitList(){
   const habits = safeArr(appData.habits);
@@ -2591,27 +2694,42 @@ function renderHabitList(){
           <div class="subtabs" role="tablist" aria-label="Habit sections">
             <button class="tabBtn ${subtab==='track'?'active':''}"
               data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="track"
-              role="tab" id="tab-${escapeHtml(h.id)}-track" aria-controls="panel-${escapeHtml(h.id)}-track"
+              aria-selected="${subtab==='track'?'true':'false'}" tabindex="${subtab==='track'?'0':'-1'}">
+              ${renderTabIcon('track')}
+              <span>Track</span>
+            </button>
               aria-selected="${subtab==='track'?'true':'false'}" tabindex="${subtab==='track'?'0':'-1'}">Track</button>
 
             <button class="tabBtn ${subtab==='design'?'active':''}"
               data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="design"
-              role="tab" id="tab-${escapeHtml(h.id)}-design" aria-controls="panel-${escapeHtml(h.id)}-design"
+              aria-selected="${subtab==='design'?'true':'false'}" tabindex="${subtab==='design'?'0':'-1'}">
+              ${renderTabIcon('design')}
+              <span>Plan</span>
+            </button>
               aria-selected="${subtab==='design'?'true':'false'}" tabindex="${subtab==='design'?'0':'-1'}">Plan</button>
 
             <button class="tabBtn ${subtab==='insights'?'active':''}"
               data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="insights"
-              role="tab" id="tab-${escapeHtml(h.id)}-insights" aria-controls="panel-${escapeHtml(h.id)}-insights"
+              aria-selected="${subtab==='insights'?'true':'false'}" tabindex="${subtab==='insights'?'0':'-1'}">
+              ${renderTabIcon('insights')}
+              <span>Insights</span>
+            </button>
               aria-selected="${subtab==='insights'?'true':'false'}" tabindex="${subtab==='insights'?'0':'-1'}">Insights</button>
 
             <button class="tabBtn ${subtab==='motivation'?'active':''}"
               data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="motivation"
-              role="tab" id="tab-${escapeHtml(h.id)}-motivation" aria-controls="panel-${escapeHtml(h.id)}-motivation"
+              aria-selected="${subtab==='motivation'?'true':'false'}" tabindex="${subtab==='motivation'?'0':'-1'}">
+              ${renderTabIcon('motivation')}
+              <span>Motivator</span>
+            </button>
               aria-selected="${subtab==='motivation'?'true':'false'}" tabindex="${subtab==='motivation'?'0':'-1'}">Motivator</button>
 
             <button class="tabBtn ${subtab==='edit'?'active':''}"
               data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="edit"
-              role="tab" id="tab-${escapeHtml(h.id)}-edit" aria-controls="panel-${escapeHtml(h.id)}-edit"
+              aria-selected="${subtab==='edit'?'true':'false'}" tabindex="${subtab==='edit'?'0':'-1'}">
+              ${renderTabIcon('edit')}
+              <span>Edit</span>
+            </button>
               aria-selected="${subtab==='edit'?'true':'false'}" tabindex="${subtab==='edit'?'0':'-1'}">Edit</button>
           </div>
 
@@ -2634,13 +2752,6 @@ function renderHabitList(){
           <div class="panel ${subtab==='edit'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-edit" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-edit">
             ${renderHabitEditPanel(h)}
           </div>
-
-          <div class="row">
-            <button class="btn small ghost" data-action="saveHabit" data-habit="${escapeHtml(h.id)}">Save</button>
-            <button class="btn small danger" data-action="deleteHabit" data-habit="${escapeHtml(h.id)}">Delete</button>
-          </div>
-
-          <div class="muted tiny">Tip: Inputs save instantly. “Save” simply confirms and refreshes visuals.</div>
         </div>
       </details>
     `;
@@ -2654,16 +2765,25 @@ function renderHabitList(){
       const isNeg = h.type === 'negative';
       const prog = pre?.prog || periodProgress(h);
       const c7 = pre?.c7 ?? windowConsistencyPercent(h, 7);
-      const c30 = windowConsistencyPercent(h, 30);
-      const c90 = windowConsistencyPercent(h, 90);
       const streak = pre?.streak ?? currentDailyStreak(h);
-      const last12 = pre?.last12 ?? actualCountLast12Months(h);
-      const votes = totalSuccessCount(h);
       const freqTxt = formatUnit(h.frequency.unit, h.frequency.target);
 
       const ratio = clamp(prog.ratio, 0, 1);
 
       const identity = (safeObj(h.motivator).identity || '').trim();
+      const plan = safeObj(safeObj(h.design).plan);
+      const ifThen = String(plan.ifThen || '').trim();
+      const cuePlan = String(plan.cuePlan || '').trim();
+      const twoMinute = String(plan.twoMinute || '').trim();
+
+      const nextAction = twoMinute || ifThen || cuePlan || (isNeg
+        ? 'Pause, name the cue, and choose your replacement.'
+        : 'Start with a 2‑minute version to get moving.');
+      const nextLabel = isNeg ? 'Next replacement action' : 'Next tiny action';
+      const desc = String(h.description || '').trim() || (isNeg
+        ? 'Reduce or avoid this habit with a kinder, easier alternative.'
+        : 'A clear action you can complete in one sitting.');
+
       const msgA = isNeg
         ? 'Every resisted urge strengthens your system.'
         : 'Every completion strengthens your identity.';
@@ -2686,28 +2806,37 @@ function renderHabitList(){
       ` : '';
 
       return `
-        <div class="stats" aria-label="Tracking summary">
-          <div class="stat">
-            <div class="k">Planned</div>
-            <div class="v">${escapeHtml(freqTxt)}</div>
-            <div class="s">${escapeHtml(prog.label)}</div>
+        <div class="summaryCard" aria-label="Progress summary">
+          <div class="summaryHeader">
+            <div>
+              <div class="summaryLabel">What this habit is</div>
+              <div class="summaryValue">${escapeHtml(desc)}</div>
+            </div>
+            <div class="summaryMeta">${escapeHtml(freqTxt)} • ${isNeg ? 'Break' : 'Build'}</div>
           </div>
-          <div class="stat">
-            <div class="k">Actual</div>
-            <div class="v">${escapeHtml(String(prog.actual))} / ${escapeHtml(String(prog.target))}</div>
-            <div class="s">${escapeHtml(prog.startISO)}</div>
+
+          <div class="summaryAction">
+            <div class="summaryLabel">${escapeHtml(nextLabel)}</div>
+            <div class="summaryValue">${escapeHtml(nextAction)}</div>
           </div>
-          <div class="stat">
-            <div class="k">Consistency</div>
-            <div class="v">${escapeHtml(String(c7))}%</div>
-            <div class="s">7d • 30d ${escapeHtml(String(c30))}%</div>
+
+          <div class="summaryPills">
+            <div class="pillStat">
+              <div class="k">Progress</div>
+              <div class="v">${escapeHtml(String(prog.actual))} / ${escapeHtml(String(prog.target))}</div>
+              <div class="s">${escapeHtml(prog.label)}</div>
+            </div>
+            <div class="pillStat">
+              <div class="k">Consistency</div>
+              <div class="v">${escapeHtml(String(c7))}%</div>
+              <div class="s">Last 7 days</div>
+            </div>
+            <div class="pillStat">
+              <div class="k">Streak</div>
+              <div class="v">${escapeHtml(String(streak))}d</div>
+              <div class="s">Current run</div>
+            </div>
           </div>
-          <div class="stat">
-            <div class="k">Streak</div>
-            <div class="v">${escapeHtml(String(streak))}d</div>
-            <div class="s">90d ${escapeHtml(String(c90))}% • Votes ${escapeHtml(String(votes))}</div>
-          </div>
-        </div>
 
         <div class="progressWrap" id="habit-${escapeHtml(h.id)}-progress" style="margin-top:12px;">
           <div class="progressTop">
@@ -2718,6 +2847,7 @@ function renderHabitList(){
             <div class="fill" style="--p:${ratio.toFixed(3)}"></div>
           </div>
           <div class="progressMsg">${escapeHtml(msg)}</div>
+        </div>
         </div>
         ${shieldUI}
       `;
@@ -2794,6 +2924,13 @@ function renderHabitEditPanel(h){
           Changing frequency updates how progress is calculated. Your existing logs are kept.
         </div>
       </div>
+
+      <div class="row" style="margin-top:12px;">
+        <button class="btn small ghost" data-action="saveHabit" data-habit="${escapeHtml(h.id)}">Save</button>
+        <button class="btn small danger" data-action="deleteHabit" data-habit="${escapeHtml(h.id)}">Delete</button>
+      </div>
+
+      <div class="muted tiny" style="margin-top:8px;">Inputs save instantly. “Save” simply confirms and refreshes visuals.</div>
     </div>
   `;
 }
@@ -3396,6 +3533,14 @@ function renderRecentLogs(h){
                 These checks help prevent common failure modes: missing renders, broken persistence, invalid state.
               </div>
             </div>
+
+            <div class="panel" style="margin-top:12px;">
+              <div style="font-weight:950; margin-bottom:8px;">About</div>
+              <div class="muted small">
+                Quiet Habits is a private, offline-first habit builder and breaker.
+                Inspired by Atomic Habits principles. Not affiliated with or endorsed by James Clear.
+              </div>
+            </div>
           </div>
         </div>
       `;
@@ -3871,7 +4016,7 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
         showToast('Logged', 'No shame. This is just data to improve the system.', { icon:'•', ms:2600 });
       }
 
-      const list = document.getElementById('todayFocusList');
+      const focusList = document.getElementById('todayFocusList');
       if (list && $('#modal').classList.contains('active')){
         $('#modalBody').innerHTML = renderTodayFocusBody();
       }
