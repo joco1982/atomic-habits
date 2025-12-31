@@ -835,7 +835,7 @@ details.habit[open] .detailsBody{
     /* Tabs inside habit */
     .subtabs{
       display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(74px, 1fr));
       gap:6px;
       border:1px solid var(--line);
       background: rgba(255,255,255,.04);
@@ -847,23 +847,26 @@ details.habit[open] .detailsBody{
       backdrop-filter: blur(10px);
     }
     .tabBtn{
-      min-height: 40px;
-      padding: 6px 10px;
+      min-height: 52px;
+      padding: 6px 6px;
       border-radius: 999px;
       border:1px solid transparent;
       background: transparent;
       font-weight:800;
-      font-size:11px;
+      font-size:10px;
       color: var(--muted);
       text-align:center;
       user-select:none;
       display:flex;
-      flex-direction:row;
+      flex-direction:column;
       align-items:center;
       justify-content:center;
-      flex-direction:row;
+      gap:4px;
       letter-spacing:.2px;
       transition: background .15s ease, color .15s ease, border-color .15s ease;
+    }
+    .tabBtn span{
+      line-height:1.1;
     }
     .tabBtn .tabIcon{
       width:18px;
@@ -2400,6 +2403,41 @@ function renderChartSVG(h, container, rangeKey){
       const previewDesc = draft.description || draft.name || 'Your habit summary will appear here.';
       const previewNext = draft.design?.plan?.twoMinute || draft.design?.plan?.ifThen || draft.design?.plan?.cuePlan || 'A tiny start you can do today.';
       const freqLabel = formatUnit(draft.frequency?.unit || 'day', draft.frequency?.target || 1);
+      const isNegative = draft.type === 'negative';
+      const nameLabel = isNegative ? 'Name the behavior you want to reduce' : 'Give it a clear, action-based name';
+      const nameInfo = isNegative
+        ? 'Name the specific behavior and context you want to reduce, like “Scroll after midnight.”'
+        : 'Use a verb plus a time or place, like “Walk after lunch.”';
+      const namePlaceholder = isNegative ? 'e.g., Scroll after midnight' : 'e.g., Walk after lunch';
+      const nameHelp = isNegative ? 'Specific behavior + context helps you notice it.' : 'Action + time/place beats abstract goals.';
+      const periodLabel = isNegative ? 'Target period (for resisting)' : 'Target period';
+      const periodInfo = isNegative
+        ? 'Sets the time period your target count applies to (per day, week, or month).'
+        : 'Sets the time period your target count applies to (per day, week, or month).';
+      const targetInfo = isNegative
+        ? 'How many times you want to resist or avoid the habit in that period.'
+        : 'How many times you want to complete the habit in that period.';
+      const targetHelp = isNegative ? 'Times resisted per period.' : 'Times completed per period.';
+      const identityInfo = isNegative
+        ? 'State the identity you want to reinforce by reducing this habit.'
+        : 'State the identity you want to reinforce by building this habit.';
+      const identityPlaceholder = isNegative
+        ? 'I am the kind of person who protects my focus.'
+        : 'I am the kind of person who…';
+      const ifThenPlaceholder = isNegative
+        ? 'If I feel the urge, then I will…'
+        : 'If it’s 7pm, then I will…';
+      const cuePlanPlaceholder = isNegative
+        ? 'After I notice the cue, I will…'
+        : 'After I make coffee, I will…';
+      const doneLabel = isNegative ? 'What does success look like?' : 'What does “done” mean?';
+      const doneInfo = isNegative
+        ? 'Describe a clear win you can check off (e.g., “Zero cigarettes today”).'
+        : 'Describe a clear win you can check off (e.g., “30 minutes of writing”).';
+      const donePlaceholder = isNegative
+        ? 'Define a clear win (e.g., Zero cigarettes today).'
+        : 'Define a clear win (e.g., 30 minutes of writing).';
+   
 
       return `
         <div class="wizard">
@@ -2422,16 +2460,16 @@ function renderChartSVG(h, container, rangeKey){
 
             ${step === 1 ? `
               <div class="field">
-                <label><span>Give it a clear, action-based name</span>${renderInfoIcon('Why: Action language makes habits easier to remember. How: Use a verb plus a time or place, like “Walk after lunch.”')}</label>
-                <input type="text" data-action="wizardInput" data-field="name" value="${escapeHtml(draft.name || '')}" placeholder="e.g., Walk after lunch" maxlength="120" />
-                <div class="help">Action + time/place beats abstract goals.</div>
+                <label><span>${escapeHtml(nameLabel)}</span>${renderInfoIcon(nameInfo)}</label>
+                <input type="text" data-action="wizardInput" data-field="name" value="${escapeHtml(draft.name || '')}" placeholder="${escapeHtml(namePlaceholder)}" maxlength="120" />
+                <div class="help">${escapeHtml(nameHelp)}</div>
               </div>
             ` : ''}
 
             ${step === 2 ? `
               <div class="grid two">
                 <div class="field">
-                  <label><span>How often?</span>${renderInfoIcon('Why: Your rhythm sets expectations. How: Pick the most realistic cadence you can keep for a month.')}</label>
+                  <label><span>${escapeHtml(periodLabel)}</span>${renderInfoIcon(periodInfo)}</label>
                   <select data-action="wizardInput" data-field="frequency.unit">
                     <option value="day" ${draft.frequency?.unit === 'day' ? 'selected' : ''}>Daily</option>
                     <option value="week" ${draft.frequency?.unit === 'week' ? 'selected' : ''}>Weekly</option>
@@ -2439,9 +2477,9 @@ function renderChartSVG(h, container, rangeKey){
                   </select>
                 </div>
                 <div class="field">
-                  <label><span>Target count</span>${renderInfoIcon('Why: A small target creates early wins. How: Pick the minimum number that still counts as success.')}</label>
+                  <label><span>Target count</span>${renderInfoIcon(targetInfo)}</label>
                   <input type="number" min="1" step="1" inputmode="numeric" data-action="wizardInput" data-field="frequency.target" value="${escapeHtml(String(draft.frequency?.target || 1))}" />
-                  <div class="help">Start smaller than you think. Consistency wins.</div>
+                  <div class="help">${escapeHtml(targetHelp)}</div>
                 </div>
               </div>
               <div class="stepTags" style="margin-top:10px;">
@@ -2453,9 +2491,9 @@ function renderChartSVG(h, container, rangeKey){
 
             ${step === 3 ? `
               <div class="field">
-                <label><span>Identity statement (required)</span>${renderInfoIcon('Why: Identity-based habits stick. How: Write a believable “I am the kind of person who…” statement for today.')}</label>
-                <input type="text" data-action="wizardInput" data-field="motivator.identity" value="${escapeHtml(draft.motivator?.identity || '')}" placeholder="I am the kind of person who…" maxlength="220" />
-                <div class="help">Make it believable today. This becomes your daily vote.</div>
+                <label><span>Identity statement (required)</span>${renderInfoIcon(identityInfo)}</label>
+                <input type="text" data-action="wizardInput" data-field="motivator.identity" value="${escapeHtml(draft.motivator?.identity || '')}" placeholder="${escapeHtml(identityPlaceholder)}" maxlength="220" />
+                <div class="help">Keep it believable today. It should align with this habit.</div>
               </div>
               <div class="field" style="margin-top:10px;">
                 <label><span>Long-term outcome (optional)</span>${renderInfoIcon('Why: It connects today’s action to future you. How: Describe the longer-term benefit in one line.')}</label>
@@ -2469,13 +2507,13 @@ function renderChartSVG(h, container, rangeKey){
 
             ${step === 4 ? `
               <div class="field">
-                <label><span>Implementation intention (If–Then)</span>${renderInfoIcon('Why: A clear trigger makes action automatic. How: Write “If [cue], then I will [action].”')}</label>
-                <textarea data-action="wizardInput" data-field="design.plan.ifThen" placeholder="If it’s 7pm, then I will…">${escapeHtml(draft.design?.plan?.ifThen || '')}</textarea>
+                <label><span>Implementation intention (If–Then)</span>${renderInfoIcon(isNegative ? 'Write “If [cue], then I will [replacement action].”' : 'Write “If [cue], then I will [action].”')}</label>
+                <textarea data-action="wizardInput" data-field="design.plan.ifThen" placeholder="${escapeHtml(ifThenPlaceholder)}">${escapeHtml(draft.design?.plan?.ifThen || '')}</textarea>
               </div>
               <div class="field" style="margin-top:10px;">
-                <label><span>Habit stacking (After I…, I will…)</span>${renderInfoIcon('Why: Linking to an existing routine boosts follow-through. How: Write “After I [existing routine], I will [habit].”')}</label>
-                <textarea data-action="wizardInput" data-field="design.plan.cuePlan" placeholder="After I make coffee, I will…">${escapeHtml(draft.design?.plan?.cuePlan || '')}</textarea>
-                <div class="help">Anchoring your action to an existing routine makes it automatic.</div>
+                <label><span>Habit stacking (After I…, I will…)</span>${renderInfoIcon(isNegative ? 'Link the cue to a healthier response: “After I [cue], I will [replacement].”' : 'Link the cue to your habit: “After I [existing routine], I will [habit].”')}</label>
+                <textarea data-action="wizardInput" data-field="design.plan.cuePlan" placeholder="${escapeHtml(cuePlanPlaceholder)}">${escapeHtml(draft.design?.plan?.cuePlan || '')}</textarea>
+                <div class="help">Anchoring to a routine makes follow-through easier.</div>
               </div>
               <div class="help" style="margin-top:10px;">Not sure yet? You can skip these and refine them later in the Plan section.</div>
             ` : ''}
@@ -2526,22 +2564,22 @@ function renderChartSVG(h, container, rangeKey){
                 </div>
               </div>
               <div class="field" style="margin-top:12px;">
-                <label><span>What does “done” mean?</span>${renderInfoIcon('Why: Clarity prevents ambiguity. How: Define success in one sentence you can check off.')}</label>
-                <textarea data-action="wizardInput" data-field="description" maxlength="1200" placeholder="Define success in one sentence.">${escapeHtml(draft.description || '')}</textarea>
+                <label><span>${escapeHtml(doneLabel)}</span>${renderInfoIcon(doneInfo)}</label>
+                <textarea data-action="wizardInput" data-field="description" maxlength="1200" placeholder="${escapeHtml(donePlaceholder)}">${escapeHtml(draft.description || '')}</textarea>
                 <div class="help">This becomes the habit’s short description in your list.</div>
               </div>
-              <div class="wizardHint" style="margin-top:10px;">Looks good? Next you’ll take your first tiny action.</div>
+              <div class="wizardHint" style="margin-top:10px;">Looks good? Next you’ll save and start tracking.</div>
             ` : ''}
 
             ${step === 8 ? `
-              <div class="wizardHint" style="margin-bottom:10px;">You’re ready. Small, immediate actions build trust in the system.</div>
+              <div class="wizardHint" style="margin-bottom:10px;">You’re ready. Save the habit now, and log an action only if you already did it today.</div>
               <div class="panel" style="margin-bottom:10px;">
                 <div style="font-weight:900; margin-bottom:6px;">You’re ready 🎉</div>
-                <div class="muted small">Want to log your first tiny action now?</div>
+                <div class="muted small">Save your habit, then log a completed tiny action if it already happened today.</div>
               </div>
               <div class="wizardRow">
-                <button class="btn primary" data-action="wizardLogFirst">Log first tiny action</button>
-                <button class="btn ghost" data-action="wizardFinish">Not yet</button>
+                <button class="btn primary" data-action="wizardFinish">Finish setup</button>
+                <button class="btn ghost" data-action="wizardLogFirst">Log a completed tiny action</button>
               </div>
             ` : ''}
 
@@ -2560,7 +2598,7 @@ function renderChartSVG(h, container, rangeKey){
         '2-minute version',
         'Make it easier',
         'Preview',
-        'First check-in'
+        'Finish setup'
       ];
       return titles[step] || 'Habit setup';
     }
@@ -2575,7 +2613,7 @@ function renderChartSVG(h, container, rangeKey){
         'Make it easy',
         'Optional',
         'What “done” means',
-        'Celebrate'
+        'Start tracking'
       ];
       return tags[step] || '';
     }
