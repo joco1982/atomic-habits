@@ -1182,7 +1182,6 @@ input[type="date"]{
       <div class="topbar">
         <div class="brand">
           <div class="title">Quiet Habits — Calm Habit System</div>
-          <div class="title">Atomic Habits — Calm Habit System</div>
           <div class="subtitle">Offline • Private • Daily check-ins • Weekly review</div>
         </div>
         <div class="pill" id="headerPill" aria-live="polite">
@@ -2364,9 +2363,22 @@ function renderChartSVG(h, container, rangeKey){
       `;
 
       root.innerHTML = createHtml;
+      cleanupSubtabArtifacts();
 
       // After render, hydrate charts for any open habits (details open)
       hydrateVisibleCharts();
+    }
+
+    function cleanupSubtabArtifacts(){
+      $$('.subtabs').forEach((subtabs) => {
+        [...subtabs.childNodes].forEach((node) => {
+          if (node.nodeType !== Node.TEXT_NODE) return;
+          const text = node.textContent || '';
+          if (text.includes('aria-selected') || text.includes('tabindex')){
+            node.remove();
+          }
+        });
+      });
     }
 
     function renderCreateForm(){
@@ -2698,7 +2710,6 @@ function renderHabitList(){
               ${renderTabIcon('track')}
               <span>Track</span>
             </button>
-              aria-selected="${subtab==='track'?'true':'false'}" tabindex="${subtab==='track'?'0':'-1'}">Track</button>
 
             <button class="tabBtn ${subtab==='design'?'active':''}"
               data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="design"
@@ -2706,7 +2717,6 @@ function renderHabitList(){
               ${renderTabIcon('design')}
               <span>Plan</span>
             </button>
-              aria-selected="${subtab==='design'?'true':'false'}" tabindex="${subtab==='design'?'0':'-1'}">Plan</button>
 
             <button class="tabBtn ${subtab==='insights'?'active':''}"
               data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="insights"
@@ -2714,7 +2724,6 @@ function renderHabitList(){
               ${renderTabIcon('insights')}
               <span>Insights</span>
             </button>
-              aria-selected="${subtab==='insights'?'true':'false'}" tabindex="${subtab==='insights'?'0':'-1'}">Insights</button>
 
             <button class="tabBtn ${subtab==='motivation'?'active':''}"
               data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="motivation"
@@ -2722,7 +2731,6 @@ function renderHabitList(){
               ${renderTabIcon('motivation')}
               <span>Motivator</span>
             </button>
-              aria-selected="${subtab==='motivation'?'true':'false'}" tabindex="${subtab==='motivation'?'0':'-1'}">Motivator</button>
 
             <button class="tabBtn ${subtab==='edit'?'active':''}"
               data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="edit"
@@ -2730,7 +2738,6 @@ function renderHabitList(){
               ${renderTabIcon('edit')}
               <span>Edit</span>
             </button>
-              aria-selected="${subtab==='edit'?'true':'false'}" tabindex="${subtab==='edit'?'0':'-1'}">Edit</button>
           </div>
 
           <div class="panel ${subtab==='track'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-track" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-track">
