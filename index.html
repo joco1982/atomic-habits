@@ -1533,6 +1533,14 @@ body::after{
       gap:12px;
     }
 
+    .dashboardStack{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .dashboardStack > #todayCardSlot:empty{
+      display:none;
+    }
 
     .todayCard.done{
       border-color: rgba(41,211,154,.45);
@@ -1685,7 +1693,7 @@ input[type="date"]{
 
 
 /* Mobile-only fixes */
-@media (max-width: 520px){
+  @media (max-width: 520px){
   /* Keep Start date / Frequency unit / Target aligned on mobile */
   .freqRow{
     justify-content: center;
@@ -1737,6 +1745,22 @@ input[type="date"]{
   }
   .focusActions .btn{
     flex:0 0 auto;
+  }
+
+  .habitsHeroHeader{
+    flex-direction:column;
+    align-items:stretch;
+  }
+  .habitsHeroHeader .right{
+    width:100%;
+    justify-content:flex-start;
+  }
+  .habitsHeroHeader .right .btn{
+    flex:1 1 140px;
+  }
+  .hMetaWide .hSub{
+    flex-basis:100%;
+    min-width:0;
   }
 }
 </style>
@@ -3484,7 +3508,7 @@ function renderChartSVG(h, container, rangeKey){
       const ratio = completion.total ? clamp(completion.doneCount / completion.total, 0, 1) : 0;
 
       return `
-        <div class="card heroCard todayCard ${allDone ? 'done' : ''}" style="margin-bottom:12px;">
+        <div class="card heroCard todayCard ${allDone ? 'done' : ''}">
           <div class="cardHeader">
             <div class="left">
               <p class="hTitle">Today</p>
@@ -3648,7 +3672,7 @@ function renderChartSVG(h, container, rangeKey){
       if (appData.ui.reviewNudgeDismissed === weekISO) return '';
 
       return `
-        <div class="card heroCard" style="margin-bottom:12px;">
+        <div class="card heroCard">
           <div class="cardHeader">
             <div class="left">
               <p class="hTitle">Weekly review is ready</p>
@@ -3716,37 +3740,39 @@ function renderChartSVG(h, container, rangeKey){
 
       const createHtml = `
         ${onboarding}
-        <div class="card heroCard habitsHero">
-          <div class="cardHeader habitsHeroHeader">
-            <div class="left">
-              <p class="hTitle">Habits Today</p>
-              <div class="hMeta hMetaWide">
-                <span class="tag muted">${completion.doneCount}/${completion.total || 0} complete</span>
-                <span class="muted2 hSub">${escapeHtml(heroMsg)}</span>
+        <div class="dashboardStack">
+          <div class="card heroCard habitsHero">
+            <div class="cardHeader habitsHeroHeader">
+              <div class="left">
+                <p class="hTitle">Habits Today</p>
+                <div class="hMeta hMetaWide">
+                  <span class="tag muted">${completion.doneCount}/${completion.total || 0} complete</span>
+                  <span class="muted2 hSub">${escapeHtml(heroMsg)}</span>
+                </div>
+              </div>
+              <div class="right">
+                <button class="btn small ghost" data-action="toggleSound" aria-pressed="${soundOn ? 'true' : 'false'}">
+                  ${soundLabel}
+                </button>
+                <button class="btn small ghost" data-action="toggleCreate" aria-expanded="${createOpen ? 'true':'false'}">
+                  ${createOpen ? 'Hide quick add' : 'Quick add'}
+                </button>
+                <button class="btn small primary" data-action="startCreateWizard">Guided setup</button>
               </div>
             </div>
-            <div class="right">
-              <button class="btn small ghost" data-action="toggleSound" aria-pressed="${soundOn ? 'true' : 'false'}">
-                ${soundLabel}
-              </button>
-              <button class="btn small ghost" data-action="toggleCreate" aria-expanded="${createOpen ? 'true':'false'}">
-                ${createOpen ? 'Hide quick add' : 'Quick add'}
-              </button>
-              <button class="btn small primary" data-action="startCreateWizard">Guided setup</button>
+
+            ${createInline}
+            ${renderHabitList()}
+
+            <div class="cardFooter">
+              <div class="muted small">${habitCount}/${MAX_HABITS} habits • Back up your habits to keep them safe offline.</div>
+              <button class="btn small ghost" data-action="quickBackup" title="Backup (recommended)">Backup</button>
             </div>
           </div>
 
-          ${createInline}
-          ${renderHabitList()}
-
-          <div class="cardFooter">
-            <div class="muted small">${habitCount}/${MAX_HABITS} habits • Back up your habits to keep them safe offline.</div>
-            <button class="btn small ghost" data-action="quickBackup" title="Backup (recommended)">Backup</button>
-          </div>
+          ${reviewNudge}
+          <div id="todayCardSlot">${todayCard}</div>
         </div>
-
-        ${reviewNudge}
-        <div id="todayCardSlot">${todayCard}</div>
       `;
 
       root.innerHTML = createHtml;
