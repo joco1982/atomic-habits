@@ -808,6 +808,10 @@ body::after{
 
 
     /* Tabs inside habit */
+    .detailsBody{
+      position:relative;
+      --subtabs-sticky-top: 0px;
+    }
     .subtabs{
       display:grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -817,7 +821,7 @@ body::after{
       padding:8px;
       border-radius: 16px;
       position:sticky;
-      top: 0;
+      top: var(--subtabs-sticky-top);
       z-index:7;
       backdrop-filter: blur(10px);
       box-shadow: 0 8px 20px rgba(0,0,0,.22);
@@ -1125,6 +1129,11 @@ body::after{
       justify-content:space-between;
       gap:8px;
     }
+    .frictionHead .btn{
+      min-width: 34px;
+      padding: 6px 10px;
+      font-weight: 900;
+    }
     .frictionList{
       display:flex;
       flex-direction:column;
@@ -1135,6 +1144,12 @@ body::after{
       display:flex;
       gap:10px;
       align-items:flex-start;
+    }
+    .frictionItem .btn{
+      flex:0 0 auto;
+      min-width: 34px;
+      padding: 6px 10px;
+      font-weight: 900;
     }
     .frictionItem input{
       flex:1 1 auto;
@@ -1221,6 +1236,7 @@ body::after{
       max-height: min(70vh, 560px);
       overflow:auto;
       overflow-x:hidden;
+      position:relative;
     }
     .sheetBody textarea{
       min-height: 260px;
@@ -4187,7 +4203,7 @@ function updateHabitHeader(habitId){
             data-friction-index="${idx}"
             value="${escapeHtml(item)}"
             placeholder="e.g., Put snacks in a high cabinet" />
-          <button class="btn small ghost" type="button" data-action="removeFrictionItem" data-habit="${escapeHtml(h.id)}" data-index="${idx}" aria-label="Remove speed bump">Remove</button>
+          <button class="btn small ghost" type="button" data-action="removeFrictionItem" data-habit="${escapeHtml(h.id)}" data-index="${idx}" aria-label="Remove speed bump">−</button>
         </div>
       `).join('');
 
@@ -4216,7 +4232,7 @@ function updateHabitHeader(habitId){
             <div class="frictionCard" style="margin-top:12px;">
               <div class="frictionHead">
                 <div class="sectionTitle">Friction (speed bumps)</div>
-                <button class="btn small ghost" type="button" data-action="addFrictionItem" data-habit="${escapeHtml(h.id)}">Add item</button>
+                <button class="btn small ghost" type="button" data-action="addFrictionItem" data-habit="${escapeHtml(h.id)}" aria-label="Add speed bump">+</button>
               </div>
               <div class="muted small" style="margin-top:6px;">
                 Add obstacles that make the unwanted habit harder to start.
