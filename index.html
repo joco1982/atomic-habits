@@ -813,12 +813,12 @@ body::after{
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap:8px;
       border:1px solid var(--line);
-      background: rgba(15,23,41,.85);
+      background: rgba(11,18,32,.92);
       padding:8px;
       border-radius: 16px;
       position:sticky;
-      top: 0;
-      z-index:6;
+      top: 12px;
+      z-index:7;
       backdrop-filter: blur(10px);
       box-shadow: 0 8px 20px rgba(0,0,0,.22);
       width:100%;
@@ -1345,21 +1345,8 @@ body::after{
       background: rgba(255,255,255,.02);
       overflow:hidden;
     }
-    .createInlineHead{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      padding: 12px 12px 10px;
-    }
-    .createInlineHead .meta{
-      font-size:12px;
-      color: var(--muted);
-      line-height:1.35;
-    }
     .createInlineBody{
       padding: 12px;
-      border-top:1px solid var(--line);
       display:none;
     }
     .createInline.open .createInlineBody{ display:block; }
@@ -1368,6 +1355,25 @@ body::after{
       display:flex;
       flex-direction:column;
       gap:12px;
+    }
+
+    .quickAddNote{
+      margin-top:8px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      padding:8px 10px;
+      border-radius: 12px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      font-size:12px;
+      color: var(--muted);
+      line-height:1.35;
+    }
+    .quickAddNote strong{
+      color: var(--text);
+      font-weight:800;
     }
 
     .todayCard.done{
@@ -3337,13 +3343,6 @@ function renderChartSVG(h, container, rangeKey){
 
       const createInline = `
         <div class="createInline ${createOpen ? 'open' : ''}" id="createWrap">
-          <div class="createInlineHead">
-            <div>
-              <div style="font-weight:900; margin-bottom:4px;">Quick add habit</div>
-              <div class="meta">Add the essentials now. You can refine the system details later.</div>
-            </div>
-          </div>
-
           <div class="createInlineBody" aria-label="Quick add habit form">
             ${canCreate ? renderCreateForm() : `
               <div class="error">
@@ -3367,6 +3366,10 @@ function renderChartSVG(h, container, rangeKey){
                 <span class="tag muted">${habitCount}/${MAX_HABITS} used</span>
                 <span class="muted2">Check in fast, then adjust the system when needed.</span>
               </div>
+              <div class="quickAddNote">
+                <strong>Quick add habit</strong>
+                <span>Add the essentials now. You can refine system details later.</span>
+   
             </div>
             <div class="right">
               <button class="btn small primary" data-action="startCreateWizard">Guided setup</button>
