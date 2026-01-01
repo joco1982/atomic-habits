@@ -5267,11 +5267,20 @@ function ensureDefaultLogsUpToToday(){
     function scrollHabitSectionToTop(habitId, subtab){
       const panel = document.getElementById(`panel-${habitId}-${subtab}`);
       const body = document.getElementById('modalBody');
-      if (!panel || !body) return;
-      const bodyRect = body.getBoundingClientRect();
-      const panelRect = panel.getBoundingClientRect();
-      const offset = panelRect.top - bodyRect.top + body.scrollTop;
-  
+      const titleBar = document.getElementById(`habit-${habitId}-titlebar`);
+      if (!body || (!panel && !titleBar)) return;
+      const target = titleBar || panel;
+      requestAnimationFrame(() => {
+        const bodyRect = body.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        const bodyStyles = getComputedStyle(body);
+        const targetStyles = getComputedStyle(target);
+        const paddingTop = parseFloat(bodyStyles.paddingTop) || 0;
+        const marginTop = parseFloat(targetStyles.marginTop) || 0;
+        const targetTop = targetRect.top - bodyRect.top + body.scrollTop - marginTop;
+        const nextScrollTop = Math.max(0, targetTop - paddingTop);
+        body.scrollTo({ top: nextScrollTop, behavior: 'smooth' });
+      });
     }
 
     function saveLog(habitId){
