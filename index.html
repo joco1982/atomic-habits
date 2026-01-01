@@ -21,10 +21,14 @@
       --line:rgba(255,255,255,.10);
       --line2:rgba(255,255,255,.14);
       --good:#29D39A;
+      --good-strong:#1fe2a4;
       --warn:#FFC247;
       --bad:#FF5A6A;
       --accent:#7AA7FF;
       --accent2:#B6C9FF;
+      --celebrate:#6CFFB1;
+      --celebrate-2:#7AA7FF;
+      --celebrate-3:#FFE38A;
       --focus:rgba(122,167,255,.35);
       --shadow: 0 10px 30px rgba(0,0,0,.25);
       --radius: 16px;
@@ -537,27 +541,65 @@ body::after{
     }
 
     /* Habit list */
+    .habitsHero{
+      position:relative;
+      overflow:hidden;
+    }
+    .habitsHeroHeader{
+      gap:16px;
+      align-items:center;
+    }
+    .habitsHeroHeader .right{
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .habitsHeroHeader .btn{
+      white-space:nowrap;
+    }
     .habitList{
-      padding: 12px 14px 14px;
+      padding: 10px 14px 16px;
       display:flex;
       flex-direction:column;
-      gap:12px;
+      gap:14px;
     }
     .habitItem{
+      position:relative;
       border:1px solid var(--line);
-      border-radius: 18px;
+      border-radius: 22px;
       background: rgba(255,255,255,.03);
       overflow:hidden;
-      padding: 14px;
+      padding: 16px;
       display:flex;
       flex-direction:column;
-      gap:12px;
+      gap:14px;
       cursor:pointer;
       transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+      isolation:isolate;
+    }
+    .habitItem::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: radial-gradient(120% 120% at 0% 0%, rgba(122,167,255,.12), transparent 60%);
+      opacity:.6;
+      z-index:-1;
+    }
+    .habitItem.completed{
+      border-color: rgba(41,211,154,.65);
+      background:
+        linear-gradient(135deg, rgba(41,211,154,.18), rgba(122,167,255,.16)),
+        rgba(15,23,41,.6);
+      box-shadow: 0 16px 30px rgba(15,255,198,.12);
+    }
+    .habitItem.completed::before{
+      background:
+        radial-gradient(120% 120% at 0% 0%, rgba(108,255,177,.35), transparent 60%),
+        radial-gradient(90% 120% at 100% 20%, rgba(122,167,255,.28), transparent 65%);
+      opacity:.9;
     }
     .habitItem:hover{
-      border-color: rgba(122,167,255,.25);
-      box-shadow: 0 12px 24px rgba(0,0,0,.18);
+      border-color: rgba(122,167,255,.35);
+      box-shadow: 0 14px 28px rgba(0,0,0,.2);
       transform: translateY(-1px);
     }
     .habitItem:focus-visible{
@@ -568,13 +610,13 @@ body::after{
       display:flex;
       align-items:flex-start;
       justify-content:space-between;
-      gap:12px;
+      gap:14px;
     }
     .habitInfo{
       min-width:0;
       display:flex;
       flex-direction:column;
-      gap:8px;
+      gap:10px;
     }
     .habitTitleRow{
       display:flex;
@@ -583,15 +625,15 @@ body::after{
       align-items:center;
     }
     .habitName{
-      font-weight:900;
-      font-size:16px;
+      font-weight:950;
+      font-size:18px;
       line-height:1.2;
       word-break:break-word;
     }
     .habitDesc{
       color: var(--muted);
       font-size:12px;
-      line-height:1.35;
+      line-height:1.4;
       display:-webkit-box;
       -webkit-box-orient: vertical;
       line-clamp:2;
@@ -601,8 +643,45 @@ body::after{
       flex:0 0 auto;
       display:flex;
       flex-direction:column;
-      gap:8px;
+      gap:10px;
       align-items:flex-end;
+    }
+    .habitStatusIcon{
+      width:38px;
+      height:38px;
+      border-radius: 14px;
+      display:grid;
+      place-items:center;
+      font-size:18px;
+      font-weight:900;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      color: var(--muted2);
+    }
+    .habitItem.completed .habitStatusIcon{
+      border-color: rgba(41,211,154,.6);
+      background: rgba(41,211,154,.2);
+      color: var(--celebrate);
+      box-shadow: 0 0 18px rgba(41,211,154,.25);
+    }
+    .habitStatusPill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.2px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      color: var(--muted2);
+      text-transform: uppercase;
+    }
+    .habitStatusPill.done{
+      border-color: rgba(41,211,154,.6);
+      background: rgba(41,211,154,.2);
+      color: #ddfff1;
     }
     .habitMetaRow{
       display:flex;
@@ -616,6 +695,51 @@ body::after{
     .habitMetaRow .chev{
       color: var(--accent2);
       font-weight:900;
+    }
+    .habitProgress{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .habitProgress .sumProgressStrip{
+      flex:1 1 auto;
+    }
+    .habitProgressLabel{
+      font-size:11px;
+      font-weight:800;
+      color: var(--muted2);
+      white-space:nowrap;
+    }
+    .habitItem.completed .habitProgressLabel{
+      color: #d9fff0;
+    }
+
+    /* Completion celebration */
+    @keyframes habitCelebrate{
+      0%{ transform: scale(1); box-shadow: 0 0 0 rgba(41,211,154,0); }
+      35%{ transform: scale(1.015); box-shadow: 0 0 0 8px rgba(41,211,154,.25); }
+      100%{ transform: scale(1); box-shadow: 0 0 0 rgba(41,211,154,0); }
+    }
+    @keyframes habitConfetti{
+      0%{ opacity:0; transform: translateY(8px) scale(.9); }
+      25%{ opacity:1; }
+      100%{ opacity:0; transform: translateY(-14px) scale(1.05); }
+    }
+    .habitItem.celebrate{
+      animation: habitCelebrate .55s ease-out;
+    }
+    .habitItem.celebrate::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(circle at 18% 30%, rgba(255,227,138,.9) 0 4px, transparent 5px),
+        radial-gradient(circle at 78% 25%, rgba(122,167,255,.9) 0 4px, transparent 5px),
+        radial-gradient(circle at 35% 70%, rgba(108,255,177,.9) 0 4px, transparent 5px),
+        radial-gradient(circle at 68% 75%, rgba(255,120,148,.9) 0 4px, transparent 5px);
+      animation: habitConfetti .7s ease-out;
+      pointer-events:none;
+      z-index:1;
     }
 
     /* Dashboard bar: keep pill shape, but inset by summary padding (already) */
@@ -653,6 +777,14 @@ body::after{
       background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0));
      opacity:.45;
    
+    }
+
+    .habitItem.completed .sumProgressStrip{
+      background: rgba(41,211,154,.16);
+      border-top: 1px solid rgba(41,211,154,.3);
+    }
+    .habitItem.completed .sumProgressFill{
+      background: linear-gradient(90deg, rgba(41,211,154,.95), rgba(108,255,177,.9), rgba(122,167,255,.8));
     }
 
     .detailsBody{
@@ -1408,6 +1540,40 @@ body::after{
         radial-gradient(120% 140% at 0% 0%, rgba(41,211,154,.18), rgba(18,30,52,.10)),
         linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
     }
+    .todayMeter{
+      margin-top:12px;
+      border-radius:999px;
+      height:12px;
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      overflow:hidden;
+      position:relative;
+    }
+    .todayMeterFill{
+      height:100%;
+      width: calc(var(--p, 0) * 100%);
+      background: linear-gradient(90deg, rgba(41,211,154,.95), rgba(108,255,177,.9), rgba(122,167,255,.8));
+      transition: width .4s ease;
+    }
+    .todayMeterLabel{
+      margin-top:6px;
+      font-size:11px;
+      color: var(--muted2);
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .todayCard.done .todayMeter{
+      background: rgba(41,211,154,.18);
+      border-color: rgba(41,211,154,.35);
+    }
+    @keyframes todayMeterGlow{
+      0%{ box-shadow: 0 0 0 rgba(41,211,154,0); }
+      45%{ box-shadow: 0 0 0 6px rgba(41,211,154,.3); }
+      100%{ box-shadow: 0 0 0 rgba(41,211,154,0); }
+    }
+    .todayCard.done .todayMeter{
+      animation: todayMeterGlow .6s ease-out;
+    }
     @keyframes todayGlow{
       0%{ box-shadow: 0 0 0 rgba(41,211,154,0); }
       35%{ box-shadow: 0 0 0 6px rgba(41,211,154,.25); }
@@ -1415,6 +1581,15 @@ body::after{
     }
     .todayCard.celebrate{
       animation: todayGlow .6s ease-out;
+    }
+
+    @keyframes iconSparkle{
+      0%{ transform: scale(1); box-shadow: 0 0 0 rgba(122,167,255,0); }
+      40%{ transform: scale(1.08); box-shadow: 0 0 0 6px rgba(122,167,255,.25); }
+      100%{ transform: scale(1); box-shadow: 0 0 0 rgba(122,167,255,0); }
+    }
+    .habitStatusIcon.sparkle{
+      animation: iconSparkle .6s ease-out;
     }
 
     .focusItem{
@@ -1833,7 +2008,10 @@ input[type="date"]{
           onboardingComplete: false,
           onboardingActive: false,
           wizard: { open:false, mode:'create', step:0, draft: blankWizardDraft() },
-          lastCelebratedISO: ''
+          lastCelebratedISO: '',
+          soundEnabled: true,
+          soundStyle: 'bright',
+          streakBest: {}
         }
       };
 
@@ -1854,6 +2032,9 @@ input[type="date"]{
             if (typeof out.ui.onboardingComplete !== 'boolean') out.ui.onboardingComplete = false;
       if (typeof out.ui.onboardingActive !== 'boolean') out.ui.onboardingActive = false;
       if (typeof out.ui.hapticsEnabled !== 'boolean') out.ui.hapticsEnabled = true;
+      if (typeof out.ui.soundEnabled !== 'boolean') out.ui.soundEnabled = true;
+      if (!['bright','soft'].includes(out.ui.soundStyle)) out.ui.soundStyle = 'bright';
+      if (!out.ui.streakBest || typeof out.ui.streakBest !== 'object') out.ui.streakBest = {};
       if (!out.ui.wizard || typeof out.ui.wizard !== 'object'){
         out.ui.wizard = { open:false, mode:'create', step:0, draft: blankWizardDraft() };
       } else {
@@ -2047,6 +2228,66 @@ cleanLogs[k] = {
       }catch(e){}
     }
 
+    let audioCtx = null;
+    function getAudioContext(){
+      if (!appData?.ui?.soundEnabled) return null;
+      if (!window.AudioContext && !window.webkitAudioContext) return null;
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+      return audioCtx;
+    }
+
+    // New: rewarding completion chime for habit check-ins.
+    function playSuccessChime(){
+      if (appData?.ui?.soundEnabled === false) return;
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      try{
+        const style = appData?.ui?.soundStyle === 'soft' ? 'soft' : 'bright';
+        const now = ctx.currentTime;
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.0001, now);
+        const peak = style === 'soft' ? 0.18 : 0.25;
+        gain.gain.exponentialRampToValueAtTime(peak, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+        gain.connect(ctx.destination);
+
+        const osc1 = ctx.createOscillator();
+        osc1.type = style === 'soft' ? 'sine' : 'triangle';
+        osc1.frequency.setValueAtTime(style === 'soft' ? 392.00 : 523.25, now); // G4 or C5
+        osc1.connect(gain);
+
+        const osc2 = ctx.createOscillator();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(style === 'soft' ? 493.88 : 659.25, now + 0.06); // B4 or E5
+        osc2.connect(gain);
+
+        osc1.start(now);
+        osc1.stop(now + 0.28);
+        osc2.start(now + 0.06);
+        osc2.stop(now + 0.5);
+      }catch(e){}
+    }
+
+    function updateSoundUI(){
+      const soundOn = appData.ui.soundEnabled !== false;
+      const label = soundOn ? 'Sound on' : 'Sound off';
+      document.querySelectorAll('[data-action="toggleSound"]').forEach((btn) => {
+        btn.textContent = label;
+        btn.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+      });
+    }
+
+    function updateSoundStyleUI(){
+      const style = appData.ui.soundStyle === 'soft' ? 'soft' : 'bright';
+      document.querySelectorAll('[data-action="setSoundStyle"]').forEach((btn) => {
+        const btnStyle = btn.getAttribute('data-style');
+        const active = btnStyle === style;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+    }
+
     const ACTION_HAPTICS = {
       switchTab: 'nav',
       openHabitDetail: 'nav',
@@ -2196,6 +2437,46 @@ function windowConsistencyPercent(h, days){
         }
       }
       return streak;
+    }
+
+    function bestDailyStreak(h){
+      const logs = safeObj(h.logs);
+      const succ = successStatusForType(h.type);
+      const today = parseISODate(todayISO());
+      if (!today) return 0;
+      let streak = 0;
+      let best = 0;
+      const shield = (typeof getShield === 'function') ? getShield(h.id) : { used: {} };
+      for (let i=0; i<3650; i++){
+        const d = addDays(today, -i);
+        const iso = toISODate(d);
+        const shielded = !!safeObj(shield.used)[iso];
+        const entry = logs[iso];
+        if ((entry && entry.status === succ) || shielded){
+          streak++;
+          if (streak > best) best = streak;
+        } else {
+          streak = 0;
+        }
+      }
+      return best;
+    }
+
+    function getBestStreak(h){
+      appData.ui = safeObj(appData.ui);
+      appData.ui.streakBest = safeObj(appData.ui.streakBest);
+      if (!Number.isFinite(appData.ui.streakBest[h.id])){
+        appData.ui.streakBest[h.id] = bestDailyStreak(h);
+        scheduleSave();
+      }
+      return appData.ui.streakBest[h.id] || 0;
+    }
+
+    function setBestStreak(h, value){
+      appData.ui = safeObj(appData.ui);
+      appData.ui.streakBest = safeObj(appData.ui.streakBest);
+      appData.ui.streakBest[h.id] = Math.max(0, Math.round(value || 0));
+      scheduleSave();
     }
 
     function periodProgress(h){
@@ -2575,6 +2856,8 @@ function renderChartSVG(h, container, rangeKey){
       renderSettings();
       applyActiveTab();
       maybeTriggerOnboarding();
+      updateSoundUI();
+      updateSoundStyleUI();
     }
 
     function renderNavActive(){
@@ -3198,6 +3481,7 @@ function renderChartSVG(h, container, rangeKey){
       const allDone = completion.allDone && completion.total > 0;
       const focusLabel = allDone ? 'Celebrate' : 'Focus';
       const focusAction = allDone ? 'celebrateDay' : 'openTodayFocus';
+      const ratio = completion.total ? clamp(completion.doneCount / completion.total, 0, 1) : 0;
 
       return `
         <div class="card heroCard todayCard ${allDone ? 'done' : ''}" style="margin-bottom:12px;">
@@ -3221,6 +3505,10 @@ function renderChartSVG(h, container, rangeKey){
               ${allDone ? 'You completed every habit on your list.' : 'Tap Focus for a one-screen checklist.'}
             </div>
             <div class="small muted2">Insight: ${escapeHtml(insight)}</div>
+            <div class="todayMeter" aria-label="Completion meter">
+              <div class="todayMeterFill" style="--p:${ratio.toFixed(3)}"></div>
+            </div>
+            <div class="todayMeterLabel">${completion.doneCount}/${completion.total} complete today</div>
           </div>
         </div>
       `;
@@ -3401,6 +3689,14 @@ function renderChartSVG(h, container, rangeKey){
 
       const habitCount = appData.habits.length;
       const canCreate = habitCount < MAX_HABITS;
+      const completion = getTodayCompletionState(appData.habits);
+      const soundOn = appData.ui.soundEnabled !== false;
+      const soundLabel = soundOn ? 'Sound on' : 'Sound off';
+      const heroMsg = completion.total
+        ? (completion.allDone
+          ? 'All habits completed. Enjoy the glow.'
+          : `Finish ${completion.remaining} more to complete today.`)
+        : 'Build a calm streak with small, consistent wins.';
 
       const onboarding = (habitCount === 0) ? renderOnboardingHero() : '';
       const todayCard = (habitCount > 0) ? renderTodayCard() : '';
@@ -3420,21 +3716,19 @@ function renderChartSVG(h, container, rangeKey){
 
       const createHtml = `
         ${onboarding}
-        ${reviewNudge}
-        <div id="todayCardSlot">${todayCard}</div>
-
-        <div class="card">
-          <div class="cardHeader">
+        <div class="card heroCard habitsHero">
+          <div class="cardHeader habitsHeroHeader">
             <div class="left">
-              <p class="hTitle">Your habits</p>
+              <p class="hTitle">Habits Today</p>
               <div class="hMeta hMetaWide">
-                <span class="tag muted">${habitCount}/${MAX_HABITS} used</span>
-                <span class="muted2 hSub">Check in fast, then adjust the system when needed.</span>
-
-                </span>
+                <span class="tag muted">${completion.doneCount}/${completion.total || 0} complete</span>
+                <span class="muted2 hSub">${escapeHtml(heroMsg)}</span>
               </div>
             </div>
             <div class="right">
+              <button class="btn small ghost" data-action="toggleSound" aria-pressed="${soundOn ? 'true' : 'false'}">
+                ${soundLabel}
+              </button>
               <button class="btn small ghost" data-action="toggleCreate" aria-expanded="${createOpen ? 'true':'false'}">
                 ${createOpen ? 'Hide quick add' : 'Quick add'}
               </button>
@@ -3446,10 +3740,13 @@ function renderChartSVG(h, container, rangeKey){
           ${renderHabitList()}
 
           <div class="cardFooter">
-            <div class="muted small">Back up your habits to keep them safe offline.</div>
+            <div class="muted small">${habitCount}/${MAX_HABITS} habits • Back up your habits to keep them safe offline.</div>
             <button class="btn small ghost" data-action="quickBackup" title="Backup (recommended)">Backup</button>
           </div>
         </div>
+
+        ${reviewNudge}
+        <div id="todayCardSlot">${todayCard}</div>
       `;
 
       root.innerHTML = createHtml;
@@ -3585,10 +3882,11 @@ function dashboardState(h){
 function renderDashboardQuick(h){
   const s = dashboardState(h);
   return `
-    <div class="dashMini" id="dash-${escapeHtml(h.id)}-mini">
+    <div class="habitProgress dashMini" id="dash-${escapeHtml(h.id)}-mini">
       <div class="sumProgressStrip" aria-label="Today progress">
         <div class="sumProgressFill" style="--p:${clamp(s.ratio,0,1).toFixed(3)}"></div>
       </div>
+      <div class="habitProgressLabel" data-sum="progress" data-habit="${escapeHtml(h.id)}">${escapeHtml(s.labelRight)}</div>
     </div>
   `;
 }
@@ -3598,6 +3896,10 @@ function updateDashboardQuick(habitId){
   if (!h) return;
 
   const s = dashboardState(h);
+  const isDone = clamp(s.ratio, 0, 1) >= 1;
+  const statusLabel = isDone
+    ? (h.type === 'negative' ? 'Resisted today' : 'Completed today')
+    : 'In progress';
 
   // Update every dashboard toggle button for this habit (prevents mismatched labels)
   document
@@ -3614,6 +3916,27 @@ function updateDashboardQuick(habitId){
       el.textContent = `Today: ${s.labelRight}`;
     });
 
+      document
+    .querySelectorAll(`[data-sum="progress"][data-habit="${cssEscape(habitId)}"]`)
+    .forEach((el) => {
+      el.textContent = s.labelRight;
+    });
+
+  document
+    .querySelectorAll(`[data-sum="status"][data-habit="${cssEscape(habitId)}"]`)
+    .forEach((el) => {
+      el.textContent = statusLabel;
+      el.classList.toggle('done', isDone);
+    });
+
+  document
+    .querySelectorAll(`.habitItem[data-habit="${cssEscape(habitId)}"]`)
+    .forEach((el) => {
+      el.classList.toggle('completed', isDone);
+      const icon = el.querySelector('.habitStatusIcon');
+      if (icon) icon.textContent = isDone ? '✓' : '○';
+    });
+
   // Update the progress bar for this habit (supports either fill class name)
   const mini = document.getElementById(`dash-${habitId}-mini`);
   if (mini){
@@ -3628,6 +3951,26 @@ function pulseDashboardQuick(habitId){
   if (!mini) return;
   mini.classList.add('celebrate');
   setTimeout(() => mini.classList.remove('celebrate'), 900);
+}
+
+// New: celebratory habit card burst when a habit is completed.
+function celebrateHabitCard(habitId){
+  const card = document.querySelector(`.habitItem[data-habit="${cssEscape(habitId)}"]`);
+  if (!card) return;
+  card.classList.remove('celebrate');
+  void card.offsetWidth;
+  card.classList.add('celebrate');
+  setTimeout(() => card.classList.remove('celebrate'), 900);
+}
+
+// New: sparkle the status icon when a new streak record is reached.
+function sparkleStatusIcon(habitId){
+  const icon = document.querySelector(`.habitItem[data-habit="${cssEscape(habitId)}"] .habitStatusIcon`);
+  if (!icon) return;
+  icon.classList.remove('sparkle');
+  void icon.offsetWidth;
+  icon.classList.add('sparkle');
+  setTimeout(() => icon.classList.remove('sparkle'), 900);
 }
 
 function dashToggle(habitId){
@@ -3683,8 +4026,16 @@ function dashToggle(habitId){
       e.count = target;
       e.updatedAt = new Date().toISOString();
       showToast('Done', motivationalLine(h), { icon:'✓', ms:5000 });
+      playSuccessChime();
       triggerHaptic('confirm');
       pulseEl(document.querySelector(`button[data-action="dashToggle"][data-habit="${cssEscape(habitId)}"]`));
+      celebrateHabitCard(habitId);
+      const currentStreak = currentDailyStreak(h);
+      const bestStreak = getBestStreak(h);
+      if (currentStreak > bestStreak){
+        setBestStreak(h, currentStreak);
+        sparkleStatusIcon(habitId);
+      }
     }
 }
 
@@ -3704,8 +4055,16 @@ function dashToggle(habitId){
       e.count = 1;
       e.updatedAt = new Date().toISOString();
       showToast('Done', motivationalLine(h), { icon:'✓', ms:2600 });
+      playSuccessChime();
       triggerHaptic('confirm');
       pulseEl(document.querySelector(`button[data-action="dashToggle"][data-habit="${cssEscape(habitId)}"]`));
+      celebrateHabitCard(habitId);
+      const currentStreak = currentDailyStreak(h);
+      const bestStreak = getBestStreak(h);
+      if (currentStreak > bestStreak){
+        setBestStreak(h, currentStreak);
+        sparkleStatusIcon(habitId);
+      }
     }
   }
 
@@ -3874,20 +4233,27 @@ function renderHabitList(){
     const typeLabel = isNeg ? 'Negative' : 'Positive';
     const freqTxt = formatUnit(h.frequency.unit, h.frequency.target);
     const s = dashboardState(h);
+    const isDone = clamp(s.ratio, 0, 1) >= 1;
+    const statusLabel = isDone
+      ? (isNeg ? 'Resisted today' : 'Completed today')
+      : 'In progress';
+    const statusIcon = isDone ? '✓' : '○';
 
     return `
-      <div class="habitItem" id="habit-${escapeHtml(h.id)}" data-habit="${escapeHtml(h.id)}" data-action="openHabitDetail" role="button" tabindex="0" aria-label="Open ${escapeHtml(h.name || 'habit')} details">
+      <div class="habitItem ${isDone ? 'completed' : ''}" id="habit-${escapeHtml(h.id)}" data-habit="${escapeHtml(h.id)}" data-action="openHabitDetail" role="button" tabindex="0" aria-label="Open ${escapeHtml(h.name || 'habit')} details">
         <div class="habitTop">
           <div class="habitInfo">
             <div class="habitTitleRow">
               <div class="habitName" data-sum="name" data-habit="${escapeHtml(h.id)}">${escapeHtml(h.name || 'Untitled habit')}</div>
               <span class="tag ${tagClass}">${typeLabel}</span>
               <span class="tag muted" data-sum="freq" data-habit="${escapeHtml(h.id)}">${escapeHtml(freqTxt)}</span>
+              <span class="habitStatusPill ${isDone ? 'done' : ''}" data-sum="status" data-habit="${escapeHtml(h.id)}">${escapeHtml(statusLabel)}</span>
             </div>
             <div class="habitDesc" data-sum="desc" data-habit="${escapeHtml(h.id)}">${escapeHtml(h.description || '')}</div>
           </div>
 
           <div class="habitActions">
+            <div class="habitStatusIcon" aria-hidden="true">${statusIcon}</div>
             <button
               class="btn small ${escapeHtml(s.btnClass)} dashBtn"
               data-action="dashToggle"
@@ -4764,6 +5130,9 @@ function renderRecentLogs(h){
     function renderSettings(){
       const root = $('#tab-settings');
       const updated = appData.updatedAt ? new Date(appData.updatedAt).toLocaleString() : '—';
+      const soundOn = appData.ui.soundEnabled !== false;
+      const soundLabel = soundOn ? 'Sound on' : 'Sound off';
+      const soundStyle = appData.ui.soundStyle === 'soft' ? 'soft' : 'bright';
 
       const diag = runDiagnostics();
       const storageWarn = appData.ui.storageWarning ? `
@@ -4789,6 +5158,22 @@ function renderRecentLogs(h){
 
           <div class="content">
             ${storageWarn}
+            <div class="panel">
+              <div style="font-weight:950; margin-bottom:8px;">Feedback</div>
+              <div class="row">
+                <button class="btn ghost wide" data-action="toggleSound" aria-pressed="${soundOn ? 'true' : 'false'}">
+                  ${soundLabel}
+                </button>
+              </div>
+              <div class="seg" style="margin-top:10px;">
+                <button class="segBtn ${soundStyle === 'bright' ? 'active' : ''}" data-action="setSoundStyle" data-style="bright" aria-pressed="${soundStyle === 'bright' ? 'true' : 'false'}">Bright chime</button>
+                <button class="segBtn ${soundStyle === 'soft' ? 'active' : ''}" data-action="setSoundStyle" data-style="soft" aria-pressed="${soundStyle === 'soft' ? 'true' : 'false'}">Soft chime</button>
+              </div>
+              <div class="muted small" style="margin-top:10px;">
+                Plays a gentle chime when you complete a habit.
+              </div>
+            </div>
+
             <div class="panel">
               <div style="font-weight:950; margin-bottom:8px;">Backup & restore</div>
               <div class="row">
@@ -5041,6 +5426,24 @@ function ensureDefaultLogsUpToToday(){
       appData.ui.activeTab = 'dashboard';
       applyActiveTab();
       renderNavActive();
+    }
+
+    function toggleSound(){
+      const enabled = appData.ui.soundEnabled !== false;
+      appData.ui.soundEnabled = !enabled;
+      saveData({ toast:false });
+      updateSoundUI();
+      showToast(appData.ui.soundEnabled ? 'Sound on' : 'Sound off', 'Completion chime updated.', { icon:'♪', ms:1800 });
+      if (appData.ui.soundEnabled) playSuccessChime();
+    }
+
+    function setSoundStyle(style){
+      const next = style === 'soft' ? 'soft' : 'bright';
+      appData.ui.soundStyle = next;
+      saveData({ toast:false });
+      updateSoundStyleUI();
+      showToast(`Sound: ${next}`, 'Completion chime style updated.', { icon:'♪', ms:1800 });
+      if (appData.ui.soundEnabled) playSuccessChime();
     }
 
     function clearCreateFields(){
@@ -6036,6 +6439,17 @@ if (action === 'removeFrictionItem'){
 
       if (action === 'toggleCreate'){
         toggleCreate();
+        return;
+      }
+
+      if (action === 'toggleSound'){
+        toggleSound();
+        return;
+      }
+
+      if (action === 'setSoundStyle'){
+        const style = btn.getAttribute('data-style');
+        setSoundStyle(style);
         return;
       }
 
