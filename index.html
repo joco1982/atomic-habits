@@ -228,6 +228,10 @@ body::after{
       color:var(--muted);
       font-size:12px;
     }
+    .hMetaWide .hSub{
+      flex:1 1 240px;
+      min-width:220px;
+    }
 
     .tag{
       display:inline-flex;
@@ -3423,18 +3427,18 @@ function renderChartSVG(h, container, rangeKey){
           <div class="cardHeader">
             <div class="left">
               <p class="hTitle">Your habits</p>
-              <div class="hMeta">
+              <div class="hMeta hMetaWide">
                 <span class="tag muted">${habitCount}/${MAX_HABITS} used</span>
-                <span class="muted2">Check in fast, then adjust the system when needed.</span>
+                <span class="muted2 hSub">Check in fast, then adjust the system when needed.</span>
 
                 </span>
               </div>
             </div>
             <div class="right">
-              <button class="btn small primary" data-action="startCreateWizard">Guided setup</button>
               <button class="btn small ghost" data-action="toggleCreate" aria-expanded="${createOpen ? 'true':'false'}">
                 ${createOpen ? 'Hide quick add' : 'Quick add'}
               </button>
+              <button class="btn small primary" data-action="startCreateWizard">Guided setup</button>
             </div>
           </div>
 
