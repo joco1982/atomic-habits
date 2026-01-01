@@ -44,6 +44,7 @@
       background: var(--bg);
 
       color:var(--text);
+      line-height:1.5;
       overflow-x:hidden; /* hard stop for horizontal scroll */
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
@@ -348,6 +349,12 @@ body::after{
       margin-top:10px;
     }
 
+    .sectionTitle{
+      font-weight:900;
+      font-size:13px;
+      letter-spacing:.2px;
+    }
+
 
     .btn:focus{
       outline:2px solid var(--focus);
@@ -645,11 +652,12 @@ body::after{
     }
 
     .detailsBody{
-      padding: 14px;
+      padding: 16px;
       display:flex;
       flex-direction:column;
-      gap:12px;
+      gap:16px;
       border-top:1px solid var(--line);
+      overflow-x:hidden;
     }
 
     .stats{
@@ -729,7 +737,7 @@ body::after{
       margin-top:10px;
       font-size:12px;
       color: var(--muted);
-      line-height:1.35;
+      line-height:1.5;
     }
 
 /* Dashboard quick-check row */
@@ -802,25 +810,27 @@ body::after{
     /* Tabs inside habit */
     .subtabs{
       display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(74px, 1fr));
-      gap:6px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap:8px;
       border:1px solid var(--line);
-      background: rgba(255,255,255,.04);
-      padding:6px;
-      border-radius: 999px;
+      background: rgba(15,23,41,.85);
+      padding:8px;
+      border-radius: 16px;
       position:sticky;
-      top: calc(52px + var(--safe-t));
-      z-index:4;
+      top: 0;
+      z-index:6;
       backdrop-filter: blur(10px);
+      box-shadow: 0 8px 20px rgba(0,0,0,.22);
+      width:100%;
     }
     .tabBtn{
-      min-height: 52px;
-      padding: 6px 6px;
-      border-radius: 999px;
+      min-height: 48px;
+      padding: 6px 4px;
+      border-radius: 14px;
       border:1px solid transparent;
       background: transparent;
       font-weight:800;
-      font-size:10px;
+      font-size:11px;
       color: var(--muted);
       text-align:center;
       user-select:none;
@@ -861,7 +871,9 @@ body::after{
       border:1px solid var(--line);
       background: rgba(255,255,255,.02);
       border-radius: 18px;
-      padding: 12px;
+      padding: 14px;
+      min-width:0;
+      overflow-wrap:anywhere;
     }
     .panel.hidden{ display:none; }
 
@@ -869,7 +881,9 @@ body::after{
       border:1px solid var(--line);
       background: rgba(255,255,255,.03);
       border-radius: 18px;
-      padding: 12px;
+      padding: 14px;
+      min-width:0;
+      overflow-wrap:anywhere;
     }
     .summaryHeader{
       display:flex;
@@ -877,6 +891,9 @@ body::after{
       gap:10px 14px;
       align-items:flex-start;
       justify-content:space-between;
+    }
+    .summaryHeader > *{
+      min-width:0;
     }
     .summaryLabel{
       font-size:11px;
@@ -889,12 +906,13 @@ body::after{
       font-weight:800;
       font-size:14px;
       margin-top:6px;
-      line-height:1.3;
+      line-height:1.45;
     }
     .summaryMeta{
       font-size:12px;
       color: var(--muted);
       font-weight:700;
+      line-height:1.4;
     }
     .summaryAction{
       margin-top:12px;
@@ -1029,6 +1047,97 @@ body::after{
     .swatch.plan{ background: rgba(122,167,255,.85); border-color: rgba(122,167,255,.35); }
     .swatch.dots{ background: rgba(255,255,255,.0); border-color: rgba(255,255,255,.35); }
 
+    .barChart{
+      display:grid;
+      grid-template-columns: auto 1fr;
+      gap:12px;
+      align-items:stretch;
+      margin-top:12px;
+    }
+    .barChartAxis{
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      font-size:11px;
+      font-weight:800;
+      color: var(--muted2);
+      line-height:1.2;
+    }
+    .barChartPlot{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-width:0;
+    }
+    .barChartCanvas{
+      position:relative;
+      height:140px;
+      border-left:1px solid var(--line);
+      border-bottom:1px solid var(--line);
+      padding: 8px 6px 6px;
+      display:grid;
+      align-items:end;
+      grid-template-columns: repeat(5, minmax(0,1fr));
+      gap:10px;
+      background: rgba(255,255,255,.02);
+      border-radius: 12px;
+      overflow:hidden;
+    }
+    .barChartBar{
+      width:100%;
+      border-radius: 10px 10px 6px 6px;
+      background: linear-gradient(180deg, rgba(122,167,255,.85), rgba(41,211,154,.75));
+      border:1px solid rgba(255,255,255,.16);
+      min-height:6px;
+      box-shadow: 0 10px 16px rgba(0,0,0,.12);
+    }
+    .barChartLabels{
+      display:grid;
+      grid-template-columns: repeat(5, minmax(0,1fr));
+      gap:10px;
+      font-size:11px;
+      font-weight:800;
+      color: var(--muted2);
+      text-align:center;
+    }
+    .barChartAxisLabel{
+      margin-top:6px;
+      font-size:11px;
+      color: var(--muted);
+      font-weight:800;
+      text-align:center;
+      letter-spacing:.2px;
+    }
+
+    .frictionCard{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.02);
+      border-radius: 18px;
+      padding: 14px;
+    }
+    .frictionHead{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+    }
+    .frictionList{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-top:12px;
+    }
+    .frictionItem{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+    }
+    .frictionItem input{
+      flex:1 1 auto;
+      min-width:0;
+    }
+
     /* Bottom nav */
     .nav{
       position:fixed;
@@ -1108,6 +1217,7 @@ body::after{
       padding: 14px;
       max-height: min(70vh, 560px);
       overflow:auto;
+      overflow-x:hidden;
     }
     .sheetBody textarea{
       min-height: 260px;
@@ -1640,6 +1750,34 @@ input[type="date"]{
       };
     }
 
+    function frictionSeedItems(friction){
+      const seeds = [];
+      if (friction.removeCue) seeds.push('Remove a cue (make it less visible)');
+      if (friction.addDelay) seeds.push('Add a delay (wait 5–10 minutes)');
+      if (friction.addBarrier) seeds.push('Add a barrier (extra steps)');
+      return seeds;
+    }
+
+    function getFrictionItems(h){
+      const plan = safeObj(safeObj(h.design).plan);
+      const friction = safeObj(plan.friction);
+      const items = safeArr(friction.items).map(x => String(x || '').trim()).filter(Boolean);
+      if (items.length) return items;
+      return frictionSeedItems(friction);
+    }
+
+    function ensureFrictionItems(h){
+      if (!h.design || typeof h.design !== 'object') h.design = {};
+      if (!h.design.plan || typeof h.design.plan !== 'object') h.design.plan = {};
+      if (!h.design.plan.friction || typeof h.design.plan.friction !== 'object') h.design.plan.friction = {};
+      if (!Array.isArray(h.design.plan.friction.items)) h.design.plan.friction.items = [];
+      if (!h.design.plan.friction.items.length){
+        const seeds = frictionSeedItems(h.design.plan.friction);
+        if (seeds.length) h.design.plan.friction.items = seeds;
+      }
+      return h.design.plan.friction.items;
+    }
+
     function motivationalLine(h){
       const identity = (safeObj(h.motivator).identity || '').trim();
       if (!identity) return 'Small win. Same direction.';
@@ -1716,6 +1854,12 @@ input[type="date"]{
           const laws = safeObj(design.laws);
           const plan = safeObj(design.plan);
           const friction = safeObj(plan.friction);
+          const frictionItems = safeArr(friction.items)
+            .map(x => String(x ?? '').trim())
+            .filter(Boolean)
+            .slice(0, 8)
+            .map(x => x.slice(0, 160));
+          const seededFrictionItems = frictionItems.length ? frictionItems : frictionSeedItems(friction);
 
           const logs = safeObj(hh.logs);
 
@@ -1776,7 +1920,8 @@ cleanLogs[k] = {
                 friction: {
                   removeCue: !!friction.removeCue,
                   addDelay: !!friction.addDelay,
-                  addBarrier: !!friction.addBarrier
+                  addBarrier: !!friction.addBarrier,
+                  items: seededFrictionItems
                 }
               }
             },
@@ -1933,6 +2078,23 @@ cleanLogs[k] = {
         }
       }
       return c;
+    }
+
+    function sumSuccessCountInRange(h, start, end){
+      const logs = safeObj(h.logs);
+      const succ = successStatusForType(h.type);
+      let total = 0;
+      for (const k of Object.keys(logs)){
+        const d = parseISODate(k);
+        if (!d) continue;
+        if (d >= start && d < end){
+          if ((logs[k]?.status) === succ){
+            const raw = Number(logs[k]?.count);
+            total += Number.isFinite(raw) ? raw : 1;
+          }
+        }
+      }
+      return total;
     }
 
 function windowConsistencyPercent(h, days){
@@ -2104,6 +2266,66 @@ function buildCumulativeSeries(h, days){
   const last = points[points.length - 1];
   const yMax = Math.max(1, Math.ceil(Math.max(last.actual, last.planned)));
   return { startISO: toISODate(start), endISO: toISODate(end), points, yMax, days: span };
+}
+
+function buildWeeklyBarSeries(h, weeks=5){
+  const endWeek = startOfWeekMonday(new Date());
+  const bars = [];
+  let maxVal = 0;
+
+  for (let i = weeks - 1; i >= 0; i--){
+    const start = addDays(endWeek, -7 * i);
+    const end = addDays(start, 7);
+    const value = sumSuccessCountInRange(h, start, end);
+    maxVal = Math.max(maxVal, value);
+    const label = start.toLocaleString(undefined, { month:'short', day:'numeric' });
+    bars.push({
+      label,
+      value,
+      startISO: toISODate(start),
+      endISO: toISODate(addDays(end, -1))
+    });
+  }
+
+  return { bars, yMax: Math.max(7, Math.ceil(maxVal)) };
+}
+
+function renderWeeklyBarChart(h){
+  const series = buildWeeklyBarSeries(h, 5);
+  const { bars, yMax } = series;
+  const mid = Math.max(1, Math.round(yMax / 2));
+
+  const axisLabels = [yMax, mid, 0];
+  const axisHtml = axisLabels.map(v => `<div>${escapeHtml(String(v))}</div>`).join('');
+
+  const barHtml = bars.map(b => `
+    <div
+      class="barChartBar"
+      style="height:${((b.value / yMax) * 100).toFixed(1)}%;"
+      title="Week of ${escapeHtml(b.label)}: ${escapeHtml(String(b.value))} completions"
+      aria-label="Week of ${escapeHtml(b.startISO)} to ${escapeHtml(b.endISO)}: ${escapeHtml(String(b.value))} completions"
+      role="img"
+    ></div>
+  `).join('');
+
+  const labelHtml = bars.map(b => `<div>${escapeHtml(b.label)}</div>`).join('');
+
+  return `
+    <div class="chartWrap" style="margin-top:12px;">
+      <div class="chartHead">
+        <div class="t">Weekly completions</div>
+        <div class="muted tiny">Y-axis: Completions</div>
+      </div>
+      <div class="barChart" role="img" aria-label="Bar chart showing completions per week">
+        <div class="barChartAxis">${axisHtml}</div>
+        <div class="barChartPlot">
+          <div class="barChartCanvas">${barHtml}</div>
+          <div class="barChartLabels">${labelHtml}</div>
+          <div class="barChartAxisLabel">Weeks</div>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function svgPathFrom(points, x0, y0, w, h, yMax, key){
@@ -2761,7 +2983,7 @@ function renderChartSVG(h, container, rangeKey){
             ifThen: String(draft.design?.plan?.ifThen || '').trim(),
             cuePlan: String(draft.design?.plan?.cuePlan || '').trim(),
             twoMinute: String(draft.design?.plan?.twoMinute || '').trim(),
-            friction: { removeCue:false, addDelay:false, addBarrier:false }
+            friction: { removeCue:false, addDelay:false, addBarrier:false, items: [] }
           }
         },
         logs: {},
@@ -2844,7 +3066,7 @@ function renderChartSVG(h, container, rangeKey){
             ifThen: '',
             cuePlan: '',
             twoMinute: '',
-            friction: { removeCue:false, addDelay:false, addBarrier:false }
+            friction: { removeCue:false, addDelay:false, addBarrier:false, items: [] }
           }
         },
         logs: {
@@ -3564,7 +3786,14 @@ function renderHabitDetailBody(h){
   const prog = periodProgress(h);
   const c7 = windowConsistencyPercent(h, 7);
 
-  const subtab = appData.ui.habitSubtabs?.[h.id] || 'track';
+  const rawSubtab = appData.ui.habitSubtabs?.[h.id] || 'track';
+  const subtab = ['track','design','insights','edit'].includes(rawSubtab) ? rawSubtab : 'track';
+  if (rawSubtab !== subtab){
+    appData.ui = safeObj(appData.ui);
+    appData.ui.habitSubtabs = safeObj(appData.ui.habitSubtabs);
+    appData.ui.habitSubtabs[h.id] = subtab;
+    scheduleSave();
+  }
 
   const succStatus = successStatusForType(h.type);
   const failStatus = failStatusForType(h.type);
@@ -3615,14 +3844,6 @@ function renderHabitDetailBody(h){
             <span>Insights</span>
           </button>
 
-          <button class="tabBtn ${subtab==='motivation'?'active':''}"
-            id="tab-${escapeHtml(h.id)}-motivation"
-            data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="motivation"
-            aria-selected="${subtab==='motivation'?'true':'false'}" tabindex="${subtab==='motivation'?'0':'-1'}">
-            ${renderTabIcon('motivation')}
-            <span>Motivator</span>
-          </button>
-
           <button class="tabBtn ${subtab==='edit'?'active':''}"
             id="tab-${escapeHtml(h.id)}-edit"
             data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="edit"
@@ -3642,10 +3863,6 @@ function renderHabitDetailBody(h){
 
         <div class="panel ${subtab==='insights'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-insights" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-insights">
           ${renderHabitInsightsPanel(h)}
-        </div>
-
-        <div class="panel ${subtab==='motivation'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-motivation" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-motivation">
-          ${renderHabitMotivationPanel(h)}
         </div>
 
         <div class="panel ${subtab==='edit'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-edit" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-edit">
@@ -3766,6 +3983,7 @@ function renderHabitEditPanel(h){
   const f = safeObj(h.frequency);
   const unit = (f.unit === 'week' || f.unit === 'month') ? f.unit : 'day';
   const target = Math.max(1, Math.round(Number(f.target) || 1));
+  const m = safeObj(h.motivator);
 
   return `
     <div class="panel" style="border:none; background:transparent; padding:0;">
@@ -3827,6 +4045,42 @@ function renderHabitEditPanel(h){
         </div>
       </div>
 
+      <div class="panel" style="margin-top:14px;">
+        <div class="sectionTitle">Motivator details</div>
+        <div class="grid two" style="margin-top:10px;">
+          <div class="field">
+            <label>Identity (one sentence)</label>
+            <input type="text"
+              data-bind="motivator.identity"
+              data-habit="${escapeHtml(h.id)}"
+              value="${escapeHtml(m.identity || '')}"
+              maxlength="220"
+              placeholder="I am the kind of person who…" />
+            <div class="help">This should feel true even on hard days.</div>
+          </div>
+          <div class="field">
+            <label>Long-term outcome</label>
+            <input type="text"
+              data-bind="motivator.outcome"
+              data-habit="${escapeHtml(h.id)}"
+              value="${escapeHtml(m.outcome || '')}"
+              maxlength="260"
+              placeholder="Over time, this enables…" />
+          </div>
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <label>Why this matters</label>
+          <textarea
+            data-bind="motivator.why"
+            data-habit="${escapeHtml(h.id)}"
+            maxlength="420"
+            placeholder="A reason worth returning to.">${escapeHtml(m.why || '')}</textarea>
+        </div>
+        <div class="muted tiny" style="margin-top:10px;">
+          These lines show up in tracking feedback, weekly review prompts, and encouragement.
+        </div>
+      </div>
+
       <div class="success" style="margin-top:12px;">
         <strong>Note:</strong>
         <div class="small muted" style="margin-top:6px;">
@@ -3862,6 +4116,52 @@ function normalizeLogCountsForFrequency(h){
   }
 }
 
+function rerenderHabitDesignPanel(habitId){
+  const h = getHabit(habitId);
+  if (!h) return;
+  const panel = document.getElementById(`panel-${habitId}-design`);
+  if (panel) panel.innerHTML = renderHabitDesignPanel(h);
+}
+
+function addFrictionItem(habitId){
+  const h = getHabit(habitId);
+  if (!h) return;
+  const items = ensureFrictionItems(h);
+  items.push('');
+  h.updatedAt = new Date().toISOString();
+  saveData({ toast:false });
+  rerenderHabitDesignPanel(habitId);
+  const panel = document.getElementById(`panel-${habitId}-design`);
+  const inputs = panel?.querySelectorAll(`[data-friction-index]`);
+  const last = inputs?.[inputs.length - 1];
+  if (last instanceof HTMLElement) last.focus();
+}
+
+function removeFrictionItem(habitId, index){
+  const h = getHabit(habitId);
+  if (!h) return;
+  const items = ensureFrictionItems(h);
+  if (!Number.isFinite(index) || index < 0 || index >= items.length) return;
+  items.splice(index, 1);
+  if (!items.length) items.push('');
+  h.updatedAt = new Date().toISOString();
+  saveData({ toast:false });
+  rerenderHabitDesignPanel(habitId);
+}
+
+function handleFrictionInput(el){
+  const habitId = el.getAttribute('data-habit');
+  const idx = Number(el.getAttribute('data-friction-index'));
+  if (!habitId || Number.isNaN(idx)) return;
+  const h = getHabit(habitId);
+  if (!h) return;
+  const items = ensureFrictionItems(h);
+  const val = String(el.value ?? '').slice(0, 160);
+  items[idx] = val;
+  h.updatedAt = new Date().toISOString();
+  scheduleSave();
+}
+
 function updateHabitHeader(habitId){
   const h = getHabit(habitId);
   if (!h) return;
@@ -3885,53 +4185,24 @@ function updateHabitHeader(habitId){
   }
 }
 
-    function renderHabitMotivationPanel(h){
-      const m = safeObj(h.motivator);
-      return `
-        <div class="grid two">
-          <div class="field">
-            <label>Identity (one sentence)</label>
-            <input type="text"
-              data-bind="motivator.identity"
-              data-habit="${escapeHtml(h.id)}"
-              value="${escapeHtml(m.identity || '')}"
-              maxlength="220"
-              placeholder="I am the kind of person who…" />
-            <div class="help">This should feel true even on hard days.</div>
-          </div>
-          <div class="field">
-            <label>Long-term outcome</label>
-            <input type="text"
-              data-bind="motivator.outcome"
-              data-habit="${escapeHtml(h.id)}"
-              value="${escapeHtml(m.outcome || '')}"
-              maxlength="260"
-              placeholder="Over time, this enables…" />
-          </div>
-        </div>
-        <div class="field" style="margin-top:12px;">
-            <label>Why this matters</label>
-          <textarea
-            data-bind="motivator.why"
-            data-habit="${escapeHtml(h.id)}"
-            maxlength="420"
-            placeholder="A reason worth returning to.">${escapeHtml(m.why || '')}</textarea>
-        </div>
-        <div class="success" style="margin-top:12px;">
-          <strong>How it will be used:</strong>
-          <div class="small muted" style="margin-top:6px;">
-            This motivator shows up in your tracking feedback, weekly review prompts, and gentle encouragement.
-          </div>
-        </div>
-      `;
-    }
-
     function renderHabitDesignPanel(h){
       const loop = safeObj(safeObj(h.design).loop);
       const laws = safeObj(safeObj(h.design).laws);
       const plan = safeObj(safeObj(h.design).plan);
-      const friction = safeObj(plan.friction);
       const labels = lawLabelsForType(h.type);
+      const frictionItems = getFrictionItems(h);
+      const frictionList = (frictionItems.length ? frictionItems : ['']).map((item, idx) => `
+        <div class="frictionItem">
+          <input
+            type="text"
+            maxlength="160"
+            data-habit="${escapeHtml(h.id)}"
+            data-friction-index="${idx}"
+            value="${escapeHtml(item)}"
+            placeholder="e.g., Put snacks in a high cabinet" />
+          <button class="btn small ghost" type="button" data-action="removeFrictionItem" data-habit="${escapeHtml(h.id)}" data-index="${idx}" aria-label="Remove speed bump">Remove</button>
+        </div>
+      `).join('');
 
       return `
         <div class="panel" style="border:none; background:transparent; padding:0;">
@@ -3955,20 +4226,17 @@ function updateHabitHeader(habitId){
           </div>
 
           ${h.type === 'negative' ? `
-            <div class="panel" style="margin-top:12px;">
-              <div style="font-weight:900; margin-bottom:8px;">Friction (speed bumps)</div>
-              <label style="display:flex; gap:10px; align-items:center; font-size:13px; font-weight:800; color:var(--accent2);">
-                <input type="checkbox" data-habit="${escapeHtml(h.id)}" data-bind="design.plan.friction.removeCue" ${friction.removeCue ? 'checked' : ''} />
-                Remove a cue (make it less visible)
-              </label>
-              <label style="display:flex; gap:10px; align-items:center; font-size:13px; font-weight:800; color:var(--accent2); margin-top:8px;">
-                <input type="checkbox" data-habit="${escapeHtml(h.id)}" data-bind="design.plan.friction.addDelay" ${friction.addDelay ? 'checked' : ''} />
-                Add a delay (wait 5–10 minutes)
-              </label>
-              <label style="display:flex; gap:10px; align-items:center; font-size:13px; font-weight:800; color:var(--accent2); margin-top:8px;">
-                <input type="checkbox" data-habit="${escapeHtml(h.id)}" data-bind="design.plan.friction.addBarrier" ${friction.addBarrier ? 'checked' : ''} />
-                Add a barrier (extra steps)
-              </label>
+            <div class="frictionCard" style="margin-top:12px;">
+              <div class="frictionHead">
+                <div class="sectionTitle">Friction (speed bumps)</div>
+                <button class="btn small ghost" type="button" data-action="addFrictionItem" data-habit="${escapeHtml(h.id)}">Add item</button>
+              </div>
+              <div class="muted small" style="margin-top:6px;">
+                Add obstacles that make the unwanted habit harder to start.
+              </div>
+              <div class="frictionList">
+                ${frictionList}
+              </div>
             </div>
           ` : ''}
 
@@ -4041,6 +4309,7 @@ const plannedInRange = Math.round(plannedRate * w.days);
 
 
   const s = insightsSuggestions(h);
+  const weeklyChart = renderWeeklyBarChart(h);
 
   return `
     <div class="seg" role="group" aria-label="Insights time range">
@@ -4071,6 +4340,8 @@ const plannedInRange = Math.round(plannedRate * w.days);
         Cumulative actual vs planned for the selected window. Executions are marked along the line.
       </div>
     </div>
+
+    ${weeklyChart}
 
     <div class="stats" style="margin-top:12px;">
       <div class="stat">
@@ -4501,8 +4772,12 @@ function renderRecentLogs(h){
       // If insights panel visible, update chart
       const sub = appData.ui.habitSubtabs?.[habitId] || 'track';
       if (sub === 'insights'){
-        const chartEl = $(`#habit-${cssEscape(habitId)}-chart`);
-        if (chartEl) renderChartSVG(h, chartEl, getInsightRangeKey(habitId));
+        const panel = document.getElementById(`panel-${habitId}-insights`);
+        if (panel){
+          panel.innerHTML = renderHabitInsightsPanel(h);
+          const chartEl = document.getElementById(`habit-${habitId}-chart`);
+          if (chartEl) renderChartSVG(h, chartEl, getInsightRangeKey(habitId));
+        }
       }
     }
 
@@ -4869,16 +5144,18 @@ function ensureDefaultLogsUpToToday(){
       });
 
       // panels
-      ['track','design','insights','motivation','edit'].forEach(t => {
+      ['track','design','insights','edit'].forEach(t => {
         const p = document.getElementById(`panel-${habitId}-${t}`);
         if (p) p.classList.toggle('hidden', t !== subtab);
       });
 
       if (subtab === 'insights'){
         const h = getHabit(habitId);
-        const chartEl = document.getElementById(`habit-${habitId}-chart`);
-        if (h && chartEl){
-          renderChartSVG(h, chartEl, getInsightRangeKey(habitId));
+        const panel = document.getElementById(`panel-${habitId}-insights`);
+        if (h && panel){
+          panel.innerHTML = renderHabitInsightsPanel(h);
+          const chartEl = document.getElementById(`habit-${habitId}-chart`);
+          if (chartEl) renderChartSVG(h, chartEl, getInsightRangeKey(habitId));
         }
       }
     }
@@ -5595,6 +5872,23 @@ if (action === 'setInsightRange'){
   return;
 }
 
+if (action === 'addFrictionItem'){
+  e.preventDefault();
+  const hid = btn.getAttribute('data-habit');
+  if (!hid) return;
+  addFrictionItem(hid);
+  return;
+}
+
+if (action === 'removeFrictionItem'){
+  e.preventDefault();
+  const hid = btn.getAttribute('data-habit');
+  const idx = Number(btn.getAttribute('data-index'));
+  if (!hid) return;
+  removeFrictionItem(hid, idx);
+  return;
+}
+
       if (action === 'switchTab'){
         const tab = btn.getAttribute('data-tab');
         if (!tab) return;
@@ -5751,6 +6045,11 @@ if (action === 'setInsightRange'){
         const field = el.getAttribute('data-field');
         if (!field) return;
         updateWizardDraft(field, el.value);
+        return;
+      }
+
+      if (el.hasAttribute('data-friction-index') && el.hasAttribute('data-habit')){
+        handleFrictionInput(el);
         return;
       }
 
