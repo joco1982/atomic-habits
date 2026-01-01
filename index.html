@@ -817,11 +817,14 @@ body::after{
       padding:8px;
       border-radius: 16px;
       position:sticky;
-      top: 12px;
+      top: 0;
       z-index:7;
       backdrop-filter: blur(10px);
       box-shadow: 0 8px 20px rgba(0,0,0,.22);
       width:100%;
+    }
+    .detailPanels{
+      padding-top:12px;
     }
     .tabBtn{
       min-height: 48px;
@@ -1358,15 +1361,10 @@ body::after{
     }
 
     .quickAddNote{
-      margin-top:8px;
-      display:flex;
+      display:inline-flex;
       flex-wrap:wrap;
-      gap:8px;
+      gap:6px;
       align-items:center;
-      padding:8px 10px;
-      border-radius: 12px;
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.03);
       font-size:12px;
       color: var(--muted);
       line-height:1.35;
@@ -3365,11 +3363,11 @@ function renderChartSVG(h, container, rangeKey){
               <div class="hMeta">
                 <span class="tag muted">${habitCount}/${MAX_HABITS} used</span>
                 <span class="muted2">Check in fast, then adjust the system when needed.</span>
+                <span class="quickAddNote">
+                  <strong>Quick Add Habit</strong>
+                  <span>- Add the essential now, refine later.</span>
+                </span>
               </div>
-              <div class="quickAddNote">
-                <strong>Quick add habit</strong>
-                <span>Add the essentials now. You can refine system details later.</span>
-   
             </div>
             <div class="right">
               <button class="btn small primary" data-action="startCreateWizard">Guided setup</button>
@@ -3856,21 +3854,22 @@ function renderHabitDetailBody(h){
           </button>
         </div>
 
-        <div class="panel ${subtab==='track'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-track" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-track">
-          ${renderHabitTrackPanel(h, { succStatus, failStatus })}
-        </div>
+        <div class="detailPanels">
+          <div class="panel ${subtab==='track'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-track" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-track">
+            ${renderHabitTrackPanel(h, { succStatus, failStatus })}
+          </div>
 
-        <div class="panel ${subtab==='design'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-design" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-design">
-          ${renderHabitDesignPanel(h)}
-        </div>
+          <div class="panel ${subtab==='design'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-design" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-design">
+            ${renderHabitDesignPanel(h)}
+          </div>
 
-        <div class="panel ${subtab==='insights'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-insights" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-insights">
-          ${renderHabitInsightsPanel(h)}
-        </div>
+          <div class="panel ${subtab==='insights'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-insights" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-insights">
+            ${renderHabitInsightsPanel(h)}
+          </div>
 
-        <div class="panel ${subtab==='edit'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-edit" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-edit">
-          ${renderHabitEditPanel(h)}
-        </div>
+          <div class="panel ${subtab==='edit'?'':'hidden'}" id="panel-${escapeHtml(h.id)}-edit" role="tabpanel" aria-labelledby="tab-${escapeHtml(h.id)}-edit">
+            ${renderHabitEditPanel(h)}
+          </div>
       </div>
     </div>
   `;
