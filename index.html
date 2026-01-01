@@ -827,6 +827,27 @@ body::after{
       box-shadow: 0 8px 20px rgba(0,0,0,.22);
       width:100%;
     }
+    .subtabsFooter{
+      position:static;
+      box-shadow:none;
+      background: rgba(11,18,32,.88);
+      border-radius: 18px;
+    }
+    .detailTitleBar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 10px 12px;
+      border:1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(17,27,46,.7);
+      margin: 12px 0 0;
+      font-weight:900;
+      letter-spacing:.2px;
+    }
+    .detailTitleBar span{
+      font-size:13px;
+    }
     .detailPanels{
       padding-top:12px;
     }
@@ -3723,6 +3744,73 @@ function renderTabIcon(name){
   }
 }
 
+function habitSubtabLabel(subtab){
+  switch (subtab){
+    case 'track':
+      return 'Track';
+    case 'design':
+      return 'Plan';
+    case 'insights':
+      return 'Insights';
+    case 'edit':
+      return 'Edit';
+    default:
+      return 'Track';
+  }
+}
+
+function renderHabitSubtabs(h, subtab, { footer = false } = {}){
+  const wrapperClass = footer ? 'subtabs subtabsFooter' : 'subtabs';
+  return `
+    <div class="${wrapperClass}" role="tablist" aria-label="Habit sections">
+      <button class="tabBtn ${subtab==='track'?'active':''}"
+        id="tab-${escapeHtml(h.id)}-track"
+        data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="track"
+        aria-selected="${subtab==='track'?'true':'false'}" tabindex="${subtab==='track'?'0':'-1'}">
+        ${renderTabIcon('track')}
+        <span>Track</span>
+      </button>
+
+      <button class="tabBtn ${subtab==='design'?'active':''}"
+        id="tab-${escapeHtml(h.id)}-design"
+        data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="design"
+        aria-selected="${subtab==='design'?'true':'false'}" tabindex="${subtab==='design'?'0':'-1'}">
+        ${renderTabIcon('design')}
+        <span>Plan</span>
+      </button>
+
+      <button class="tabBtn ${subtab==='insights'?'active':''}"
+        id="tab-${escapeHtml(h.id)}-insights"
+        data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="insights"
+        aria-selected="${subtab==='insights'?'true':'false'}" tabindex="${subtab==='insights'?'0':'-1'}">
+        ${renderTabIcon('insights')}
+        <span>Insights</span>
+      </button>
+
+      <button class="tabBtn ${subtab==='edit'?'active':''}"
+        id="tab-${escapeHtml(h.id)}-edit"
+        data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="edit"
+        aria-selected="${subtab==='edit'?'true':'false'}" tabindex="${subtab==='edit'?'0':'-1'}">
+        ${renderTabIcon('edit')}
+        <span>Edit</span>
+      </button>
+    </div>
+  `;
+}
+
+function getHabitSubtab(habitId){
+  appData.ui = safeObj(appData.ui);
+  const rawSubtab = appData.ui.habitSubtabs?.[habitId] || 'track';
+  const subtab = ['track','design','insights','edit'].includes(rawSubtab) ? rawSubtab : 'track';
+  if (rawSubtab !== subtab){
+    appData.ui = safeObj(appData.ui);
+    appData.ui.habitSubtabs = safeObj(appData.ui.habitSubtabs);
+    appData.ui.habitSubtabs[habitId] = subtab;
+    scheduleSave();
+  }
+  return subtab;
+}
+
 
 function renderHabitList(){
   const habits = safeArr(appData.habits);
@@ -3787,18 +3875,11 @@ function renderHabitDetailBody(h){
 
   const prog = periodProgress(h);
   const c7 = windowConsistencyPercent(h, 7);
-
-  const rawSubtab = appData.ui.habitSubtabs?.[h.id] || 'track';
-  const subtab = ['track','design','insights','edit'].includes(rawSubtab) ? rawSubtab : 'track';
-  if (rawSubtab !== subtab){
-    appData.ui = safeObj(appData.ui);
-    appData.ui.habitSubtabs = safeObj(appData.ui.habitSubtabs);
-    appData.ui.habitSubtabs[h.id] = subtab;
-    scheduleSave();
-  }
+  const subtab = getHabitSubtab(h.id);
 
   const succStatus = successStatusForType(h.type);
   const failStatus = failStatusForType(h.type);
+  const subtabLabel = habitSubtabLabel(subtab);
 
   return `
     <div id="habit-modal-${escapeHtml(h.id)}">
@@ -3821,38 +3902,8 @@ function renderHabitDetailBody(h){
           ${renderHabitSummary(h, { prog, c7 })}
         </div>
 
-        <div class="subtabs" role="tablist" aria-label="Habit sections">
-          <button class="tabBtn ${subtab==='track'?'active':''}"
-            id="tab-${escapeHtml(h.id)}-track"
-            data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="track"
-            aria-selected="${subtab==='track'?'true':'false'}" tabindex="${subtab==='track'?'0':'-1'}">
-            ${renderTabIcon('track')}
-            <span>Track</span>
-          </button>
-
-          <button class="tabBtn ${subtab==='design'?'active':''}"
-            id="tab-${escapeHtml(h.id)}-design"
-            data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="design"
-            aria-selected="${subtab==='design'?'true':'false'}" tabindex="${subtab==='design'?'0':'-1'}">
-            ${renderTabIcon('design')}
-            <span>Plan</span>
-          </button>
-
-          <button class="tabBtn ${subtab==='insights'?'active':''}"
-            id="tab-${escapeHtml(h.id)}-insights"
-            data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="insights"
-            aria-selected="${subtab==='insights'?'true':'false'}" tabindex="${subtab==='insights'?'0':'-1'}">
-            ${renderTabIcon('insights')}
-            <span>Insights</span>
-          </button>
-
-          <button class="tabBtn ${subtab==='edit'?'active':''}"
-            id="tab-${escapeHtml(h.id)}-edit"
-            data-action="habitSubtab" data-habit="${escapeHtml(h.id)}" data-subtab="edit"
-            aria-selected="${subtab==='edit'?'true':'false'}" tabindex="${subtab==='edit'?'0':'-1'}">
-            ${renderTabIcon('edit')}
-            <span>Edit</span>
-          </button>
+        <div class="detailTitleBar" id="habit-${escapeHtml(h.id)}-titlebar">
+          <span>${escapeHtml(subtabLabel)}</span>
         </div>
 
         <div class="detailPanels">
@@ -3885,11 +3936,12 @@ function openHabitDetail(habitId, subtab){
 
   appData.ui.activeHabitId = habitId;
   saveData({ toast:false });
+  const activeSubtab = getHabitSubtab(habitId);
 
   openModal(
     h.name || 'Habit details',
     renderHabitDetailBody(h),
-    `<button class="btn ghost" data-action="closeModal">Close</button>`,
+    renderHabitSubtabs(h, activeSubtab, { footer: true }),
     { centered:true }
   );
   setTimeout(hydrateVisibleCharts, 0);
@@ -5131,20 +5183,25 @@ function ensureDefaultLogsUpToToday(){
     }
 
     function setHabitSubtab(habitId, subtab){
+      appData.ui = safeObj(appData.ui);
       if (!appData.ui.habitSubtabs) appData.ui.habitSubtabs = {};
       appData.ui.habitSubtabs[habitId] = subtab;
       saveData({ toast:false });
 
-      const scope = document.getElementById(`habit-modal-${habitId}`);
-      if (!scope) return;
-
       // buttons
-      $$(`[data-action="habitSubtab"][data-habit="${cssEscape(habitId)}"]`, scope).forEach(btn => {
+      $$(`[data-action="habitSubtab"][data-habit="${cssEscape(habitId)}"]`).forEach(btn => {
         const isActive = btn.getAttribute('data-subtab') === subtab;
         btn.classList.toggle('active', isActive);
         btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
         btn.setAttribute('tabindex', isActive ? '0' : '-1');
       });
+
+      const titleBar = document.getElementById(`habit-${habitId}-titlebar`);
+      if (titleBar){
+        const label = habitSubtabLabel(subtab);
+        const labelEl = titleBar.querySelector('span');
+        if (labelEl) labelEl.textContent = label;
+      }
 
       // panels
       ['track','design','insights','edit'].forEach(t => {
@@ -5161,6 +5218,18 @@ function ensureDefaultLogsUpToToday(){
           if (chartEl) renderChartSVG(h, chartEl, getInsightRangeKey(habitId));
         }
       }
+
+      scrollHabitSectionToTop(habitId, subtab);
+    }
+
+    function scrollHabitSectionToTop(habitId, subtab){
+      const panel = document.getElementById(`panel-${habitId}-${subtab}`);
+      const body = document.getElementById('modalBody');
+      if (!panel || !body) return;
+      const bodyRect = body.getBoundingClientRect();
+      const panelRect = panel.getBoundingClientRect();
+      const offset = panelRect.top - bodyRect.top + body.scrollTop;
+  
     }
 
     function saveLog(habitId){
