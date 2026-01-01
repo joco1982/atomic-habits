@@ -1849,6 +1849,7 @@ input[type="date"]{
       if (!out.ui.insightsRange || typeof out.ui.insightsRange !== 'object') out.ui.insightsRange = {};
             if (typeof out.ui.onboardingComplete !== 'boolean') out.ui.onboardingComplete = false;
       if (typeof out.ui.onboardingActive !== 'boolean') out.ui.onboardingActive = false;
+      if (typeof out.ui.hapticsEnabled !== 'boolean') out.ui.hapticsEnabled = true;
       if (!out.ui.wizard || typeof out.ui.wizard !== 'object'){
         out.ui.wizard = { open:false, mode:'create', step:0, draft: blankWizardDraft() };
       } else {
@@ -2016,8 +2017,43 @@ cleanLogs[k] = {
       showToast._t = window.setTimeout(() => el.classList.remove('active'), ms);
     }
 
-        function softHaptic(){
-      if (navigator.vibrate) navigator.vibrate(12);
+    const HAPTIC_GUARD_MS = 140;
+    const HAPTIC_PATTERNS = {
+      nav: [6],
+      primary: [10],
+      confirm: [14],
+      danger: [18]
+    };
+    let lastHapticAt = 0;
+
+    function hapticsAvailable(){
+      if (appData?.ui?.hapticsEnabled === false) return false;
+      if (!navigator?.vibrate) return false;
+      return true;
+    }
+
+    function triggerHaptic(kind = 'primary'){
+      if (!hapticsAvailable()) return;
+      const now = Date.now();
+      if (now - lastHapticAt < HAPTIC_GUARD_MS) return;
+      lastHapticAt = now;
+      const pattern = HAPTIC_PATTERNS[kind] || HAPTIC_PATTERNS.primary;
+      try{
+        navigator.vibrate(pattern);
+      }catch(e){}
+    }
+
+    const ACTION_HAPTICS = {
+      switchTab: 'nav',
+      openHabitDetail: 'nav',
+      openTodayFocus: 'nav',
+      jumpToPlan: 'nav'
+    };
+
+    function handleActionHaptic(action){
+      const kind = ACTION_HAPTICS[action];
+      if (!kind) return;
+      triggerHaptic(kind);
     }
 
     function pulseEl(el){
@@ -2935,6 +2971,7 @@ function renderChartSVG(h, container, rangeKey){
       appData.ui.wizard.step = Math.max(0, Number(appData.ui.wizard.step || 0) - 1);
       saveData({ toast:false });
       renderWizardModal();
+      triggerHaptic('nav');
     }
 
     function wizardNext(){
@@ -2949,6 +2986,7 @@ function renderChartSVG(h, container, rangeKey){
       appData.ui.wizard.step = step + 1;
       saveData({ toast:false });
       renderWizardModal();
+      triggerHaptic('primary');
     }
 
     function wizardFinish(logFirst){
@@ -2967,6 +3005,7 @@ function renderChartSVG(h, container, rangeKey){
       appData.ui.onboardingActive = false;
       saveData({ toast:true, toastMsg:'Habit created and ready to track.' });
       render();
+      triggerHaptic('confirm');
 
       requestAnimationFrame(() => {
         openHabitDetail(habit.id, 'track');
@@ -3640,7 +3679,7 @@ function dashToggle(habitId){
       e.count = target;
       e.updatedAt = new Date().toISOString();
       showToast('Done', motivationalLine(h), { icon:'✓', ms:5000 });
-      softHaptic();
+      triggerHaptic('confirm');
       pulseEl(document.querySelector(`button[data-action="dashToggle"][data-habit="${cssEscape(habitId)}"]`));
     }
 }
@@ -3661,7 +3700,7 @@ function dashToggle(habitId){
       e.count = 1;
       e.updatedAt = new Date().toISOString();
       showToast('Done', motivationalLine(h), { icon:'✓', ms:2600 });
-      softHaptic();
+      triggerHaptic('confirm');
       pulseEl(document.querySelector(`button[data-action="dashToggle"][data-habit="${cssEscape(habitId)}"]`));
     }
   }
@@ -5118,6 +5157,7 @@ function ensureDefaultLogsUpToToday(){
       appData.habits.push(habit);
       appData.ui.createOpen = false;
       saveData({ toast:true, toastMsg:'Habit created and ready to track.' });
+      triggerHaptic('confirm');
       render(); // ensures habit appears immediately
 
       // Open the newly created habit for convenience
@@ -5139,6 +5179,7 @@ function ensureDefaultLogsUpToToday(){
       const msg = `Delete “${name}”?\n\nThis removes its logs and design notes from this device. Consider Export first.`;
       if (!confirm(msg)) return;
 
+      triggerHaptic('danger');
       appData.habits = appData.habits.filter(x => x.id !== habitId);
       if (appData.ui.habitSubtabs) delete appData.ui.habitSubtabs[habitId];
       if (appData.ui?.activeHabitId === habitId){
@@ -5178,6 +5219,7 @@ function ensureDefaultLogsUpToToday(){
 
       h.updatedAt = new Date().toISOString();
       saveData({ toast:true, toastMsg:'Habit saved.' });
+      triggerHaptic('confirm');
       updateHabitVisuals(habitId);
       hydrateVisibleCharts();
     }
@@ -5285,7 +5327,7 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
       const succ = successStatusForType(h.type);
       if (status === succ){
         showToast('Done', motivationalLine(h), { icon:'✓', ms:5000 });
-        softHaptic();
+        triggerHaptic('confirm');
         pulseEl(document.querySelector(`button[data-action="dashToggle"][data-habit="${cssEscape(habitId)}"]`));
       } else {
         showToast('Logged', 'No shame. This is just data to improve the system.', { icon:'•', ms:2600 });
@@ -5304,6 +5346,7 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
 
       if (!confirm(`Delete log for ${date}?`)) return;
 
+      triggerHaptic('danger');
       delete h.logs[date];
       h.updatedAt = new Date().toISOString();
       saveData({ toast:true, toastMsg:'Log deleted.' });
@@ -5438,6 +5481,7 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
         appData.ui = appData.ui || {};
         appData.ui.activeTab = 'settings';
         saveData({ toast:true, toastMsg:'Import complete (replaced).' });
+        triggerHaptic('confirm');
         closeModal();
         render();
         return;
@@ -5480,6 +5524,7 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
       }
 
       saveData({ toast:true, toastMsg:'Import complete (merged).' });
+      triggerHaptic('confirm');
       closeModal();
       render();
     }
@@ -5491,6 +5536,7 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
         showToast('Cancelled', 'Nothing was deleted.', { icon:'↺', ms:1800 });
         return;
       }
+      triggerHaptic('danger');
       appData = normalizeData(null);
       saveData({ toast:true, toastMsg:'All data cleared.' });
       render();
@@ -5533,7 +5579,7 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
       ensureReviewWeek(weekISO);
       saveData({ toast:false });
       showToast('Checkpoint saved', 'Weekly review saved. A calm checkpoint for the week.', { icon:'✓', ms:2600 });
-      softHaptic();
+      triggerHaptic('confirm');
     }
 
     function copyReviewPrompt(){
@@ -5779,6 +5825,8 @@ function handleLogEdit(el){
       if (!btn) return;
 
       const action = btn.getAttribute('data-action');
+
+      handleActionHaptic(action);
 
       if (action === 'startOnboarding'){
         e.preventDefault();
