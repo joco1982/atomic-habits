@@ -561,22 +561,22 @@ body::after{
       position:relative;
       overflow:hidden;
     }
-    .habitsHeroHeader{
+    .todayCardHeader{
       gap:16px;
       align-items:center;
       flex-wrap:wrap;
     }
-    .habitsHeroHeader #todayHeaderSummary{
+    .todayCardHeader #todayHeaderSummary{
       flex: 1 1 100%;
     }
-    .habitsHeroHeader #todayHeaderSummary:empty{
+    .todayCardHeader #todayHeaderSummary:empty{
       display:none;
     }
-    .habitsHeroHeader .right{
+    .todayCardHeader .right{
       flex-wrap:wrap;
       justify-content:flex-end;
     }
-    .habitsHeroHeader .btn{
+    .todayCardHeader .btn{
       white-space:nowrap;
     }
     .habitList{
@@ -1564,6 +1564,69 @@ body::after{
       gap:12px;
     }
 
+    .todayCard{
+      position: sticky;
+      top: calc(64px + var(--safe-t));
+      z-index:7;
+      border-color: rgba(122,167,255,.28);
+      box-shadow: 0 12px 24px rgba(0,0,0,.22);
+      backdrop-filter: blur(10px);
+    }
+    .todayCard .cardHeader{
+      position:relative;
+    }
+    .todayCardHeader .right{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .todayProgressPin{
+      margin: 0 14px 14px;
+      padding: 8px 10px;
+      border:1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(11,18,32,.65);
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    #todayProgressPin:empty{
+      display:none;
+    }
+    .todayProgressPin.done{
+      border-color: rgba(41,211,154,.45);
+      background: rgba(15,23,41,.72);
+    }
+    .todayProgressPin.done .todayMeter{
+      background: rgba(41,211,154,.18);
+      border-color: rgba(41,211,154,.35);
+    }
+    .todayProgressMeta{
+      font-size:11px;
+      font-weight:800;
+      color: var(--muted2);
+      white-space:nowrap;
+    }
+    .todayProgressPin .todayMeter{
+      margin:0;
+      flex:1 1 auto;
+    }
+
+    .habitsHeader{
+      padding-bottom:10px;
+    }
+    .habitsActions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      padding: 0 14px 12px;
+    }
+    .habitsActions .btn{
+      min-height:36px;
+      padding: 6px 12px;
+      font-size:13px;
+    }
+
     .todaySummary{
       width:100%;
       border:1px solid var(--line);
@@ -1665,40 +1728,6 @@ body::after{
       animation: todayGlow .6s ease-out;
     }
 
-    .todayProgressPin{
-      position: sticky;
-      top: calc(64px + var(--safe-t));
-      z-index:6;
-      margin: 8px 0 10px;
-      padding: 8px 10px;
-      border:1px solid var(--line);
-      border-radius: 999px;
-      background: rgba(11,18,32,.92);
-      backdrop-filter: blur(10px);
-      display:flex;
-      align-items:center;
-      gap:10px;
-      box-shadow: 0 10px 20px rgba(0,0,0,.18);
-    }
-    .todayProgressPin.done{
-      border-color: rgba(41,211,154,.45);
-      background: rgba(15,23,41,.85);
-    }
-    .todayProgressPin.done .todayMeter{
-      background: rgba(41,211,154,.18);
-      border-color: rgba(41,211,154,.35);
-    }
-    .todayProgressMeta{
-      font-size:11px;
-      font-weight:800;
-      color: var(--muted2);
-      white-space:nowrap;
-    }
-    .todayProgressPin .todayMeter{
-      margin:0;
-      flex:1 1 auto;
-    }
-
     @keyframes iconSparkle{
       0%{ transform: scale(1); box-shadow: 0 0 0 rgba(122,167,255,0); }
       40%{ transform: scale(1.08); box-shadow: 0 0 0 6px rgba(122,167,255,.25); }
@@ -1752,34 +1781,52 @@ body::after{
       margin-top:0;
     }
 
-    @keyframes celebrateConfetti{
-      0%{ opacity:0; transform: translateY(10px) scale(.98); }
-      20%{ opacity:1; }
-      100%{ opacity:0; transform: translateY(-16px) scale(1.02); }
-    }
     .celebrateCard{
       position:relative;
-      overflow:hidden;
       border-color: rgba(41,211,154,.5);
       background:
         radial-gradient(120% 140% at 0% 0%, rgba(41,211,154,.15), rgba(18,30,52,.15)),
         rgba(255,255,255,.04);
     }
-    .celebrateCard::after{
+
+    @keyframes celebrateConfettiFall{
+      0%{ opacity:0; transform: translateY(-18%) rotate(-4deg); }
+      15%{ opacity:1; }
+      100%{ opacity:0; transform: translateY(24%) rotate(6deg); }
+    }
+    @keyframes celebrateOverlayFade{
+      0%{ opacity:1; }
+      100%{ opacity:0; }
+    }
+    .celebrateOverlay{
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 80;
+      overflow: hidden;
+      animation: celebrateOverlayFade 1.3s ease-out forwards;
+    }
+    .celebrateOverlay::before,
+    .celebrateOverlay::after{
       content:"";
       position:absolute;
-      inset:-12px;
-      background:
-        radial-gradient(circle at 12% 20%, rgba(255,227,138,.9) 0 4px, transparent 5px),
-        radial-gradient(circle at 76% 18%, rgba(122,167,255,.9) 0 4px, transparent 5px),
-        radial-gradient(circle at 28% 70%, rgba(108,255,177,.9) 0 4px, transparent 5px),
-        radial-gradient(circle at 68% 72%, rgba(255,120,148,.9) 0 4px, transparent 5px),
-        radial-gradient(circle at 44% 35%, rgba(122,167,255,.6) 0 3px, transparent 4px);
-      animation: celebrateConfetti .9s ease-out;
-      pointer-events:none;
-      z-index:1;
+      inset:-20% -10%;
+      background-image:
+        linear-gradient(130deg, rgba(255,227,138,.95) 0 6px, transparent 6px),
+        linear-gradient(30deg, rgba(122,167,255,.9) 0 6px, transparent 6px),
+        linear-gradient(210deg, rgba(108,255,177,.9) 0 6px, transparent 6px),
+        linear-gradient(300deg, rgba(255,120,148,.85) 0 6px, transparent 6px);
+      background-size: 26px 26px;
+      background-position: 0 0, 40px -20px, 80px -10px, 120px -30px;
+      animation: celebrateConfettiFall 1.1s ease-out forwards;
+      opacity:.9;
     }
-    .celebrateCard > *{ position:relative; z-index:2; }
+    .celebrateOverlay::after{
+      background-size: 18px 18px;
+      background-position: 10px 0, 50px -30px, 90px -20px, 130px -40px;
+      animation-duration: 1.3s;
+      opacity:.6;
+    }
 
     /* Review page */
     .reviewHero{
@@ -1894,16 +1941,13 @@ input[type="date"]{
     overflow:hidden;
   }
 
-  .habitsHeroHeader{
+  .todayCardHeader{
     flex-direction:column;
     align-items:stretch;
   }
-  .habitsHeroHeader .right{
+  .todayCardHeader .right{
     width:100%;
     justify-content:flex-start;
-  }
-  .habitsHeroHeader .right .btn:not(.iconButton){
-    flex:1 1 140px;
   }
   .hMetaWide .hSub{
     flex-basis:100%;
@@ -1919,7 +1963,7 @@ input[type="date"]{
   .todaySummaryInsight{
     display:none;
   }
-  .todayProgressPin{
+  .todayCard{
     top: calc(54px + var(--safe-t));
   }
   .habitDesc{
@@ -3898,6 +3942,12 @@ function renderChartSVG(h, container, rangeKey){
         `,
         `<button class="btn primary" data-action="closeModal">Close</button>`
       );
+
+      document.querySelectorAll('.celebrateOverlay').forEach(el => el.remove());
+      const overlay = document.createElement('div');
+      overlay.className = 'celebrateOverlay';
+      document.body.appendChild(overlay);
+      overlay.addEventListener('animationend', () => overlay.remove(), { once: true });
     }
 
     function maybeCelebrateDay(){
@@ -3993,10 +4043,10 @@ function renderChartSVG(h, container, rangeKey){
       const createHtml = `
         ${onboarding}
         <div class="dashboardStack">
-          <div class="card heroCard habitsHero">
-            <div class="cardHeader habitsHeroHeader">
+          <div class="card heroCard todayCard">
+            <div class="cardHeader todayCardHeader">
               <div class="left">
-                <p class="hTitle">Habits Today</p>
+                <p class="hTitle">Today</p>
                 <div class="hMeta hMetaWide">
                   <span class="muted2 hSub">${escapeHtml(headerMsg)}</span>
                 </div>
@@ -4006,17 +4056,26 @@ function renderChartSVG(h, container, rangeKey){
                   <span aria-hidden="true">${soundOn ? '🔊' : '🔇'}</span>
                   <span class="sr-only">${soundLabel}</span>
                 </button>
-                <button class="btn small primary" data-action="toggleCreate" aria-expanded="${createOpen ? 'true':'false'}">
-                  ${createOpen ? 'Hide' : 'Add habit'}
-                </button>
               </div>
               <div id="todayHeaderSummary">${todaySummary}</div>
             </div>
-
-            ${createInline}
             <div id="todayProgressPin">${todayProgressPin}</div>
-            ${renderHabitList()}
+          </div>
 
+          <div class="card habitsHero">
+            <div class="cardHeader habitsHeader">
+              <div class="left">
+                <p class="hTitle">Habits</p>
+              </div>
+            </div>
+            <div class="habitsActions">
+              <button class="btn small primary" data-action="toggleCreate" aria-expanded="${createOpen ? 'true':'false'}">
+                ${createOpen ? 'Hide quick add' : 'Quick add habit'}
+              </button>
+              <button class="btn small ghost" data-action="startCreateWizard">Guided setup</button>
+            </div>
+            ${createInline}
+            ${renderHabitList()}
             <div class="cardFooter">
               <div class="muted small">${habitCount}/${MAX_HABITS} habits • Back up your habits to keep them safe offline.</div>
               <button class="btn small ghost" data-action="quickBackup" title="Backup (recommended)">Backup</button>
@@ -4049,12 +4108,6 @@ function renderChartSVG(h, container, rangeKey){
 function renderCreateForm(){
   return `
         <div class="quickCreate">
-          <div class="panel" style="padding:10px;">
-            <div class="row" style="justify-content:space-between;">
-              <div class="muted small">Prefer a guided flow?</div>
-              <button class="btn small ghost" data-action="startCreateWizard">Guided setup</button>
-            </div>
-          </div>
           <div class="panel">
             <div style="font-weight:950; margin-bottom:8px;">Essentials</div>
             <div class="muted small" style="margin-bottom:10px;">
