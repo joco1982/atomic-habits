@@ -1723,7 +1723,7 @@ body::after{
     .focusItem{
       display:flex;
       flex-direction:column;
-      gap:8px;
+      gap:6px;
       padding: 10px;
       border-radius: 16px;
       background: rgba(17,27,46,.7);
@@ -1732,7 +1732,7 @@ body::after{
       transition: border-color .2s ease, box-shadow .2s ease, background .2s ease, opacity .2s ease;
     }
     .focusItem.completed{
-      opacity:.65;
+      opacity:1;
       border-color: rgba(41,211,154,.6);
       background:
         linear-gradient(135deg, rgba(41,211,154,.16), rgba(122,167,255,.14)),
@@ -1767,13 +1767,14 @@ body::after{
       display:flex;
       justify-content:space-between;
       gap:10px;
-      align-items:center;
+      align-items:flex-start;
     }
     .focusMain{
       min-width:0;
       display:flex;
       flex-direction:column;
       gap:4px;
+      padding-right: 110px;
     }
     .focusTitle{
       font-weight:950;
@@ -1792,10 +1793,13 @@ body::after{
     .focusActions{
       display:flex;
       gap:6px;
-      align-items:flex-end;
+      align-items:flex-start;
+      position:absolute;
+      top:10px;
+      right:10px;
     }
     .focusProgress{
-      margin-top:0;
+      margin-top:-2px;
     }
 
     .celebrateCard{
