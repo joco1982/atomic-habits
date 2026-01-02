@@ -300,6 +300,11 @@ body::after{
       font-size: 13px;
       border-radius: 12px;
     }
+    .btn.iconButton{
+      min-width: var(--tap);
+      padding: 8px;
+      font-size: 16px;
+    }
     .btn.wide{ width:100%; }
 
     @keyframes btnPulse{
@@ -404,6 +409,17 @@ body::after{
     .muted2{ color: var(--muted2); }
     .small{ font-size: 12px; }
     .tiny{ font-size: 11px; }
+    .sr-only{
+      position:absolute;
+      width:1px;
+      height:1px;
+      padding:0;
+      margin:-1px;
+      overflow:hidden;
+      clip:rect(0,0,0,0);
+      white-space:nowrap;
+      border:0;
+    }
 
     /* Forms */
     .field{
@@ -548,6 +564,13 @@ body::after{
     .habitsHeroHeader{
       gap:16px;
       align-items:center;
+      flex-wrap:wrap;
+    }
+    .habitsHeroHeader #todayHeaderSummary{
+      flex: 1 1 100%;
+    }
+    .habitsHeroHeader #todayHeaderSummary:empty{
+      display:none;
     }
     .habitsHeroHeader .right{
       flex-wrap:wrap;
@@ -1538,18 +1561,56 @@ body::after{
       flex-direction:column;
       gap:12px;
     }
-    .dashboardStack > #todayCardSlot:empty{
-      display:none;
-    }
 
-    .todayCard.done{
+    .todaySummary{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px 16px;
+      align-items:center;
+      background: rgba(255,255,255,.04);
+    }
+    .todaySummaryInfo{
+      flex: 1 1 240px;
+      min-width: 220px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .todaySummaryTitle{
+      font-weight:900;
+      font-size:14px;
+      letter-spacing:.2px;
+    }
+    .todaySummaryMeta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      font-size:12px;
+    }
+    .todaySummaryInsight{
+      font-size:12px;
+    }
+    .todaySummaryActions{
+      flex: 1 1 220px;
+      min-width: 200px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      align-items:flex-start;
+    }
+    .todaySummary.done{
       border-color: rgba(41,211,154,.45);
       background:
         radial-gradient(120% 140% at 0% 0%, rgba(41,211,154,.18), rgba(18,30,52,.10)),
-        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+        rgba(255,255,255,.04);
     }
     .todayMeter{
-      margin-top:12px;
+      width:100%;
       border-radius:999px;
       height:12px;
       background: rgba(255,255,255,.08);
@@ -1570,7 +1631,7 @@ body::after{
       font-weight:800;
       letter-spacing:.2px;
     }
-    .todayCard.done .todayMeter{
+    .todaySummary.done .todayMeter{
       background: rgba(41,211,154,.18);
       border-color: rgba(41,211,154,.35);
     }
@@ -1579,7 +1640,7 @@ body::after{
       45%{ box-shadow: 0 0 0 6px rgba(41,211,154,.3); }
       100%{ box-shadow: 0 0 0 rgba(41,211,154,0); }
     }
-    .todayCard.done .todayMeter{
+    .todaySummary.done .todayMeter{
       animation: todayMeterGlow .6s ease-out;
     }
     @keyframes todayGlow{
@@ -1587,7 +1648,7 @@ body::after{
       35%{ box-shadow: 0 0 0 6px rgba(41,211,154,.25); }
       100%{ box-shadow: 0 0 0 rgba(41,211,154,0); }
     }
-    .todayCard.celebrate{
+    .todaySummary.celebrate{
       animation: todayGlow .6s ease-out;
     }
 
@@ -3497,7 +3558,7 @@ function renderChartSVG(h, container, rangeKey){
       };
     }
 
-    function renderTodayCard(){
+    function renderTodaySummary(){
       const habits = safeArr(appData.habits);
       const completion = getTodayCompletionState(habits);
 
@@ -3508,27 +3569,20 @@ function renderChartSVG(h, container, rangeKey){
       const ratio = completion.total ? clamp(completion.doneCount / completion.total, 0, 1) : 0;
 
       return `
-        <div class="card heroCard todayCard ${allDone ? 'done' : ''}">
-          <div class="cardHeader">
-            <div class="left">
-              <p class="hTitle">Today</p>
-              <div class="hMeta">
-                ${allDone
-                  ? `<span class="tag good">All complete</span>`
-                  : `<span class="tag muted">${completion.doneCount}/${completion.total} done • ${completion.remaining} left</span>`
-                }
-                <span class="muted2">${allDone ? 'You did it. Enjoy the momentum.' : 'One calm check-in. Then you’re done.'}</span>
-              </div>
+        <div class="todaySummary ${allDone ? 'done' : ''}">
+          <div class="todaySummaryInfo">
+            <div class="todaySummaryTitle">Today</div>
+            <div class="todaySummaryMeta">
+              ${allDone
+                ? `<span class="tag good">All complete</span>`
+                : `<span class="tag muted">${completion.doneCount}/${completion.total} done • ${completion.remaining} left</span>`
+              }
+              <span class="muted2">${allDone ? 'You did it. Enjoy the momentum.' : 'One calm check-in. Then you’re done.'}</span>
             </div>
-            <div class="right">
-              <button class="btn small primary" data-action="${focusAction}">${focusLabel}</button>
-            </div>
+            <div class="todaySummaryInsight muted2">Insight: ${escapeHtml(insight)}</div>
           </div>
-          <div class="content">
-            <div class="muted small" style="margin-bottom:8px;">
-              ${allDone ? 'You completed every habit on your list.' : 'Tap Focus for a one-screen checklist.'}
-            </div>
-            <div class="small muted2">Insight: ${escapeHtml(insight)}</div>
+          <div class="todaySummaryActions">
+            <button class="btn small primary" data-action="${focusAction}">${focusLabel}</button>
             <div class="todayMeter" aria-label="Completion meter">
               <div class="todayMeterFill" style="--p:${ratio.toFixed(3)}"></div>
             </div>
@@ -3539,19 +3593,19 @@ function renderChartSVG(h, container, rangeKey){
     }
 
     function updateTodayCard({ animate=false } = {}){
-      const slot = document.getElementById('todayCardSlot');
+      const slot = document.getElementById('todayHeaderSummary');
       if (!slot) return;
       if (!appData.habits.length){
         slot.innerHTML = '';
         return;
       }
-      const prevCard = slot.querySelector('.todayCard');
-      const wasDone = !!prevCard && prevCard.classList.contains('done');
-      slot.innerHTML = renderTodayCard();
-      const nextCard = slot.querySelector('.todayCard');
-      if (nextCard && animate && !wasDone && nextCard.classList.contains('done')){
-        nextCard.classList.add('celebrate');
-        setTimeout(() => nextCard.classList.remove('celebrate'), 800);
+      const prevSummary = slot.querySelector('.todaySummary');
+      const wasDone = !!prevSummary && prevSummary.classList.contains('done');
+      slot.innerHTML = renderTodaySummary();
+      const nextSummary = slot.querySelector('.todaySummary');
+      if (nextSummary && animate && !wasDone && nextSummary.classList.contains('done')){
+        nextSummary.classList.add('celebrate');
+        setTimeout(() => nextSummary.classList.remove('celebrate'), 800);
       }
     }
 
@@ -3716,14 +3770,12 @@ function renderChartSVG(h, container, rangeKey){
       const completion = getTodayCompletionState(appData.habits);
       const soundOn = appData.ui.soundEnabled !== false;
       const soundLabel = soundOn ? 'Sound on' : 'Sound off';
-      const heroMsg = completion.total
-        ? (completion.allDone
-          ? 'All habits completed. Enjoy the glow.'
-          : `Finish ${completion.remaining} more to complete today.`)
+      const headerMsg = completion.total
+        ? 'Check in, stay gentle, and keep moving.'
         : 'Build a calm streak with small, consistent wins.';
 
       const onboarding = (habitCount === 0) ? renderOnboardingHero() : '';
-      const todayCard = (habitCount > 0) ? renderTodayCard() : '';
+      const todaySummary = (habitCount > 0) ? renderTodaySummary() : '';
       const reviewNudge = (habitCount > 0) ? renderReviewNudge() : '';
 
       const createInline = `
@@ -3746,19 +3798,20 @@ function renderChartSVG(h, container, rangeKey){
               <div class="left">
                 <p class="hTitle">Habits Today</p>
                 <div class="hMeta hMetaWide">
-                  <span class="tag muted">${completion.doneCount}/${completion.total || 0} complete</span>
-                  <span class="muted2 hSub">${escapeHtml(heroMsg)}</span>
+                  <span class="muted2 hSub">${escapeHtml(headerMsg)}</span>
                 </div>
               </div>
               <div class="right">
-                <button class="btn small ghost" data-action="toggleSound" aria-pressed="${soundOn ? 'true' : 'false'}">
-                  ${soundLabel}
+                <button class="btn small ghost iconButton" data-action="toggleSound" aria-pressed="${soundOn ? 'true' : 'false'}" aria-label="${soundLabel}" title="${soundLabel}">
+                  <span aria-hidden="true">${soundOn ? '🔊' : '🔇'}</span>
+                  <span class="sr-only">${soundLabel}</span>
                 </button>
                 <button class="btn small ghost" data-action="toggleCreate" aria-expanded="${createOpen ? 'true':'false'}">
                   ${createOpen ? 'Hide quick add' : 'Quick add'}
                 </button>
                 <button class="btn small primary" data-action="startCreateWizard">Guided setup</button>
               </div>
+              <div id="todayHeaderSummary">${todaySummary}</div>
             </div>
 
             ${createInline}
@@ -3771,7 +3824,6 @@ function renderChartSVG(h, container, rangeKey){
           </div>
 
           ${reviewNudge}
-          <div id="todayCardSlot">${todayCard}</div>
         </div>
       `;
 
