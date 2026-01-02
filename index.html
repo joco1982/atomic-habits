@@ -36,6 +36,7 @@
       --pad: 14px;
       --tap: 44px;
       --max: 960px;
+      --today-offset: 86px;
       --safe-b: env(safe-area-inset-bottom, 0px);
       --safe-t: env(safe-area-inset-top, 0px);
     }
@@ -192,6 +193,11 @@ body::after{
         radial-gradient(120% 140% at 0% 0%, rgba(122,167,255,.18), rgba(18,30,52,.10)),
         linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
       border-color: rgba(122,167,255,.35);
+    }
+    .guidedCard{
+      background:
+        radial-gradient(120% 140% at 0% 0%, rgba(122,167,255,.22), rgba(18,30,52,.22)),
+        linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
     }
 
     .cardHeader{
@@ -743,10 +749,10 @@ body::after{
       35%{ transform: scale(1.015); box-shadow: 0 0 0 8px rgba(41,211,154,.25); }
       100%{ transform: scale(1); box-shadow: 0 0 0 rgba(41,211,154,0); }
     }
-    @keyframes habitConfetti{
-      0%{ opacity:0; transform: translateY(8px) scale(.9); }
-      25%{ opacity:1; }
-      100%{ opacity:0; transform: translateY(-14px) scale(1.05); }
+    @keyframes habitSheen{
+      0%{ opacity:0; transform: translateX(-40%) skewX(-8deg); }
+      35%{ opacity:.45; }
+      100%{ opacity:0; transform: translateX(40%) skewX(-8deg); }
     }
     .habitItem.celebrate{
       animation: habitCelebrate .55s ease-out;
@@ -755,12 +761,9 @@ body::after{
       content:"";
       position:absolute;
       inset:0;
-      background:
-        radial-gradient(circle at 18% 30%, rgba(255,227,138,.9) 0 4px, transparent 5px),
-        radial-gradient(circle at 78% 25%, rgba(122,167,255,.9) 0 4px, transparent 5px),
-        radial-gradient(circle at 35% 70%, rgba(108,255,177,.9) 0 4px, transparent 5px),
-        radial-gradient(circle at 68% 75%, rgba(255,120,148,.9) 0 4px, transparent 5px);
-      animation: habitConfetti .7s ease-out;
+      background: linear-gradient(110deg, transparent, rgba(122,167,255,.35), rgba(41,211,154,.35), transparent);
+      mix-blend-mode: screen;
+      animation: habitSheen .6s ease-out;
       pointer-events:none;
       z-index:1;
     }
@@ -1010,6 +1013,10 @@ body::after{
     .detailPanels{
       padding-top:12px;
     }
+    .detailPanels .panel{
+      background: rgba(17,27,46,.78);
+      border-color: rgba(255,255,255,.16);
+    }
     .tabBtn{
       min-height: 48px;
       padding: 6px 4px;
@@ -1159,7 +1166,8 @@ body::after{
     }
     .wizardCard{
       border:1px solid var(--line);
-      background: rgba(255,255,255,.03);
+      background: rgba(17,27,46,.72);
+      border-color: rgba(255,255,255,.16);
       border-radius: 18px;
       padding: 12px;
     }
@@ -1178,7 +1186,7 @@ body::after{
       border:1px dashed rgba(255,255,255,.2);
       padding:12px;
       border-radius:14px;
-      background: rgba(255,255,255,.02);
+      background: rgba(17,27,46,.6);
     }
     .wizardFooter{
       display:flex;
@@ -1568,8 +1576,10 @@ body::after{
       border-color: rgba(122,167,255,.28);
       box-shadow: 0 12px 24px rgba(0,0,0,.22);
       position: sticky;
-      top: calc(64px + var(--safe-t));
+      top: calc(var(--today-offset) + var(--safe-t));
       z-index: 8;
+      background: linear-gradient(180deg, rgba(17,27,46,.92), rgba(11,18,32,.86));
+      backdrop-filter: blur(14px);
     }
     .todayCard.done{
       border-color: rgba(41,211,154,.55);
@@ -1762,14 +1772,10 @@ body::after{
         rgba(255,255,255,.04);
     }
 
-    @keyframes celebrateConfettiFall{
-      0%{ opacity:0; transform: translateY(-18%) rotate(-4deg); }
-      15%{ opacity:1; }
-      100%{ opacity:0; transform: translateY(24%) rotate(6deg); }
-    }
-    @keyframes celebrateOverlayFade{
-      0%{ opacity:1; }
-      100%{ opacity:0; }
+    @keyframes celebrateGlowPulse{
+      0%{ opacity:0; transform: scale(.98); }
+      35%{ opacity:.85; }
+      100%{ opacity:0; transform: scale(1.03); }
     }
     .celebrateOverlay{
       position: fixed;
@@ -1777,28 +1783,11 @@ body::after{
       pointer-events: none;
       z-index: 80;
       overflow: hidden;
-      animation: celebrateOverlayFade 1.3s ease-out forwards;
-    }
-    .celebrateOverlay::before,
-    .celebrateOverlay::after{
-      content:"";
-      position:absolute;
-      inset:-20% -10%;
-      background-image:
-        linear-gradient(130deg, rgba(255,227,138,.95) 0 6px, transparent 6px),
-        linear-gradient(30deg, rgba(122,167,255,.9) 0 6px, transparent 6px),
-        linear-gradient(210deg, rgba(108,255,177,.9) 0 6px, transparent 6px),
-        linear-gradient(300deg, rgba(255,120,148,.85) 0 6px, transparent 6px);
-      background-size: 26px 26px;
-      background-position: 0 0, 40px -20px, 80px -10px, 120px -30px;
-      animation: celebrateConfettiFall 1.1s ease-out forwards;
-      opacity:.9;
-    }
-    .celebrateOverlay::after{
-      background-size: 18px 18px;
-      background-position: 10px 0, 50px -30px, 90px -20px, 130px -40px;
-      animation-duration: 1.3s;
-      opacity:.6;
+      background:
+        radial-gradient(circle at 18% 20%, rgba(122,167,255,.28), transparent 48%),
+        radial-gradient(circle at 80% 15%, rgba(41,211,154,.22), transparent 46%),
+        radial-gradient(circle at 50% 75%, rgba(255,227,138,.16), transparent 52%);
+      animation: celebrateGlowPulse 1.4s ease-out forwards;
     }
 
     /* Review page */
@@ -1855,6 +1844,9 @@ input[type="date"]{
 
 /* Mobile-only fixes */
   @media (max-width: 520px){
+  :root{
+    --today-offset: 72px;
+  }
   /* Keep Start date / Frequency unit / Target aligned on mobile */
   .freqRow{
     justify-content: center;
@@ -1937,7 +1929,7 @@ input[type="date"]{
     display:none;
   }
   .todayCard{
-    top: calc(54px + var(--safe-t));
+    top: calc(var(--today-offset) + var(--safe-t));
   }
   .habitDesc{
     line-clamp:1;
@@ -2491,7 +2483,10 @@ cleanLogs[k] = {
       const ctx = getAudioContext();
       if (!ctx) return;
       if (ctx.state === 'suspended'){
-        ctx.resume().catch(() => {});
+        ctx.resume().then(() => {
+          audioUnlocked = ctx.state === 'running';
+        }).catch(() => {});
+        return;
       }
       audioUnlocked = ctx.state === 'running';
     }
@@ -2512,34 +2507,40 @@ cleanLogs[k] = {
     // New: rewarding completion chime for habit check-ins.
     function playSuccessChime(){
       if (appData?.ui?.soundEnabled === false) return;
-      unlockAudioContext();
       const ctx = getAudioContext();
       if (!ctx) return;
-      try{
-        const style = appData?.ui?.soundStyle === 'soft' ? 'soft' : 'bright';
-        const now = ctx.currentTime;
-        const gain = ctx.createGain();
-        gain.gain.setValueAtTime(0.0001, now);
-        const peak = style === 'soft' ? 0.18 : 0.25;
-        gain.gain.exponentialRampToValueAtTime(peak, now + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
-        gain.connect(ctx.destination);
+      const style = appData?.ui?.soundStyle === 'soft' ? 'soft' : 'bright';
+      const trigger = () => {
+        try{
+          const now = ctx.currentTime;
+          const gain = ctx.createGain();
+          gain.gain.setValueAtTime(0.0001, now);
+          const peak = style === 'soft' ? 0.18 : 0.25;
+          gain.gain.exponentialRampToValueAtTime(peak, now + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+          gain.connect(ctx.destination);
 
-        const osc1 = ctx.createOscillator();
-        osc1.type = style === 'soft' ? 'sine' : 'triangle';
-        osc1.frequency.setValueAtTime(style === 'soft' ? 392.00 : 523.25, now); // G4 or C5
-        osc1.connect(gain);
+          const osc1 = ctx.createOscillator();
+          osc1.type = style === 'soft' ? 'sine' : 'triangle';
+          osc1.frequency.setValueAtTime(style === 'soft' ? 392.00 : 523.25, now); // G4 or C5
+          osc1.connect(gain);
 
-        const osc2 = ctx.createOscillator();
-        osc2.type = 'sine';
-        osc2.frequency.setValueAtTime(style === 'soft' ? 493.88 : 659.25, now + 0.06); // B4 or E5
-        osc2.connect(gain);
+          const osc2 = ctx.createOscillator();
+          osc2.type = 'sine';
+          osc2.frequency.setValueAtTime(style === 'soft' ? 493.88 : 659.25, now + 0.06); // B4 or E5
+          osc2.connect(gain);
 
-        osc1.start(now);
-        osc1.stop(now + 0.28);
-        osc2.start(now + 0.06);
-        osc2.stop(now + 0.5);
-      }catch(e){}
+          osc1.start(now);
+          osc1.stop(now + 0.28);
+          osc2.start(now + 0.06);
+          osc2.stop(now + 0.5);
+        }catch(e){}
+      };
+      if (ctx.state === 'suspended'){
+        ctx.resume().then(trigger).catch(() => {});
+        return;
+      }
+      trigger();
     }
 
     function updateSoundUI(){
@@ -3179,7 +3180,7 @@ function renderChartSVG(h, container, rangeKey){
 
     function renderOnboardingHero(){
       return `
-        <div class="card heroCard" style="margin-bottom:12px;">
+        <div class="card heroCard guidedCard" style="margin-bottom:12px;">
           <div class="cardHeader">
             <div class="left">
               <p class="hTitle">Start Here</p>
@@ -6538,6 +6539,7 @@ function handleLogEdit(el){
       const action = btn.getAttribute('data-action');
 
       handleActionHaptic(action);
+      unlockAudioContext();
 
       if (action === 'startOnboarding'){
         e.preventDefault();
