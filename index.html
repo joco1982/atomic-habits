@@ -1565,41 +1565,11 @@ body::after{
     }
 
     .todayCard{
-      position: sticky;
-      top: calc(64px + var(--safe-t));
-      z-index:7;
       border-color: rgba(122,167,255,.28);
       box-shadow: 0 12px 24px rgba(0,0,0,.22);
-      backdrop-filter: blur(10px);
     }
-    .todayCard .cardHeader{
-      position:relative;
-    }
-    .todayCardHeader .right{
-      display:flex;
-      align-items:center;
-      gap:8px;
-    }
-    .todayProgressPin{
-      margin: 0 14px 14px;
-      padding: 8px 10px;
-      border:1px solid var(--line);
-      border-radius: 999px;
-      background: rgba(11,18,32,.65);
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
-    #todayProgressPin:empty{
-      display:none;
-    }
-    .todayProgressPin.done{
-      border-color: rgba(41,211,154,.45);
-      background: rgba(15,23,41,.72);
-    }
-    .todayProgressPin.done .todayMeter{
-      background: rgba(41,211,154,.18);
-      border-color: rgba(41,211,154,.35);
+    .todayCardBody{
+      padding: 14px;
     }
     .todayProgressMeta{
       font-size:11px;
@@ -1607,36 +1577,31 @@ body::after{
       color: var(--muted2);
       white-space:nowrap;
     }
-    .todayProgressPin .todayMeter{
-      margin:0;
-      flex:1 1 auto;
-    }
 
     .habitsHeader{
       padding-bottom:10px;
     }
     .habitsActions{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      padding: 0 14px 12px;
+      display:grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      gap:12px;
+      padding: 12px 12px 14px;
+      align-items:center;
     }
     .habitsActions .btn{
       min-height:36px;
       padding: 6px 12px;
       font-size:13px;
+      width:100%;
+      justify-content:center;
     }
 
     .todaySummary{
       width:100%;
-      border:1px solid var(--line);
-      border-radius: 14px;
-      padding: 10px 12px;
       display:flex;
       flex-direction:column;
-      gap:8px;
+      gap:12px;
       align-items:center;
-      background: rgba(255,255,255,.04);
     }
     .todaySummaryInfo{
       width:100%;
@@ -1648,7 +1613,7 @@ body::after{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:10px;
+      gap:12px;
     }
     .todaySummaryTitle{
       font-weight:900;
@@ -1666,9 +1631,6 @@ body::after{
       align-items:center;
       font-size:11px;
     }
-    .todaySummaryInsight{
-      font-size:11px;
-    }
     .todaySummaryActions{
       display:flex;
       align-items:center;
@@ -1681,10 +1643,21 @@ body::after{
       font-size:13px;
     }
     .todaySummary.done{
-      border-color: rgba(41,211,154,.45);
+      padding: 10px 12px;
+      border-radius: 16px;
       background:
         radial-gradient(120% 140% at 0% 0%, rgba(41,211,154,.18), rgba(18,30,52,.10)),
         rgba(255,255,255,.04);
+    }
+    .todayProgressRow{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      width:100%;
+    }
+    .todayProgressRow .todayMeter{
+      flex:1 1 auto;
+      margin:0;
     }
     .todayMeter{
       width:100%;
@@ -3787,11 +3760,12 @@ function renderChartSVG(h, container, rangeKey){
       const habits = safeArr(appData.habits);
       const completion = getTodayCompletionState(habits);
 
-      const insight = getTodayInsightLine();
       const allDone = completion.allDone && completion.total > 0;
       const focusLabel = allDone ? 'Celebrate' : 'Focus';
       const focusAction = allDone ? 'celebrateDay' : 'openTodayFocus';
       const completionLine = `${completion.doneCount}/${completion.total} complete`;
+      const ratio = completion.total ? clamp(completion.doneCount / completion.total, 0, 1) : 0;
+      const progressLeft = allDone ? 'All done' : `${completion.remaining} left`;
 
       return `
         <div class="todaySummary ${allDone ? 'done' : ''}">
@@ -3805,43 +3779,28 @@ function renderChartSVG(h, container, rangeKey){
                 <button class="btn small primary" data-action="${focusAction}">${focusLabel}</button>
               </div>
             </div>
-            <div class="todaySummaryInsight muted2">${escapeHtml(insight)}</div>
           </div>
-        </div>
-      `;
-    }
-
-    function renderTodayProgressPin(){
-      const habits = safeArr(appData.habits);
-      const completion = getTodayCompletionState(habits);
-      const allDone = completion.allDone && completion.total > 0;
-      const ratio = completion.total ? clamp(completion.doneCount / completion.total, 0, 1) : 0;
-      const progressLeft = allDone ? 'All done' : `${completion.remaining} left`;
-
-      return `
-        <div class="todayProgressPin ${allDone ? 'done' : ''}" aria-label="Today progress">
-          <div class="todayProgressMeta">${completion.doneCount}/${completion.total}</div>
-          <div class="todayMeter" aria-hidden="true">
-            <div class="todayMeterFill" style="--p:${ratio.toFixed(3)}"></div>
+          <div class="todayProgressRow" aria-label="Today progress">
+            <div class="todayProgressMeta">${completion.doneCount}/${completion.total}</div>
+            <div class="todayMeter" aria-hidden="true">
+              <div class="todayMeterFill" style="--p:${ratio.toFixed(3)}"></div>
+            </div>
+            <div class="todayProgressMeta">${progressLeft}</div>
           </div>
-          <div class="todayProgressMeta">${progressLeft}</div>
         </div>
       `;
     }
 
     function updateTodayCard({ animate=false } = {}){
       const slot = document.getElementById('todayHeaderSummary');
-      const pin = document.getElementById('todayProgressPin');
       if (!slot) return;
       if (!appData.habits.length){
         slot.innerHTML = '';
-        if (pin) pin.innerHTML = '';
         return;
       }
       const prevSummary = slot.querySelector('.todaySummary');
       const wasDone = !!prevSummary && prevSummary.classList.contains('done');
       slot.innerHTML = renderTodaySummary();
-      if (pin) pin.innerHTML = renderTodayProgressPin();
       const nextSummary = slot.querySelector('.todaySummary');
       if (nextSummary && animate && !wasDone && nextSummary.classList.contains('done')){
         nextSummary.classList.add('celebrate');
@@ -4019,13 +3978,9 @@ function renderChartSVG(h, container, rangeKey){
       const completion = getTodayCompletionState(appData.habits);
       const soundOn = appData.ui.soundEnabled !== false;
       const soundLabel = soundOn ? 'Sound on' : 'Sound off';
-      const headerMsg = completion.total
-        ? 'Calm check-in. One tap per habit.'
-        : 'Start with one small habit today.';
 
       const onboarding = (habitCount === 0) ? renderOnboardingHero() : '';
       const todaySummary = (habitCount > 0) ? renderTodaySummary() : '';
-      const todayProgressPin = (habitCount > 0) ? renderTodayProgressPin() : '';
       const reviewNudge = (habitCount > 0) ? renderReviewNudge() : '';
 
       const createInline = `
@@ -4044,22 +3999,9 @@ function renderChartSVG(h, container, rangeKey){
         ${onboarding}
         <div class="dashboardStack">
           <div class="card heroCard todayCard">
-            <div class="cardHeader todayCardHeader">
-              <div class="left">
-                <p class="hTitle">Today</p>
-                <div class="hMeta hMetaWide">
-                  <span class="muted2 hSub">${escapeHtml(headerMsg)}</span>
-                </div>
-              </div>
-              <div class="right">
-                <button class="btn small ghost iconButton" data-action="toggleSound" data-sound-icon="true" aria-pressed="${soundOn ? 'true' : 'false'}" aria-label="${soundLabel}" title="${soundLabel}">
-                  <span aria-hidden="true">${soundOn ? '🔊' : '🔇'}</span>
-                  <span class="sr-only">${soundLabel}</span>
-                </button>
-              </div>
+            <div class="todayCardBody">
               <div id="todayHeaderSummary">${todaySummary}</div>
             </div>
-            <div id="todayProgressPin">${todayProgressPin}</div>
           </div>
 
           <div class="card habitsHero">
@@ -4067,12 +4009,18 @@ function renderChartSVG(h, container, rangeKey){
               <div class="left">
                 <p class="hTitle">Habits</p>
               </div>
+              <div class="right">
+                <button class="btn small ghost iconButton" data-action="toggleSound" data-sound-icon="true" aria-pressed="${soundOn ? 'true' : 'false'}" aria-label="${soundLabel}" title="${soundLabel}">
+                  <span aria-hidden="true">${soundOn ? '🔊' : '🔇'}</span>
+                  <span class="sr-only">${soundLabel}</span>
+                </button>
+              </div>
             </div>
             <div class="habitsActions">
-              <button class="btn small primary" data-action="toggleCreate" aria-expanded="${createOpen ? 'true':'false'}">
-                ${createOpen ? 'Hide quick add' : 'Quick add habit'}
+              <button class="btn small primary" data-action="startCreateWizard">Guided setup</button>
+              <button class="btn small ghost" data-action="toggleCreate" aria-expanded="${createOpen ? 'true':'false'}">
+                ${createOpen ? 'Hide quick add' : 'Quick add'}
               </button>
-              <button class="btn small ghost" data-action="startCreateWizard">Guided setup</button>
             </div>
             ${createInline}
             ${renderHabitList()}
