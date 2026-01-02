@@ -1751,10 +1751,10 @@ body::after{
       pointer-events:none;
     }
     .focusItem.completed .focusTitle{
-      color:#e7fff7;
+      color: var(--text);
     }
     .focusItem.completed .focusMeta{
-      color:#d9fff0;
+      color: var(--muted2);
     }
     .focusItem.completed .sumProgressStrip{
       background: rgba(41,211,154,.16);
@@ -1774,7 +1774,7 @@ body::after{
       display:flex;
       flex-direction:column;
       gap:4px;
-      padding-right: 110px;
+       flex:1 1 auto;
     }
     .focusTitle{
       font-weight:950;
@@ -1792,11 +1792,10 @@ body::after{
     }
     .focusActions{
       display:flex;
+      flex-direction:column;
       gap:6px;
-      align-items:flex-start;
-      position:absolute;
-      top:10px;
-      right:10px;
+      align-items:flex-end;
+      margin-left:auto;
     }
     .focusProgress{
       margin-top:-2px;
