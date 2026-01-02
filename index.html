@@ -580,21 +580,21 @@ body::after{
       white-space:nowrap;
     }
     .habitList{
-      padding: 10px 14px 16px;
+      padding: 8px 12px 12px;
       display:flex;
       flex-direction:column;
-      gap:14px;
+      gap:10px;
     }
     .habitItem{
       position:relative;
       border:1px solid var(--line);
-      border-radius: 22px;
+      border-radius: 18px;
       background: rgba(255,255,255,.03);
       overflow:hidden;
-      padding: 16px;
+      padding: 12px;
       display:flex;
       flex-direction:column;
-      gap:14px;
+      gap:10px;
       cursor:pointer;
       transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
       isolation:isolate;
@@ -639,7 +639,7 @@ body::after{
       min-width:0;
       display:flex;
       flex-direction:column;
-      gap:10px;
+      gap:6px;
     }
     .habitTitleRow{
       display:flex;
@@ -649,13 +649,13 @@ body::after{
     }
     .habitName{
       font-weight:950;
-      font-size:18px;
+      font-size:16px;
       line-height:1.2;
       word-break:break-word;
     }
     .habitDesc{
       color: var(--muted);
-      font-size:12px;
+      font-size:11px;
       line-height:1.4;
       display:-webkit-box;
       -webkit-box-orient: vertical;
@@ -666,16 +666,16 @@ body::after{
       flex:0 0 auto;
       display:flex;
       flex-direction:column;
-      gap:10px;
+      gap:8px;
       align-items:flex-end;
     }
     .habitStatusIcon{
-      width:38px;
-      height:38px;
-      border-radius: 14px;
+      width:32px;
+      height:32px;
+      border-radius: 12px;
       display:grid;
       place-items:center;
-      font-size:18px;
+      font-size:16px;
       font-weight:900;
       border:1px solid var(--line);
       background: rgba(255,255,255,.06);
@@ -691,9 +691,9 @@ body::after{
       display:inline-flex;
       align-items:center;
       gap:6px;
-      padding:6px 10px;
+      padding:4px 8px;
       border-radius:999px;
-      font-size:11px;
+      font-size:10px;
       font-weight:900;
       letter-spacing:.2px;
       border:1px solid var(--line);
@@ -711,7 +711,7 @@ body::after{
       align-items:center;
       justify-content:space-between;
       gap:12px;
-      font-size:12px;
+      font-size:11px;
       color: var(--muted2);
       font-weight:800;
     }
@@ -722,13 +722,13 @@ body::after{
     .habitProgress{
       display:flex;
       align-items:center;
-      gap:12px;
+      gap:8px;
     }
     .habitProgress .sumProgressStrip{
       flex:1 1 auto;
     }
     .habitProgressLabel{
-      font-size:11px;
+      font-size:10px;
       font-weight:800;
       color: var(--muted2);
       white-space:nowrap;
@@ -779,7 +779,7 @@ body::after{
     /* Full-width summary progress strip */
     .sumProgressStrip{
       width:100%;
-      height:10px;
+      height:8px;
       background: rgba(255,255,255,.08);
       border-top: 1px solid rgba(255,255,255,.10);
       overflow:hidden;
@@ -1066,11 +1066,13 @@ body::after{
 
     .summaryCard{
       border:1px solid var(--line);
-      background: rgba(255,255,255,.03);
+      background: rgba(17,27,46,.78);
+      border-color: rgba(255,255,255,.16);
       border-radius: 18px;
       padding: 14px;
       min-width:0;
       overflow-wrap:anywhere;
+      box-shadow: 0 12px 28px rgba(0,0,0,.25);
     }
     .summaryHeader{
       display:flex;
@@ -1565,43 +1567,55 @@ body::after{
     .todaySummary{
       width:100%;
       border:1px solid var(--line);
-      border-radius: 16px;
-      padding: 12px;
+      border-radius: 14px;
+      padding: 10px 12px;
       display:flex;
-      flex-wrap:wrap;
-      gap:12px 16px;
+      flex-direction:column;
+      gap:8px;
       align-items:center;
       background: rgba(255,255,255,.04);
     }
     .todaySummaryInfo{
-      flex: 1 1 240px;
-      min-width: 220px;
+      width:100%;
       display:flex;
       flex-direction:column;
       gap:6px;
     }
+    .todaySummaryRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
     .todaySummaryTitle{
       font-weight:900;
-      font-size:14px;
+      font-size:13px;
       letter-spacing:.2px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
     }
     .todaySummaryMeta{
       display:flex;
       flex-wrap:wrap;
       gap:8px;
       align-items:center;
-      font-size:12px;
+      font-size:11px;
     }
     .todaySummaryInsight{
-      font-size:12px;
+      font-size:11px;
     }
     .todaySummaryActions{
-      flex: 1 1 220px;
-      min-width: 200px;
       display:flex;
-      flex-direction:column;
-      gap:8px;
-      align-items:flex-start;
+      align-items:center;
+      gap:10px;
+      justify-content:flex-end;
+    }
+    .todaySummaryActions .btn{
+      min-height:36px;
+      padding: 6px 10px;
+      font-size:13px;
     }
     .todaySummary.done{
       border-color: rgba(41,211,154,.45);
@@ -1612,7 +1626,7 @@ body::after{
     .todayMeter{
       width:100%;
       border-radius:999px;
-      height:12px;
+      height:10px;
       background: rgba(255,255,255,.08);
       border:1px solid rgba(255,255,255,.12);
       overflow:hidden;
@@ -1625,7 +1639,6 @@ body::after{
       transition: width .4s ease;
     }
     .todayMeterLabel{
-      margin-top:6px;
       font-size:11px;
       color: var(--muted2);
       font-weight:800;
@@ -1652,6 +1665,40 @@ body::after{
       animation: todayGlow .6s ease-out;
     }
 
+    .todayProgressPin{
+      position: sticky;
+      top: calc(64px + var(--safe-t));
+      z-index:6;
+      margin: 8px 0 10px;
+      padding: 8px 10px;
+      border:1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(11,18,32,.92);
+      backdrop-filter: blur(10px);
+      display:flex;
+      align-items:center;
+      gap:10px;
+      box-shadow: 0 10px 20px rgba(0,0,0,.18);
+    }
+    .todayProgressPin.done{
+      border-color: rgba(41,211,154,.45);
+      background: rgba(15,23,41,.85);
+    }
+    .todayProgressPin.done .todayMeter{
+      background: rgba(41,211,154,.18);
+      border-color: rgba(41,211,154,.35);
+    }
+    .todayProgressMeta{
+      font-size:11px;
+      font-weight:800;
+      color: var(--muted2);
+      white-space:nowrap;
+    }
+    .todayProgressPin .todayMeter{
+      margin:0;
+      flex:1 1 auto;
+    }
+
     @keyframes iconSparkle{
       0%{ transform: scale(1); box-shadow: 0 0 0 rgba(122,167,255,0); }
       40%{ transform: scale(1.08); box-shadow: 0 0 0 6px rgba(122,167,255,.25); }
@@ -1664,12 +1711,16 @@ body::after{
     .focusItem{
       display:flex;
       flex-direction:column;
-      gap:10px;
+      gap:8px;
+      padding: 10px;
+      border-radius: 16px;
+      background: rgba(17,27,46,.7);
+      border-color: rgba(255,255,255,.14);
     }
     .focusRow{
       display:flex;
       justify-content:space-between;
-      gap:12px;
+      gap:10px;
       align-items:center;
     }
     .focusMain{
@@ -1681,25 +1732,54 @@ body::after{
     .focusTitle{
       font-weight:950;
       line-height:1.2;
+      font-size:14px;
     }
     .focusMeta{
-      font-size:12px;
+      font-size:11px;
       color: var(--muted2);
       font-weight:800;
     }
     .focusHint{
-      font-size:12px;
+      font-size:11px;
       color: var(--muted);
     }
     .focusActions{
       display:flex;
-      flex-direction:column;
-      gap:8px;
+      gap:6px;
       align-items:flex-end;
     }
     .focusProgress{
-      margin-top:2px;
+      margin-top:0;
     }
+
+    @keyframes celebrateConfetti{
+      0%{ opacity:0; transform: translateY(10px) scale(.98); }
+      20%{ opacity:1; }
+      100%{ opacity:0; transform: translateY(-16px) scale(1.02); }
+    }
+    .celebrateCard{
+      position:relative;
+      overflow:hidden;
+      border-color: rgba(41,211,154,.5);
+      background:
+        radial-gradient(120% 140% at 0% 0%, rgba(41,211,154,.15), rgba(18,30,52,.15)),
+        rgba(255,255,255,.04);
+    }
+    .celebrateCard::after{
+      content:"";
+      position:absolute;
+      inset:-12px;
+      background:
+        radial-gradient(circle at 12% 20%, rgba(255,227,138,.9) 0 4px, transparent 5px),
+        radial-gradient(circle at 76% 18%, rgba(122,167,255,.9) 0 4px, transparent 5px),
+        radial-gradient(circle at 28% 70%, rgba(108,255,177,.9) 0 4px, transparent 5px),
+        radial-gradient(circle at 68% 72%, rgba(255,120,148,.9) 0 4px, transparent 5px),
+        radial-gradient(circle at 44% 35%, rgba(122,167,255,.6) 0 3px, transparent 4px);
+      animation: celebrateConfetti .9s ease-out;
+      pointer-events:none;
+      z-index:1;
+    }
+    .celebrateCard > *{ position:relative; z-index:2; }
 
     /* Review page */
     .reviewHero{
@@ -1807,6 +1887,12 @@ input[type="date"]{
   .focusActions .btn{
     flex:0 0 auto;
   }
+  .focusHint{
+    display:-webkit-box;
+    -webkit-box-orient: vertical;
+    line-clamp:1;
+    overflow:hidden;
+  }
 
   .habitsHeroHeader{
     flex-direction:column;
@@ -1816,12 +1902,35 @@ input[type="date"]{
     width:100%;
     justify-content:flex-start;
   }
-  .habitsHeroHeader .right .btn{
+  .habitsHeroHeader .right .btn:not(.iconButton){
     flex:1 1 140px;
   }
   .hMetaWide .hSub{
     flex-basis:100%;
     min-width:0;
+  }
+  .todaySummary{
+    align-items:stretch;
+  }
+  .todaySummaryActions{
+    width:auto;
+    justify-content:flex-end;
+  }
+  .todaySummaryInsight{
+    display:none;
+  }
+  .todayProgressPin{
+    top: calc(54px + var(--safe-t));
+  }
+  .habitDesc{
+    line-clamp:1;
+  }
+  .habitMetaRow .chev{
+    display:none;
+  }
+  .habitTitleRow .tag{
+    font-size:10px;
+    padding:4px 6px;
   }
 }
 </style>
@@ -2078,6 +2187,44 @@ input[type="date"]{
       return `Another calm vote for: “${id}”`;
     }
 
+    const CELEBRATION_QUOTES = [
+      'Small wins compound into big change.',
+      'You showed up — that’s the win.',
+      'Keep the promise, keep the momentum.',
+      'Consistency beats intensity.',
+      'Today you moved the needle.',
+      'Tiny actions, lasting identity.',
+      'Progress loves patience.',
+      'You’re building trust with yourself.',
+      'A calm win is still a win.',
+      'Momentum grows from gentle starts.',
+      'Show up again tomorrow.',
+      'You did the hard part: begin.',
+      'Small steps keep you close to the path.',
+      'Your system is working.',
+      'One check-in at a time.',
+      'You’re creating a steadier future.',
+      'Celebrate the follow-through.',
+      'Keep it simple, keep it steady.',
+      'That’s how streaks are born.',
+      'You honored your plan.',
+      'The identity is taking root.',
+      'Great habits are quiet wins.',
+      'You’re doing the work that counts.',
+      'Focus on the next small action.',
+      'Done is better than perfect.',
+      'You built evidence today.',
+      'Stay gentle, stay consistent.',
+      'Your future self says thanks.',
+      'Another brick in the foundation.',
+      'This is how change feels.'
+    ];
+
+    function getCelebrateQuote(){
+      const idx = Math.floor(Math.random() * CELEBRATION_QUOTES.length);
+      return CELEBRATION_QUOTES[idx];
+    }
+
     function normalizeData(raw){
       const base = {
         version: SCHEMA_VERSION,
@@ -2314,6 +2461,7 @@ cleanLogs[k] = {
     }
 
     let audioCtx = null;
+    let audioUnlocked = false;
     function getAudioContext(){
       if (!appData?.ui?.soundEnabled) return null;
       if (!window.AudioContext && !window.webkitAudioContext) return null;
@@ -2322,9 +2470,32 @@ cleanLogs[k] = {
       return audioCtx;
     }
 
+    function unlockAudioContext(){
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      if (ctx.state === 'suspended'){
+        ctx.resume().catch(() => {});
+      }
+      audioUnlocked = ctx.state === 'running';
+    }
+
+    function initAudioUnlock(){
+      const handler = () => {
+        unlockAudioContext();
+        if (!audioUnlocked) return;
+        window.removeEventListener('pointerdown', handler);
+        window.removeEventListener('touchstart', handler);
+        window.removeEventListener('keydown', handler);
+      };
+      window.addEventListener('pointerdown', handler, { passive:true });
+      window.addEventListener('touchstart', handler, { passive:true });
+      window.addEventListener('keydown', handler);
+    }
+
     // New: rewarding completion chime for habit check-ins.
     function playSuccessChime(){
       if (appData?.ui?.soundEnabled === false) return;
+      unlockAudioContext();
       const ctx = getAudioContext();
       if (!ctx) return;
       try{
@@ -2358,7 +2529,17 @@ cleanLogs[k] = {
       const soundOn = appData.ui.soundEnabled !== false;
       const label = soundOn ? 'Sound on' : 'Sound off';
       document.querySelectorAll('[data-action="toggleSound"]').forEach((btn) => {
-        btn.textContent = label;
+        const isIcon = btn.classList.contains('iconButton') || btn.getAttribute('data-sound-icon') === 'true';
+        if (isIcon){
+          btn.innerHTML = `
+            <span aria-hidden="true">${soundOn ? '🔊' : '🔇'}</span>
+            <span class="sr-only">${label}</span>
+          `;
+          btn.setAttribute('aria-label', label);
+          btn.setAttribute('title', label);
+        } else {
+          btn.textContent = label;
+        }
         btn.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
       });
     }
@@ -3566,42 +3747,57 @@ function renderChartSVG(h, container, rangeKey){
       const allDone = completion.allDone && completion.total > 0;
       const focusLabel = allDone ? 'Celebrate' : 'Focus';
       const focusAction = allDone ? 'celebrateDay' : 'openTodayFocus';
-      const ratio = completion.total ? clamp(completion.doneCount / completion.total, 0, 1) : 0;
+      const completionLine = `${completion.doneCount}/${completion.total} complete`;
 
       return `
         <div class="todaySummary ${allDone ? 'done' : ''}">
           <div class="todaySummaryInfo">
-            <div class="todaySummaryTitle">Today</div>
-            <div class="todaySummaryMeta">
-              ${allDone
-                ? `<span class="tag good">All complete</span>`
-                : `<span class="tag muted">${completion.doneCount}/${completion.total} done • ${completion.remaining} left</span>`
-              }
-              <span class="muted2">${allDone ? 'You did it. Enjoy the momentum.' : 'One calm check-in. Then you’re done.'}</span>
+            <div class="todaySummaryRow">
+              <div class="todaySummaryTitle">
+                <span>Today</span>
+                <span class="tag ${allDone ? 'good' : 'muted'}">${completionLine}</span>
+              </div>
+              <div class="todaySummaryActions">
+                <button class="btn small primary" data-action="${focusAction}">${focusLabel}</button>
+              </div>
             </div>
-            <div class="todaySummaryInsight muted2">Insight: ${escapeHtml(insight)}</div>
+            <div class="todaySummaryInsight muted2">${escapeHtml(insight)}</div>
           </div>
-          <div class="todaySummaryActions">
-            <button class="btn small primary" data-action="${focusAction}">${focusLabel}</button>
-            <div class="todayMeter" aria-label="Completion meter">
-              <div class="todayMeterFill" style="--p:${ratio.toFixed(3)}"></div>
-            </div>
-            <div class="todayMeterLabel">${completion.doneCount}/${completion.total} complete today</div>
+        </div>
+      `;
+    }
+
+    function renderTodayProgressPin(){
+      const habits = safeArr(appData.habits);
+      const completion = getTodayCompletionState(habits);
+      const allDone = completion.allDone && completion.total > 0;
+      const ratio = completion.total ? clamp(completion.doneCount / completion.total, 0, 1) : 0;
+      const progressLeft = allDone ? 'All done' : `${completion.remaining} left`;
+
+      return `
+        <div class="todayProgressPin ${allDone ? 'done' : ''}" aria-label="Today progress">
+          <div class="todayProgressMeta">${completion.doneCount}/${completion.total}</div>
+          <div class="todayMeter" aria-hidden="true">
+            <div class="todayMeterFill" style="--p:${ratio.toFixed(3)}"></div>
           </div>
+          <div class="todayProgressMeta">${progressLeft}</div>
         </div>
       `;
     }
 
     function updateTodayCard({ animate=false } = {}){
       const slot = document.getElementById('todayHeaderSummary');
+      const pin = document.getElementById('todayProgressPin');
       if (!slot) return;
       if (!appData.habits.length){
         slot.innerHTML = '';
+        if (pin) pin.innerHTML = '';
         return;
       }
       const prevSummary = slot.querySelector('.todaySummary');
       const wasDone = !!prevSummary && prevSummary.classList.contains('done');
       slot.innerHTML = renderTodaySummary();
+      if (pin) pin.innerHTML = renderTodayProgressPin();
       const nextSummary = slot.querySelector('.todaySummary');
       if (nextSummary && animate && !wasDone && nextSummary.classList.contains('done')){
         nextSummary.classList.add('celebrate');
@@ -3618,7 +3814,7 @@ function renderChartSVG(h, container, rangeKey){
         const isDone = (s.btnLabel === 'Reset' || s.btnLabel === 'Undo');
         const plan = safeObj(safeObj(h.design).plan);
         const twoMinute = String(plan.twoMinute || '').trim();
-        const hint = twoMinute ? `2-minute version: ${escapeHtml(twoMinute)}` : '';
+        const hint = twoMinute ? `2-minute: ${escapeHtml(twoMinute)}` : '';
         const unit = safeObj(h.frequency).unit;
         const target = Math.max(1, Math.round(Number(safeObj(h.frequency).target) || 1));
         const countControls = (unit === 'day' && target > 1) ? `
@@ -3634,7 +3830,9 @@ function renderChartSVG(h, container, rangeKey){
             <div class="focusRow">
               <div class="focusMain">
                 <div class="focusTitle nowrapEllip">${escapeHtml(h.name || 'Untitled habit')}</div>
-                <div class="focusMeta">${escapeHtml(formatUnit(h.frequency.unit, h.frequency.target))} • ${escapeHtml(s.labelRight)}</div>
+                <div class="focusMeta">
+                  ${escapeHtml(formatUnit(h.frequency.unit, h.frequency.target))} • ${escapeHtml(s.labelRight)}
+                </div>
                 ${hint ? `<div class="focusHint">${hint}</div>` : ''}
               </div>
               <div class="focusActions">
@@ -3664,7 +3862,7 @@ function renderChartSVG(h, container, rangeKey){
       ` : '';
 
       return `
-        <div class="muted small" style="margin-bottom:10px;">
+        <div class="muted small" style="margin-bottom:8px;">
           Quick check-in. No shame. If you miss, it’s data.
         </div>
         <div id="todayFocusList">${rows || '<div class="panel"><div class="muted small">No habits yet.</div></div>'}</div>
@@ -3683,17 +3881,18 @@ function renderChartSVG(h, container, rangeKey){
     function celebrateDay(){
       const completion = getTodayCompletionState(appData.habits);
       if (!completion.total) return;
+      const quote = getCelebrateQuote();
       openModal(
         'All done today',
         `
-          <div class="panel">
+          <div class="panel celebrateCard">
             <div style="font-weight:950; margin-bottom:6px;">You did it.</div>
             <div class="muted small" style="margin-bottom:8px;">
-              ${completion.doneCount} of ${completion.total} habits completed today. Keep the streak gentle and sustainable.
+              ${completion.doneCount} of ${completion.total} habits completed today. Keep it gentle and sustainable.
             </div>
-            <div class="summaryAction">
+            <div class="summaryAction" style="margin-top:8px;">
               <div class="summaryLabel">Encouragement</div>
-              <div class="summaryValue">Small wins are the system working.</div>
+              <div class="summaryValue">${escapeHtml(quote)}</div>
             </div>
           </div>
         `,
@@ -3771,11 +3970,12 @@ function renderChartSVG(h, container, rangeKey){
       const soundOn = appData.ui.soundEnabled !== false;
       const soundLabel = soundOn ? 'Sound on' : 'Sound off';
       const headerMsg = completion.total
-        ? 'Check in, stay gentle, and keep moving.'
-        : 'Build a calm streak with small, consistent wins.';
+        ? 'Calm check-in. One tap per habit.'
+        : 'Start with one small habit today.';
 
       const onboarding = (habitCount === 0) ? renderOnboardingHero() : '';
       const todaySummary = (habitCount > 0) ? renderTodaySummary() : '';
+      const todayProgressPin = (habitCount > 0) ? renderTodayProgressPin() : '';
       const reviewNudge = (habitCount > 0) ? renderReviewNudge() : '';
 
       const createInline = `
@@ -3802,19 +4002,19 @@ function renderChartSVG(h, container, rangeKey){
                 </div>
               </div>
               <div class="right">
-                <button class="btn small ghost iconButton" data-action="toggleSound" aria-pressed="${soundOn ? 'true' : 'false'}" aria-label="${soundLabel}" title="${soundLabel}">
+                <button class="btn small ghost iconButton" data-action="toggleSound" data-sound-icon="true" aria-pressed="${soundOn ? 'true' : 'false'}" aria-label="${soundLabel}" title="${soundLabel}">
                   <span aria-hidden="true">${soundOn ? '🔊' : '🔇'}</span>
                   <span class="sr-only">${soundLabel}</span>
                 </button>
-                <button class="btn small ghost" data-action="toggleCreate" aria-expanded="${createOpen ? 'true':'false'}">
-                  ${createOpen ? 'Hide quick add' : 'Quick add'}
+                <button class="btn small primary" data-action="toggleCreate" aria-expanded="${createOpen ? 'true':'false'}">
+                  ${createOpen ? 'Hide' : 'Add habit'}
                 </button>
-                <button class="btn small primary" data-action="startCreateWizard">Guided setup</button>
               </div>
               <div id="todayHeaderSummary">${todaySummary}</div>
             </div>
 
             ${createInline}
+            <div id="todayProgressPin">${todayProgressPin}</div>
             ${renderHabitList()}
 
             <div class="cardFooter">
@@ -3846,9 +4046,15 @@ function renderChartSVG(h, container, rangeKey){
       });
     }
 
-    function renderCreateForm(){
-      return `
+function renderCreateForm(){
+  return `
         <div class="quickCreate">
+          <div class="panel" style="padding:10px;">
+            <div class="row" style="justify-content:space-between;">
+              <div class="muted small">Prefer a guided flow?</div>
+              <button class="btn small ghost" data-action="startCreateWizard">Guided setup</button>
+            </div>
+          </div>
           <div class="panel">
             <div style="font-weight:950; margin-bottom:8px;">Essentials</div>
             <div class="muted small" style="margin-bottom:10px;">
@@ -3916,7 +4122,6 @@ function renderChartSVG(h, container, rangeKey){
             <button class="btn ghost" data-action="cancelCreate">Cancel</button>
             <button class="btn primary" data-action="saveCreate">Create habit</button>
           </div>
-          <div class="muted tiny">Prefer a guided flow? Use the Guided setup button above.</div>
         </div>
       `;
     }
@@ -4342,7 +4547,6 @@ function renderHabitList(){
         </div>
 
         <div class="habitMetaRow">
-          <div data-sum="today" data-habit="${escapeHtml(h.id)}">Today: ${escapeHtml(s.labelRight)}</div>
           <div class="chev">View details →</div>
         </div>
 
@@ -5512,7 +5716,10 @@ function ensureDefaultLogsUpToToday(){
       saveData({ toast:false });
       updateSoundUI();
       showToast(appData.ui.soundEnabled ? 'Sound on' : 'Sound off', 'Completion chime updated.', { icon:'♪', ms:1800 });
-      if (appData.ui.soundEnabled) playSuccessChime();
+      if (appData.ui.soundEnabled){
+        unlockAudioContext();
+        playSuccessChime();
+      }
     }
 
     function setSoundStyle(style){
@@ -6764,7 +6971,8 @@ if (action === 'removeFrictionItem'){
 
     initialSelfSanity();
     initPWA();
-ensureDefaultLogsUpToToday();
+    initAudioUnlock();
+    ensureDefaultLogsUpToToday();
     render();
 
     // Ensure active tab in UI is applied, and charts can load for any open details.
