@@ -1942,15 +1942,25 @@ input[type="date"]{
   .focusRow{
     flex-direction:column;
     align-items:stretch;
+    position: relative;
+  }
+  .focusMain{
+    padding-right: 118px;
   }
   .focusActions{
-    width:100%;
-    flex-direction:row;
-    justify-content:space-between;
-    align-items:center;
+    width:auto;
+    position: absolute;
+    top: 0;
+    right: 0;
+    flex-direction:column;
+    justify-content:flex-start;
+    align-items:flex-end;
   }
   .focusActions .btn{
     flex:0 0 auto;
+  }
+  .focusProgress{
+    margin-top: 10px;
   }
   .focusHint{
     display:-webkit-box;
