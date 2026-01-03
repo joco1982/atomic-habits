@@ -944,14 +944,18 @@ body::after{
 .countControls{
   display:flex;
   align-items:center;
-  gap:6px;
-  border:1px solid var(--line);
-  background: rgba(255,255,255,.04);
-  border-radius:999px;
-  padding:4px 6px;
+  gap:8px;
+}
+.countControls .btn{
+  min-height:32px;
+  min-width:32px;
+  padding:0;
+  border-radius:10px;
+  font-size:16px;
+  font-weight:900;
 }
 .countValue{
-  min-width:42px;
+  min-width:40px;
   text-align:center;
   font-size:12px;
   font-weight:800;
@@ -1743,8 +1747,8 @@ body::after{
     .focusItem{
       display:flex;
       flex-direction:column;
-      gap:6px;
-      padding: 10px;
+      gap:4px;
+      padding: 10px 12px;
       border-radius: 16px;
       background: rgba(17,27,46,.7);
       border-color: rgba(255,255,255,.14);
@@ -1813,7 +1817,7 @@ body::after{
     .focusActions{
       display:flex;
       flex-direction:column;
-      gap:6px;
+      gap:4px;
       align-items:flex-end;
       margin-left:auto;
     }
@@ -1885,6 +1889,7 @@ body::after{
       font-weight:900;
       font-size:14px;
       z-index:1;
+      min-width:0;
     }
     .streakCount{
       font-weight:900;
@@ -2095,7 +2100,7 @@ input[type="date"]{
     position: relative;
   }
   .focusMain{
-    padding-right: 118px;
+    padding-right: 104px;
   }
   .focusActions{
     width:auto;
@@ -2108,6 +2113,13 @@ input[type="date"]{
   }
   .focusActions .btn{
     flex:0 0 auto;
+  }
+  .countControls{
+    gap:6px;
+  }
+  .countValue{
+    min-width:34px;
+    font-size:11px;
   }
   .focusProgress{
     margin-top: 10px;
@@ -2153,6 +2165,29 @@ input[type="date"]{
   .habitTitleRow .tag{
     font-size:10px;
     padding:4px 6px;
+  }
+  .streakHeader{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:4px;
+  }
+  .streakCount{
+    font-size:11px;
+  }
+  .weekStrip{
+    display:grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap:6px;
+  }
+  .weekDay{
+    min-width:0;
+    padding:6px 4px;
+  }
+  .weekDay .wkLabel{
+    font-size:10px;
+  }
+  .weekDay .wkDate{
+    font-size:9px;
   }
 }
 </style>
@@ -4042,18 +4077,9 @@ function renderChartSVG(h, container, rangeKey){
     function renderTodayFocusBody(){
       const habits = safeArr(appData.habits);
       const today = todayISO();
-      const sortedHabits = habits.slice().sort((a, b) => {
-        const aDone = isHabitDoneOnDate(a, today);
-        const bDone = isHabitDoneOnDate(b, today);
-        if (aDone !== bDone) return aDone ? 1 : -1;
-        const ta = Date.parse(a.createdAt || '') || 0;
-        const tb = Date.parse(b.createdAt || '') || 0;
-        if (ta !== tb) return ta - tb;
-        return String(a.name).localeCompare(String(b.name));
-      });
       const completion = getTodayCompletionState(habits);
 
-      const rows = sortedHabits.map(h => {
+      const rows = habits.map(h => {
         const s = dashboardState(h);
         const isDone = isHabitDoneOnDate(h, today);
         const plan = safeObj(safeObj(h.design).plan);
@@ -4117,7 +4143,7 @@ function renderChartSVG(h, container, rangeKey){
       openModal(
         'Today Focus',
         renderTodayFocusBody(),
-        `<button class="btn primary" data-action="closeModal">Done</button>`
+        ``
       );
     }
 
@@ -4840,9 +4866,6 @@ function renderHabitList(){
     const freqTxt = formatUnit(h.frequency.unit, h.frequency.target);
     const s = dashboardState(h);
     const isDone = isHabitDoneOnDate(h, today);
-    const statusLabel = isDone
-      ? (isNeg ? 'Resisted today' : 'Completed today')
-      : 'In progress';
     const statusIcon = isDone ? '✓' : '○';
 
     return `
@@ -4853,7 +4876,6 @@ function renderHabitList(){
               <div class="habitName" data-sum="name" data-habit="${escapeHtml(h.id)}">${escapeHtml(h.name || 'Untitled habit')}</div>
               <span class="tag ${tagClass}">${typeLabel}</span>
               <span class="tag muted" data-sum="freq" data-habit="${escapeHtml(h.id)}">${escapeHtml(freqTxt)}</span>
-              <span class="habitStatusPill ${isDone ? 'done' : ''}" data-sum="status" data-habit="${escapeHtml(h.id)}">${escapeHtml(statusLabel)}</span>
             </div>
             <div class="habitDesc" data-sum="desc" data-habit="${escapeHtml(h.id)}">${escapeHtml(h.description || '')}</div>
           </div>
