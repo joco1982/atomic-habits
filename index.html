@@ -593,11 +593,13 @@ body::after{
     }
     .habitItem{
       position:relative;
-      border:1px solid var(--line);
+      border:1px solid rgba(122,167,255,.22);
+      border-left: 3px solid rgba(122,167,255,.4);
       border-radius: 18px;
-      background: rgba(255,255,255,.03);
+      background:
+        linear-gradient(180deg, rgba(20,32,54,.88), rgba(12,20,36,.78));
       overflow:hidden;
-      padding: 12px;
+      padding: 12px 12px 12px 14px;
       display:flex;
       flex-direction:column;
       gap:10px;
@@ -613,12 +615,19 @@ body::after{
       opacity:.6;
       z-index:-1;
     }
+    .habitItem.positive{
+      border-left-color: rgba(41,211,154,.65);
+    }
+    .habitItem.negative{
+      border-left-color: rgba(255,90,106,.7);
+    }
     .habitItem.completed{
       border-color: rgba(41,211,154,.65);
       background:
         linear-gradient(135deg, rgba(41,211,154,.18), rgba(122,167,255,.16)),
         rgba(15,23,41,.6);
-      box-shadow: 0 16px 30px rgba(15,255,198,.12);
+      box-shadow: 0 18px 34px rgba(15,255,198,.16);
+      border-left-color: rgba(41,211,154,.8);
     }
     .habitItem.completed::before{
       background:
@@ -715,7 +724,7 @@ body::after{
     .habitMetaRow{
       display:flex;
       align-items:center;
-      justify-content:space-between;
+      justify-content:flex-end;
       gap:12px;
       font-size:11px;
       color: var(--muted2);
@@ -724,6 +733,11 @@ body::after{
     .habitMetaRow .chev{
       color: var(--accent2);
       font-weight:900;
+    }
+    .habitDetailsPrompt{
+      color: var(--accent2);
+      font-weight:900;
+      letter-spacing:.2px;
     }
     .habitProgress{
       display:flex;
@@ -1453,6 +1467,10 @@ body::after{
       width: min(520px, calc(100% - 28px));
       display:none;
     }
+    .toast.top{
+      top: calc(12px + var(--safe-t));
+      bottom: auto;
+    }
     .toast.active{ display:block; }
     .toast .tcard{
       border-radius: 18px;
@@ -1580,6 +1598,8 @@ body::after{
       z-index: 8;
       background: linear-gradient(180deg, rgba(17,27,46,.92), rgba(11,18,32,.86));
       backdrop-filter: blur(14px);
+      transform: translateZ(0);
+      transition: box-shadow .2s ease, border-color .2s ease;
     }
     .todayCard.done{
       border-color: rgba(41,211,154,.55);
@@ -2260,36 +2280,22 @@ input[type="date"]{
     }
 
     const CELEBRATION_QUOTES = [
-      'Small wins compound into big change.',
-      'You showed up — that’s the win.',
-      'Keep the promise, keep the momentum.',
-      'Consistency beats intensity.',
-      'Today you moved the needle.',
-      'Tiny actions, lasting identity.',
-      'Progress loves patience.',
-      'You’re building trust with yourself.',
-      'A calm win is still a win.',
-      'Momentum grows from gentle starts.',
-      'Show up again tomorrow.',
-      'You did the hard part: begin.',
-      'Small steps keep you close to the path.',
-      'Your system is working.',
-      'One check-in at a time.',
-      'You’re creating a steadier future.',
-      'Celebrate the follow-through.',
-      'Keep it simple, keep it steady.',
-      'That’s how streaks are born.',
-      'You honored your plan.',
-      'The identity is taking root.',
-      'Great habits are quiet wins.',
-      'You’re doing the work that counts.',
-      'Focus on the next small action.',
-      'Done is better than perfect.',
-      'You built evidence today.',
-      'Stay gentle, stay consistent.',
-      'Your future self says thanks.',
-      'Another brick in the foundation.',
-      'This is how change feels.'
+      'Have a thought, take an action, build a habit, shape a destiny.',
+      'To bring more of something into your life, start by giving it.',
+      'You’re proving what you’re capable of, one calm step at a time.',
+      'The life you want is built in the moments you repeat.',
+      'Small choices, chosen often, become a larger story.',
+      'Consistency is kindness to your future self.',
+      'Every repetition is a vote for the person you’re becoming.',
+      'You showed up today—keep honoring that promise.',
+      'Momentum comes from gentle, steady follow-through.',
+      'You’re turning intention into reality.',
+      'This is how trust in yourself is built.',
+      'Progress doesn’t rush; it returns every day.',
+      'Keep the signal clear: you do what you say you’ll do.',
+      'A calm step forward is still a step forward.',
+      'You’re practicing the future you want.',
+      'One action today, a stronger identity tomorrow.'
     ];
 
     function getCelebrateQuote(){
@@ -2496,14 +2502,22 @@ cleanLogs[k] = {
       }, 60);
     }
 
-    function showToast(a, b, { icon='✓', ms=2400 } = {}){
+    function showToast(a, b, { icon='✓', ms=2400, position='bottom' } = {}){
       const el = $('#toast');
+      el.classList.toggle('top', position === 'top');
       $('#toastIcon').textContent = icon;
       $('#toastA').textContent = a;
       $('#toastB').textContent = b;
       el.classList.add('active');
       window.clearTimeout(showToast._t);
       showToast._t = window.setTimeout(() => el.classList.remove('active'), ms);
+    }
+
+    function isTodayFocusOpen(){
+      const modal = $('#modal');
+      if (!modal || !modal.classList.contains('active')) return false;
+      const title = $('#modalTitle');
+      return title && title.textContent === 'Today Focus';
     }
 
     const HAPTIC_GUARD_MS = 140;
@@ -3297,7 +3311,7 @@ function renderChartSVG(h, container, rangeKey){
     }
 
     function wizardStepsTotal(){
-      return 9;
+      return 8;
     }
 
     function wizardProgress(step){
@@ -3321,8 +3335,10 @@ function renderChartSVG(h, container, rangeKey){
 
     function renderWizardFoot(step, total){
       const back = step > 0 ? `<button class="btn ghost" data-action="wizardBack">Back</button>` : '';
-      const nextLabel = (step === total - 1) ? 'Finish' : 'Next';
-      const next = `<button class="btn primary" data-action="wizardNext">${nextLabel}</button>`;
+      if (step >= total - 1){
+        return `<div class="wizardFooter">${back}</div>`;
+      }
+      const next = `<button class="btn primary" data-action="wizardNext">Next</button>`;
       return `<div class="wizardFooter">${back}${next}</div>`;
     }
 
@@ -3501,18 +3517,13 @@ function renderChartSVG(h, container, rangeKey){
                 <textarea data-action="wizardInput" data-field="description" maxlength="1200" placeholder="${escapeHtml(donePlaceholder)}">${escapeHtml(draft.description || '')}</textarea>
                 <div class="help">This becomes the habit’s short description in your list.</div>
               </div>
-              <div class="wizardHint" style="margin-top:10px;">Looks good? Next you’ll save and start tracking.</div>
-            ` : ''}
-
-            ${step === 8 ? `
-              <div class="wizardHint" style="margin-bottom:10px;">You’re ready. Save the habit now, and log an action only if you already did it today.</div>
-              <div class="panel" style="margin-bottom:10px;">
+              <div class="wizardHint" style="margin-top:10px;">Looks good? Finish setup to save and head back to your dashboard.</div>
+              <div class="panel" style="margin-top:10px;">
                 <div style="font-weight:900; margin-bottom:6px;">You’re ready 🎉</div>
-                <div class="muted small">Save your habit, then log a completed tiny action if it already happened today.</div>
+                <div class="muted small">Save your habit now, then check in whenever you’re ready.</div>
               </div>
-              <div class="wizardRow">
+              <div class="wizardRow" style="margin-top:10px;">
                 <button class="btn primary" data-action="wizardFinish">Finish setup</button>
-                <button class="btn ghost" data-action="wizardLogFirst">Log a completed tiny action</button>
               </div>
             ` : ''}
 
@@ -3530,8 +3541,7 @@ function renderChartSVG(h, container, rangeKey){
         'Plan the cue',
         '2-minute version',
         'Make it easier',
-        'Preview',
-        'Finish setup'
+        'Preview & finish'
       ];
       return titles[step] || 'Habit setup';
     }
@@ -3545,8 +3555,7 @@ function renderChartSVG(h, container, rangeKey){
         'If–Then / After I (optional)',
         'Make it easy',
         'Optional',
-        'What “done” means',
-        'Start tracking'
+        'What “done” means'
       ];
       return tags[step] || '';
     }
@@ -3637,13 +3646,10 @@ function renderChartSVG(h, container, rangeKey){
       }
       appData.ui.wizard.open = false;
       appData.ui.onboardingActive = false;
+      appData.ui.activeTab = 'dashboard';
       saveData({ toast:true, toastMsg:'Habit created and ready to track.' });
       render();
       triggerHaptic('confirm');
-
-      requestAnimationFrame(() => {
-        openHabitDetail(habit.id, 'track');
-      });
       closeModal();
     }
 
@@ -4334,6 +4340,7 @@ function dashToggle(habitId){
   const h = getHabit(habitId);
   if (!h) return;
 
+  const toastPosition = isTodayFocusOpen() ? 'top' : 'bottom';
   const iso = todayISO();
   if (!h.logs || typeof h.logs !== 'object') h.logs = {};
 
@@ -4373,16 +4380,16 @@ function dashToggle(habitId){
       e.count = 0;
       e.updatedAt = new Date().toISOString();
       if (h.type === 'negative'){
-        showToast('Relapse noted', 'No shame. Adjust the environment for the next cue.', { icon:'↺', ms:2400 });
+        showToast('Relapse noted', 'No shame. Adjust the environment for the next cue.', { icon:'↺', ms:2400, position: toastPosition });
       } else {
-        showToast('Reset', 'Reset for today. You can log it again anytime.', { icon:'↺', ms:1800 });
+        showToast('Reset', 'Reset for today. You can log it again anytime.', { icon:'↺', ms:1800, position: toastPosition });
       }
     } else {
       // One tap = complete the full daily target
       e.status = succ;
       e.count = target;
       e.updatedAt = new Date().toISOString();
-      showToast('Done', motivationalLine(h), { icon:'✓', ms:5000 });
+      showToast('Done', motivationalLine(h), { icon:'✓', ms:5000, position: toastPosition });
       playSuccessChime();
       triggerHaptic('confirm');
       pulseEl(document.querySelector(`button[data-action="dashToggle"][data-habit="${cssEscape(habitId)}"]`));
@@ -4403,15 +4410,15 @@ function dashToggle(habitId){
       e.count = 0;
       e.updatedAt = new Date().toISOString();
       if (h.type === 'negative'){
-        showToast('Relapse noted', 'No shame. Look for a cue you can remove or delay.', { icon:'↺', ms:2400 });
+        showToast('Relapse noted', 'No shame. Look for a cue you can remove or delay.', { icon:'↺', ms:2400, position: toastPosition });
       } else {
-        showToast('Undid for today', 'Your log was updated.', { icon:'↺', ms:1800 });
+        showToast('Undid for today', 'Your log was updated.', { icon:'↺', ms:1800, position: toastPosition });
       }
     } else {
       e.status = succ;
       e.count = 1;
       e.updatedAt = new Date().toISOString();
-      showToast('Done', motivationalLine(h), { icon:'✓', ms:2600 });
+      showToast('Done', motivationalLine(h), { icon:'✓', ms:2600, position: toastPosition });
       playSuccessChime();
       triggerHaptic('confirm');
       pulseEl(document.querySelector(`button[data-action="dashToggle"][data-habit="${cssEscape(habitId)}"]`));
@@ -4597,7 +4604,7 @@ function renderHabitList(){
     const statusIcon = isDone ? '✓' : '○';
 
     return `
-      <div class="habitItem ${isDone ? 'completed' : ''}" id="habit-${escapeHtml(h.id)}" data-habit="${escapeHtml(h.id)}" data-action="openHabitDetail" role="button" tabindex="0" aria-label="Open ${escapeHtml(h.name || 'habit')} details">
+      <div class="habitItem ${isDone ? 'completed' : ''} ${isNeg ? 'negative' : 'positive'}" id="habit-${escapeHtml(h.id)}" data-habit="${escapeHtml(h.id)}" data-action="openHabitDetail" role="button" tabindex="0" aria-label="Open ${escapeHtml(h.name || 'habit')} details">
         <div class="habitTop">
           <div class="habitInfo">
             <div class="habitTitleRow">
@@ -4621,7 +4628,7 @@ function renderHabitList(){
         </div>
 
         <div class="habitMetaRow">
-          <div class="chev">View details →</div>
+          <div class="habitDetailsPrompt">View details →</div>
         </div>
 
         ${renderDashboardQuick(h)}
@@ -6643,11 +6650,6 @@ function handleLogEdit(el){
 
       if (action === 'wizardFinish'){
         wizardFinish(false);
-        return;
-      }
-
-      if (action === 'wizardLogFirst'){
-        wizardFinish(true);
         return;
       }
 
