@@ -4094,21 +4094,41 @@ function renderChartSVG(h, container, rangeKey){
 
       const rows = habits.map(h => {
         const s = dashboardState(h);
+        const entry = safeObj(safeObj(h.logs)[today]);
         const isDone = isHabitDoneOnDate(h, today);
         const plan = safeObj(safeObj(h.design).plan);
         const twoMinute = String(plan.twoMinute || '').trim();
         const hint = twoMinute ? `2-minute: ${escapeHtml(twoMinute)}` : '';
         const unit = safeObj(h.frequency).unit;
-        const countControls = (unit === 'day') ? `
+        const target = Math.max(1, Math.round(Number(safeObj(h.frequency).target) || 1));
+        const succ = successStatusForType(h.type);
+        const doneToday = String(entry.status || '').toLowerCase() === succ;
+        let count = Number(entry.count);
+        if (!Number.isFinite(count) || count < 0) count = doneToday ? 1 : 0;
+        if (unit === 'day'){
+          if (count <= 0) count = doneToday ? target : 0;
+        }
+        count = Math.max(0, Math.round(count));
+        const countLabel = unit === 'day' ? `${count}/${target}` : `${count}`;
+        const countControls = `
           <div class="countControls" role="group" aria-label="Adjust today count">
             <button class="btn ghost small" data-action="adjustCount" data-habit="${escapeHtml(h.id)}" data-delta="-1" aria-label="Decrease count">−</button>
-            <div class="countValue">${escapeHtml(s.labelRight)}</div>
+            <div class="countValue">${escapeHtml(countLabel)}</div>
             <button class="btn ghost small" data-action="adjustCount" data-habit="${escapeHtml(h.id)}" data-delta="1" aria-label="Increase count">+</button>
           </div>
-        ` : '';
+        `;
 
         return `
-          <div class="panel focusItem ${isDone ? 'completed' : ''}" style="margin-bottom:10px;">
+          <div
+            class="panel focusItem ${isDone ? 'completed' : ''}"
+            style="margin-bottom:10px;"
+            data-action="dashToggleCard"
+            data-habit="${escapeHtml(h.id)}"
+            role="button"
+            tabindex="0"
+            aria-pressed="${isDone ? 'true' : 'false'}"
+            aria-label="${escapeHtml(s.btnLabel)} ${escapeHtml(h.name || 'habit')} for today"
+          >
             <div class="focusRow">
               <div class="focusMain">
                 <div class="focusTitle nowrapEllip">${escapeHtml(h.name || 'Untitled habit')}</div>
@@ -4119,11 +4139,6 @@ function renderChartSVG(h, container, rangeKey){
               </div>
               <div class="focusActions">
                 ${countControls}
-                <button
-                  class="btn small ${escapeHtml(s.btnClass)}"
-                  data-action="dashToggle"
-                  data-habit="${escapeHtml(h.id)}"
-                >${escapeHtml(s.btnLabel)}</button>
               </div>
             </div>
             <div class="sumProgressStrip focusProgress">
@@ -4729,9 +4744,6 @@ function dashToggle(habitId){
 function adjustDailyCount(habitId, delta){
   const h = getHabit(habitId);
   if (!h) return;
-
-  const unit = safeObj(h.frequency).unit;
-  if (unit !== 'day') return;
 
   const iso = todayISO();
   if (!h.logs || typeof h.logs !== 'object') h.logs = {};
