@@ -1826,7 +1826,137 @@ body::after{
       border-color: rgba(41,211,154,.5);
       background:
         radial-gradient(120% 140% at 0% 0%, rgba(41,211,154,.22), rgba(18,30,52,.22)),
-        rgba(255,255,255,.08);
+        #ffffff14;
+    }
+    .celebrateWrap{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .celebrateHero{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .celebrateHero .title{
+      font-weight:950;
+      font-size:18px;
+      letter-spacing:.2px;
+    }
+    .celebrateHero .subtitle{
+      color: var(--muted);
+      font-size:12px;
+    }
+    .celebrateGrid{
+      display:grid;
+      gap:12px;
+    }
+    @media (min-width: 560px){
+      .celebrateGrid{
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    .streakCard{
+      border:1px solid rgba(122,167,255,.35);
+      border-radius: 16px;
+      padding: 12px;
+      background: linear-gradient(180deg, rgba(15,23,41,.9), rgba(12,20,36,.85));
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      position:relative;
+      overflow:hidden;
+    }
+    .streakCard::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: radial-gradient(120% 120% at 0% 0%, rgba(122,167,255,.16), transparent 65%);
+      opacity:.8;
+      pointer-events:none;
+    }
+    .streakHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .streakName{
+      font-weight:900;
+      font-size:14px;
+      z-index:1;
+    }
+    .streakCount{
+      font-weight:900;
+      font-size:12px;
+      color: var(--celebrate);
+      z-index:1;
+    }
+    .streakMeta{
+      font-size:11px;
+      color: var(--muted2);
+      z-index:1;
+    }
+    .streakBar{
+      height:8px;
+      border-radius:999px;
+      background: rgba(255,255,255,.08);
+      overflow:hidden;
+      z-index:1;
+    }
+    .streakBarFill{
+      height:100%;
+      width:0%;
+      border-radius:999px;
+      background: linear-gradient(90deg, rgba(108,255,177,.85), rgba(122,167,255,.85));
+      animation: streakFill 1.2s ease-out forwards;
+    }
+    .weekStrip{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .weekDay{
+      flex:1 1 42px;
+      min-width:42px;
+      padding:8px 6px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      text-align:center;
+      font-size:11px;
+      color: var(--muted2);
+      background: rgba(255,255,255,.03);
+      position:relative;
+      overflow:hidden;
+    }
+    .weekDay.complete{
+      border-color: rgba(41,211,154,.55);
+      color: #ddfff1;
+      background: rgba(41,211,154,.12);
+      box-shadow: 0 10px 18px rgba(41,211,154,.18);
+    }
+    .weekDay.complete::after{
+      content:"✓";
+      position:absolute;
+      top:4px;
+      right:6px;
+      font-size:10px;
+      color: var(--celebrate);
+    }
+    .weekDay .wkLabel{
+      font-weight:900;
+      letter-spacing:.2px;
+    }
+    .weekDay .wkDate{
+      font-size:10px;
+      color: var(--muted2);
+    }
+    .weekDay.complete .wkDate{
+      color: #ddfff1;
+    }
+    @keyframes streakFill{
+      0%{ width:0%; }
+      100%{ width: var(--p, 100%); }
     }
     .focusCelebrate{
       border-color: rgba(41,211,154,.6);
@@ -2102,6 +2232,7 @@ input[type="date"]{
     const STORAGE_KEY = 'appData_v1';
     const SCHEMA_VERSION = 2;
     const MAX_HABITS = 20;
+    const MAX_DAILY_COUNT = 999;
 
     const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
     const $ = (sel, root=document) => root.querySelector(sel);
@@ -2852,7 +2983,7 @@ function windowConsistencyPercent(h, days){
     const e = safeObj(safeObj(h.logs)[iso]);
     let c = Number(e.count);
     if (!Number.isFinite(c) || c < 0) c = (String(e.status || '').toLowerCase() === succ) ? target : 0;
-    c = clamp(Math.round(c), 0, target);
+    c = Math.max(0, Math.round(c));
     const ratio = clamp(c / target, 0, 1);
     return { target, actual: c, ratio, label: 'Today', startISO: iso };
   }
@@ -3801,21 +3932,43 @@ function renderChartSVG(h, container, rangeKey){
       });
     }
 
+    function isHabitDoneOnDate(h, iso){
+      const e = safeObj(safeObj(h.logs)[iso]);
+      const succ = successStatusForType(h.type);
+      const unit = safeObj(h.frequency).unit;
+      const target = Math.max(1, Math.round(Number(safeObj(h.frequency).target) || 1));
+      const st = String(e.status || '').toLowerCase();
+
+      if (unit === 'day'){
+        let c = Number(e.count);
+        if (!Number.isFinite(c) || c < 0) c = (st === succ) ? target : 0;
+        return st === succ && c >= target;
+      }
+
+      return st === succ;
+    }
+
+    function getCompletionStateForDate(habits, iso){
+      const list = safeArr(habits);
+      let doneCount = 0;
+      list.forEach(h => {
+        if (isHabitDoneOnDate(h, iso)) doneCount += 1;
+      });
+      return {
+        total: list.length,
+        doneCount,
+        remaining: Math.max(0, list.length - doneCount),
+        allDone: list.length > 0 && doneCount === list.length
+      };
+    }
+
     function getTodayCompletionState(habits){
       const list = safeArr(habits);
       const iso = todayISO();
       let doneCount = 0;
 
       list.forEach(h => {
-        const e = safeObj(safeObj(h.logs)[iso]);
-        const succ = successStatusForType(h.type);
-        const unit = safeObj(h.frequency).unit;
-        const target = Math.max(1, Math.round(Number(safeObj(h.frequency).target) || 1));
-        const st = String(e.status || '').toLowerCase();
-        const done = (unit === 'day')
-          ? (st === succ && Number(e.count || 0) >= target)
-          : (st === succ);
-        if (done) doneCount += 1;
+        if (isHabitDoneOnDate(h, iso)) doneCount += 1;
       });
 
       return {
@@ -3888,17 +4041,26 @@ function renderChartSVG(h, container, rangeKey){
 
     function renderTodayFocusBody(){
       const habits = safeArr(appData.habits);
+      const today = todayISO();
+      const sortedHabits = habits.slice().sort((a, b) => {
+        const aDone = isHabitDoneOnDate(a, today);
+        const bDone = isHabitDoneOnDate(b, today);
+        if (aDone !== bDone) return aDone ? 1 : -1;
+        const ta = Date.parse(a.createdAt || '') || 0;
+        const tb = Date.parse(b.createdAt || '') || 0;
+        if (ta !== tb) return ta - tb;
+        return String(a.name).localeCompare(String(b.name));
+      });
       const completion = getTodayCompletionState(habits);
 
-      const rows = habits.map(h => {
+      const rows = sortedHabits.map(h => {
         const s = dashboardState(h);
-        const isDone = (s.btnLabel === 'Reset' || s.btnLabel === 'Undo');
+        const isDone = isHabitDoneOnDate(h, today);
         const plan = safeObj(safeObj(h.design).plan);
         const twoMinute = String(plan.twoMinute || '').trim();
         const hint = twoMinute ? `2-minute: ${escapeHtml(twoMinute)}` : '';
         const unit = safeObj(h.frequency).unit;
-        const target = Math.max(1, Math.round(Number(safeObj(h.frequency).target) || 1));
-        const countControls = (unit === 'day' && target > 1) ? `
+        const countControls = (unit === 'day') ? `
           <div class="countControls" role="group" aria-label="Adjust today count">
             <button class="btn ghost small" data-action="adjustCount" data-habit="${escapeHtml(h.id)}" data-delta="-1" aria-label="Decrease count">−</button>
             <div class="countValue">${escapeHtml(s.labelRight)}</div>
@@ -3960,20 +4122,80 @@ function renderChartSVG(h, container, rangeKey){
     }
 
     function celebrateDay(){
-      const completion = getTodayCompletionState(appData.habits);
+      const habits = safeArr(appData.habits);
+      const completion = getTodayCompletionState(habits);
       if (!completion.total) return;
       const quote = getCelebrateQuote();
-      openModal(
-        'All done today',
-        `
-          <div class="panel celebrateCard">
-            <div style="font-weight:950; margin-bottom:6px;">You did it.</div>
-            <div class="muted small" style="margin-bottom:8px;">
-              ${completion.doneCount} of ${completion.total} habits completed today. Keep it gentle and sustainable.
+      const weekStart = startOfWeekMonday(new Date());
+      const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+      const weekCells = weekDays.map(d => {
+        const iso = toISODate(d);
+        const state = getCompletionStateForDate(habits, iso);
+        const label = d.toLocaleDateString(undefined, { weekday: 'short' });
+        const dateLabel = d.toLocaleDateString(undefined, { month:'short', day:'numeric' });
+        return {
+          iso,
+          label,
+          dateLabel,
+          complete: state.allDone
+        };
+      });
+      const fullDays = weekCells.filter(c => c.complete).length;
+
+      const streakCards = habits.map(h => {
+        const current = currentDailyStreak(h);
+        const bestRaw = getBestStreak(h);
+        const best = Math.max(1, bestRaw);
+        const ratio = clamp(current / best, 0, 1);
+        return `
+          <div class="streakCard">
+            <div class="streakHeader">
+              <div class="streakName">${escapeHtml(h.name || 'Untitled habit')}</div>
+              <div class="streakCount">${escapeHtml(String(current))} day${current === 1 ? '' : 's'}</div>
             </div>
-            <div class="summaryAction" style="margin-top:8px;">
-              <div class="summaryLabel">Encouragement</div>
-              <div class="summaryValue">${escapeHtml(quote)}</div>
+            <div class="streakMeta">Best streak: ${escapeHtml(String(bestRaw))} days</div>
+            <div class="streakBar">
+              <div class="streakBarFill" style="--p:${(ratio * 100).toFixed(0)}%;"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const weekStrip = weekCells.map(cell => `
+        <div class="weekDay ${cell.complete ? 'complete' : ''}">
+          <div class="wkLabel">${escapeHtml(cell.label)}</div>
+          <div class="wkDate">${escapeHtml(cell.dateLabel)}</div>
+        </div>
+      `).join('');
+
+      openModal(
+        'Loop closed',
+        `
+          <div class="celebrateWrap">
+            <div class="panel celebrateCard">
+              <div class="celebrateHero">
+                <div class="title">You closed the loop today.</div>
+                <div class="subtitle">${completion.doneCount} of ${completion.total} habits completed. You showed up for yourself.</div>
+              </div>
+              <div class="summaryAction" style="margin-top:12px;">
+                <div class="summaryLabel">Encouragement</div>
+                <div class="summaryValue">${escapeHtml(quote)}</div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="sectionTitle" style="margin-bottom:8px;">Streak momentum</div>
+              <div class="celebrateGrid">
+                ${streakCards || '<div class="muted small">No habits yet.</div>'}
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="sectionTitle" style="margin-bottom:8px;">Fully completed days this week</div>
+              <div class="weekStrip">${weekStrip}</div>
+              <div class="muted tiny" style="margin-top:8px;">
+                ${escapeHtml(String(fullDays))} full-completion day${fullDays === 1 ? '' : 's'} so far this week.
+              </div>
             </div>
           </div>
         `,
@@ -4102,7 +4324,9 @@ function renderChartSVG(h, container, rangeKey){
               </button>
             </div>
             ${createInline}
-            ${renderHabitList()}
+            <div id="habitListSlot">
+              ${renderHabitList()}
+            </div>
             <div class="cardFooter">
               <div class="muted small">${habitCount}/${MAX_HABITS} habits • Back up your habits to keep them safe offline.</div>
               <button class="btn small ghost" data-action="quickBackup" title="Backup (recommended)">Backup</button>
@@ -4222,7 +4446,7 @@ function dashboardState(h){
   if (unit === 'day'){
     let c = Number(entry.count);
     if (!Number.isFinite(c) || c < 0) c = doneToday ? target : 0;
-    c = clamp(Math.round(c), 0, target);
+    c = Math.max(0, Math.round(c));
     const ratio = clamp(c / target, 0, 1);
 
     const isDone = doneToday && c >= target;
@@ -4437,6 +4661,7 @@ function dashToggle(habitId){
 
   updateHabitVisuals(habitId);
   updateDashboardQuick(habitId);
+  refreshHabitList();
   hydrateVisibleCharts();
   pulseDashboardQuick(habitId);
   updateTodayCard({ animate:true });
@@ -4466,7 +4691,8 @@ function adjustDailyCount(habitId, delta){
   const target = Math.max(1, Math.round(Number(safeObj(h.frequency).target) || 1));
   let c = Number(e.count || 0);
   if (!Number.isFinite(c) || c < 0) c = 0;
-  c = clamp(Math.round(c + delta), 0, target);
+  const maxCount = Math.max(target, MAX_DAILY_COUNT);
+  c = clamp(Math.round(c + delta), 0, maxCount);
   e.count = c;
   e.status = c > 0 ? succ : fail;
   e.auto = false;
@@ -4476,6 +4702,7 @@ function adjustDailyCount(habitId, delta){
   saveData({ toast:false });
   updateHabitVisuals(habitId);
   updateDashboardQuick(habitId);
+  refreshHabitList();
   hydrateVisibleCharts();
   updateTodayCard({ animate:true });
   maybeCelebrateDay();
@@ -4577,6 +4804,10 @@ function getHabitSubtab(habitId){
   return subtab;
 }
 
+function refreshHabitList(){
+  const slot = document.getElementById('habitListSlot');
+  if (slot) slot.innerHTML = renderHabitList();
+}
 
 function renderHabitList(){
   const habits = safeArr(appData.habits);
@@ -4591,13 +4822,24 @@ function renderHabitList(){
     `;
   }
 
-  const items = habits.map(h => {
+  const today = todayISO();
+  const sortedHabits = habits.slice().sort((a, b) => {
+    const aDone = isHabitDoneOnDate(a, today);
+    const bDone = isHabitDoneOnDate(b, today);
+    if (aDone !== bDone) return aDone ? 1 : -1;
+    const ta = Date.parse(a.createdAt || '') || 0;
+    const tb = Date.parse(b.createdAt || '') || 0;
+    if (ta !== tb) return ta - tb;
+    return String(a.name).localeCompare(String(b.name));
+  });
+
+  const items = sortedHabits.map(h => {
     const isNeg = h.type === 'negative';
     const tagClass = isNeg ? 'bad' : 'good';
     const typeLabel = isNeg ? 'Negative' : 'Positive';
     const freqTxt = formatUnit(h.frequency.unit, h.frequency.target);
     const s = dashboardState(h);
-    const isDone = clamp(s.ratio, 0, 1) >= 1;
+    const isDone = isHabitDoneOnDate(h, today);
     const statusLabel = isDone
       ? (isNeg ? 'Resisted today' : 'Completed today')
       : 'In progress';
@@ -4937,9 +5179,15 @@ function normalizeLogCountsForFrequency(h){
     if (!/^\d{4}-\d{2}-\d{2}$/.test(k)) continue;
     const e = safeObj(h.logs[k]);
     const st = String(e.status || '').toLowerCase();
+    let existing = Number(e.count);
+    if (!Number.isFinite(existing) || existing < 0) existing = 0;
 
     // Keep note/updatedAt/auto as-is, just normalize count
-    h.logs[k].count = (st === succ) ? ((unit === 'day') ? target : 1) : 0;
+    if (st === succ){
+      h.logs[k].count = (unit === 'day') ? Math.max(target, Math.round(existing)) : 1;
+    } else {
+      h.logs[k].count = 0;
+    }
   }
 }
 
@@ -5210,6 +5458,13 @@ const plannedInRange = Math.round(plannedRate * w.days);
       const today = todayISO();
       const existing = safeObj(h.logs)[today];
       const defaultStatus = (existing && existing.status) ? existing.status : failStatus;
+      const unit = safeObj(h.frequency).unit;
+      const target = Math.max(1, Math.round(Number(safeObj(h.frequency).target) || 1));
+      let countValue = Number(existing?.count);
+      if (!Number.isFinite(countValue) || countValue < 0){
+        countValue = (String(defaultStatus || '').toLowerCase() === succStatus) ? target : 0;
+      }
+      countValue = Math.max(0, Math.round(countValue));
 
       const noteVal = String(existing?.note ?? '');
       const statusLabelA = (h.type === 'negative') ? 'Resisted' : 'Completed';
@@ -5230,6 +5485,17 @@ const plannedInRange = Math.round(plannedRate * w.days);
       ` : '';
 
       const recentHtml = renderRecentLogs(h);
+      const countField = (unit === 'day') ? `
+        <div class="field compact2">
+          <label>Count</label>
+          <input type="number" min="0" max="${escapeHtml(String(Math.max(target, MAX_DAILY_COUNT)))}" step="1" value="${escapeHtml(String(countValue))}" data-habit="${escapeHtml(h.id)}" data-track="count" inputmode="numeric" />
+        </div>
+      ` : '';
+      const countHelp = (unit === 'day') ? `
+        <div class="muted tiny" style="margin-top:6px;">
+          Log multiple completions in a day. Progress completes at ${escapeHtml(String(target))}.
+        </div>
+      ` : '';
 
       return `
         <div class="panel" style="border:none; background:transparent; padding:0;">
@@ -5249,7 +5515,9 @@ const plannedInRange = Math.round(plannedRate * w.days);
                 <option value="${escapeHtml(failStatus)}" ${defaultStatus===failStatus ? 'selected':''}>${escapeHtml(statusLabelB)}</option>
               </select>
             </div>
+            ${countField}
           </div>
+          ${countHelp}
 
           <div class="field" style="margin-top:10px;">
             <label>Note (optional)</label>
@@ -5299,11 +5567,24 @@ function renderRecentLogs(h){
     const fail = failStatusForType(h.type);
     const aLabel = isNeg ? 'Resisted' : 'Completed';
     const bLabel = isNeg ? 'Relapsed' : 'Missed';
+    const unit = safeObj(h.frequency).unit;
+    const target = Math.max(1, Math.round(Number(safeObj(h.frequency).target) || 1));
 
     inner = show.map(k => {
       const e = logs[k] || {};
       const st = String(e.status || fail); // default to fail, not success
       const note = String(e.note ?? '');
+      let countVal = Number(e.count);
+      if (!Number.isFinite(countVal) || countVal < 0){
+        countVal = (st === succ && unit === 'day') ? target : (st === succ ? 1 : 0);
+      }
+      countVal = Math.max(0, Math.round(countVal));
+      const countField = (unit === 'day') ? `
+            <div class="field compact2">
+              <label>Count</label>
+              <input type="number" min="0" max="${escapeHtml(String(Math.max(target, MAX_DAILY_COUNT)))}" step="1" value="${escapeHtml(String(countVal))}" data-habit="${escapeHtml(h.id)}" data-logdate="${escapeHtml(k)}" data-logfield="count" inputmode="numeric" />
+            </div>
+      ` : '';
       return `
         <div class="panel" style="margin-bottom:10px;">
           <div class="inline">
@@ -5318,6 +5599,7 @@ function renderRecentLogs(h){
                 <option value="${escapeHtml(fail)}" ${st===fail?'selected':''}>${escapeHtml(bLabel)}</option>
               </select>
             </div>
+            ${countField}
           </div>
 
           <div class="field" style="margin-top:10px;">
@@ -6064,10 +6346,12 @@ function ensureDefaultLogsUpToToday(){
       const dateEl = det?.querySelector(`[data-track="date"][data-habit="${cssEscape(habitId)}"]`);
       const statusEl = det?.querySelector(`[data-track="status"][data-habit="${cssEscape(habitId)}"]`);
       const noteEl = det?.querySelector(`[data-track="note"][data-habit="${cssEscape(habitId)}"]`);
+      const countEl = det?.querySelector(`[data-track="count"][data-habit="${cssEscape(habitId)}"]`);
 
       const date = (dateEl?.value || '').trim();
       const status = (statusEl?.value || '').trim().toLowerCase();
       const note = String(noteEl?.value ?? '');
+      const unit = safeObj(h.frequency).unit;
 
       if (!parseISODate(date)){
         showToast('Not saved', 'Please choose a valid date.', { icon:'!' });
@@ -6084,8 +6368,18 @@ function ensureDefaultLogsUpToToday(){
       if (!h.logs || typeof h.logs !== 'object') h.logs = {};
       let count = 0;
 const target = Math.max(1, Math.round(Number(safeObj(h.frequency).target) || 1));
-if (safeObj(h.frequency).unit === 'day'){
-  count = (status === successStatusForType(h.type)) ? target : 0;
+if (unit === 'day'){
+  const raw = Number(countEl?.value);
+  const maxCount = Math.max(target, MAX_DAILY_COUNT);
+  if (status === successStatusForType(h.type)){
+    if (!Number.isFinite(raw) || raw < 1){
+      count = target;
+    } else {
+      count = clamp(Math.round(raw), 0, maxCount);
+    }
+  } else {
+    count = 0;
+  }
 } else {
   count = (status === successStatusForType(h.type)) ? 1 : 0;
 }
@@ -6097,6 +6391,7 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
       saveData({ toast:false });
       updateHabitVisuals(habitId);
       updateDashboardQuick(habitId);
+      refreshHabitList();
       updateTodayCard({ animate:true });
 
       // update recent logs list without re-rendering whole app
@@ -6134,6 +6429,7 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
       saveData({ toast:true, toastMsg:'Log deleted.' });
       updateHabitVisuals(habitId);
       updateTodayCard({ animate:true });
+      refreshHabitList();
 
       const list = document.getElementById(`habit-${habitId}-logslist`);
       if (list) list.innerHTML = renderRecentLogs(h);
@@ -6147,12 +6443,14 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
       const dateEl = det.querySelector(`[data-track="date"][data-habit="${cssEscape(habitId)}"]`);
       const statusEl = det.querySelector(`[data-track="status"][data-habit="${cssEscape(habitId)}"]`);
       const noteEl = det.querySelector(`[data-track="note"][data-habit="${cssEscape(habitId)}"]`);
+      const countEl = det.querySelector(`[data-track="count"][data-habit="${cssEscape(habitId)}"]`);
       if (dateEl) dateEl.value = todayISO();
       if (statusEl){
         const h = getHabit(habitId);
         if (h) statusEl.value = failStatusForType(h.type);
       }
       if (noteEl) noteEl.value = '';
+      if (countEl) countEl.value = '0';
       showToast('Cleared', 'Fields cleared (no saved data changed).', { icon:'↺', ms:1800 });
     }
 
@@ -6503,7 +6801,14 @@ function handleLogEdit(el){
 
     // keep count consistent with unit + status
     if (unit === 'day'){
-      h.logs[date].count = (st === succ) ? target : 0;
+      const current = Number(h.logs[date].count);
+      if (st === succ){
+        if (!Number.isFinite(current) || current < target){
+          h.logs[date].count = target;
+        }
+      } else {
+        h.logs[date].count = 0;
+      }
     } else {
       h.logs[date].count = (st === succ) ? 1 : 0;
     }
@@ -6513,6 +6818,38 @@ function handleLogEdit(el){
 
     updateHabitVisuals(habitId);
     updateDashboardQuick(habitId); // keeps the collapsed "Done/Undo/Reset" button correct if date is today
+    refreshHabitList();
+    updateTodayCard({ animate:true });
+    hydrateVisibleCharts();
+    const list = document.getElementById('todayFocusList');
+    if (list && $('#modal').classList.contains('active')){
+      $('#modalBody').innerHTML = renderTodayFocusBody();
+    }
+    return;
+  }
+
+  if (field === 'count'){
+    let next = Number(el.value);
+    if (!Number.isFinite(next) || next < 0) next = 0;
+    const maxCount = Math.max(target, MAX_DAILY_COUNT);
+    next = clamp(Math.round(next), 0, maxCount);
+
+    if (unit === 'day'){
+      h.logs[date].count = next;
+      h.logs[date].status = next > 0 ? succ : fail;
+    } else {
+      h.logs[date].count = next > 0 ? 1 : 0;
+      h.logs[date].status = next > 0 ? succ : fail;
+    }
+
+    h.logs[date].auto = false;
+    h.logs[date].updatedAt = new Date().toISOString();
+    h.updatedAt = new Date().toISOString();
+    scheduleSave();
+
+    updateHabitVisuals(habitId);
+    updateDashboardQuick(habitId);
+    refreshHabitList();
     updateTodayCard({ animate:true });
     hydrateVisibleCharts();
     const list = document.getElementById('todayFocusList');
