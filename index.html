@@ -599,10 +599,10 @@ body::after{
       background:
         linear-gradient(180deg, rgba(20,32,54,.88), rgba(12,20,36,.78));
       overflow:hidden;
-      padding: 12px 12px 12px 14px;
+      padding: 10px 12px 10px 12px;
       display:flex;
       flex-direction:column;
-      gap:10px;
+      gap:8px;
       cursor:pointer;
       transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
       isolation:isolate;
@@ -681,7 +681,7 @@ body::after{
       flex:0 0 auto;
       display:flex;
       flex-direction:column;
-      gap:8px;
+      gap:4px;
       align-items:flex-end;
     }
     .habitStatusIcon{
@@ -734,10 +734,23 @@ body::after{
       color: var(--accent2);
       font-weight:900;
     }
-    .habitDetailsPrompt{
+    .habitDetailsButton{
       color: var(--accent2);
       font-weight:900;
       letter-spacing:.2px;
+      font-size:11px;
+      padding:4px 6px;
+      border-radius:10px;
+      border:1px solid transparent;
+    }
+    .habitDetailsButton:hover{
+      border-color: var(--line);
+      background: rgba(255,255,255,.04);
+    }
+    .habitDetailsButton:focus-visible{
+      outline:2px solid var(--focus);
+      outline-offset:2px;
+      border-radius:10px;
     }
     .habitProgress{
       display:flex;
@@ -3959,7 +3972,7 @@ function renderChartSVG(h, container, rangeKey){
       appData.habits.push(habit);
       appData.ui.createOpen = false;
       appData.ui.onboardingComplete = true;
-      saveData({ toast:true, toastMsg:'Starter habit created. Tap “Done” for your first win.' });
+      saveData({ toast:true, toastMsg:'Starter habit created. Tap the habit card for your first win.' });
       render();
 
       requestAnimationFrame(() => {
@@ -4513,6 +4526,7 @@ function updateDashboardQuick(habitId){
   const statusLabel = isDone
     ? (h.type === 'negative' ? 'Resisted today' : 'Completed today')
     : 'In progress';
+  const cardLabel = `${s.btnLabel} ${h.name || 'habit'} for today`;
 
   // Update every dashboard toggle button for this habit (prevents mismatched labels)
   document
@@ -4546,6 +4560,8 @@ function updateDashboardQuick(habitId){
     .querySelectorAll(`.habitItem[data-habit="${cssEscape(habitId)}"]`)
     .forEach((el) => {
       el.classList.toggle('completed', isDone);
+      el.setAttribute('aria-pressed', isDone ? 'true' : 'false');
+      el.setAttribute('aria-label', cardLabel);
       const icon = el.querySelector('.habitStatusIcon');
       if (icon) icon.textContent = isDone ? '✓' : '○';
     });
@@ -4564,6 +4580,17 @@ function pulseDashboardQuick(habitId){
   if (!mini) return;
   mini.classList.add('celebrate');
   setTimeout(() => mini.classList.remove('celebrate'), 900);
+}
+
+function pulseDashToggleControls(habitId){
+  const selectors = [
+    `button[data-action="dashToggle"][data-habit="${cssEscape(habitId)}"]`,
+    `.habitItem[data-action="dashToggleCard"][data-habit="${cssEscape(habitId)}"]`
+  ];
+  selectors.forEach((selector) => {
+    const el = document.querySelector(selector);
+    if (el) pulseEl(el);
+  });
 }
 
 // New: celebratory habit card burst when a habit is completed.
@@ -4642,7 +4669,7 @@ function dashToggle(habitId){
       showToast('Done', motivationalLine(h), { icon:'✓', ms:5000, position: toastPosition });
       playSuccessChime();
       triggerHaptic('confirm');
-      pulseEl(document.querySelector(`button[data-action="dashToggle"][data-habit="${cssEscape(habitId)}"]`));
+      pulseDashToggleControls(habitId);
       celebrateHabitCard(habitId);
       const currentStreak = currentDailyStreak(h);
       const bestStreak = getBestStreak(h);
@@ -4671,7 +4698,7 @@ function dashToggle(habitId){
       showToast('Done', motivationalLine(h), { icon:'✓', ms:2600, position: toastPosition });
       playSuccessChime();
       triggerHaptic('confirm');
-      pulseEl(document.querySelector(`button[data-action="dashToggle"][data-habit="${cssEscape(habitId)}"]`));
+      pulseDashToggleControls(habitId);
       celebrateHabitCard(habitId);
       const currentStreak = currentDailyStreak(h);
       const bestStreak = getBestStreak(h);
@@ -4869,7 +4896,7 @@ function renderHabitList(){
     const statusIcon = isDone ? '✓' : '○';
 
     return `
-      <div class="habitItem ${isDone ? 'completed' : ''} ${isNeg ? 'negative' : 'positive'}" id="habit-${escapeHtml(h.id)}" data-habit="${escapeHtml(h.id)}" data-action="openHabitDetail" role="button" tabindex="0" aria-label="Open ${escapeHtml(h.name || 'habit')} details">
+      <div class="habitItem ${isDone ? 'completed' : ''} ${isNeg ? 'negative' : 'positive'}" id="habit-${escapeHtml(h.id)}" data-habit="${escapeHtml(h.id)}" data-action="dashToggleCard" role="button" tabindex="0" aria-pressed="${isDone ? 'true' : 'false'}" aria-label="${escapeHtml(s.btnLabel)} ${escapeHtml(h.name || 'habit')} for today">
         <div class="habitTop">
           <div class="habitInfo">
             <div class="habitTitleRow">
@@ -4882,17 +4909,11 @@ function renderHabitList(){
 
           <div class="habitActions">
             <div class="habitStatusIcon" aria-hidden="true">${statusIcon}</div>
-            <button
-              class="btn small ${escapeHtml(s.btnClass)} dashBtn"
-              data-action="dashToggle"
-              data-habit="${escapeHtml(h.id)}"
-              aria-label="Mark ${escapeHtml(h.name || 'habit')} for today"
-            >${escapeHtml(s.btnLabel)}</button>
           </div>
         </div>
 
         <div class="habitMetaRow">
-          <div class="habitDetailsPrompt">View details →</div>
+          <button class="habitDetailsButton" type="button" data-action="openHabitDetail" data-habit="${escapeHtml(h.id)}">View details →</button>
         </div>
 
         ${renderDashboardQuick(h)}
@@ -5274,6 +5295,11 @@ function updateHabitHeader(habitId){
 
   const dashBtn = document.querySelector(`button[data-action="dashToggle"][data-habit="${cssEscape(habitId)}"]`);
   if (dashBtn) dashBtn.setAttribute('aria-label', `Mark ${h.name || 'habit'} for today`);
+  const card = document.querySelector(`.habitItem[data-action="dashToggleCard"][data-habit="${cssEscape(habitId)}"]`);
+  if (card){
+    const s = dashboardState(h);
+    card.setAttribute('aria-label', `${s.btnLabel} ${h.name || 'habit'} for today`);
+  }
 
   if (appData.ui?.activeHabitId === habitId){
     const title = h.name || 'Habit details';
@@ -6427,7 +6453,7 @@ h.logs[date] = { date, status, note, count, auto:false, updatedAt: new Date().to
       if (status === succ){
         showToast('Done', motivationalLine(h), { icon:'✓', ms:5000 });
         triggerHaptic('confirm');
-        pulseEl(document.querySelector(`button[data-action="dashToggle"][data-habit="${cssEscape(habitId)}"]`));
+        pulseDashToggleControls(habitId);
       } else {
         showToast('Logged', 'No shame. This is just data to improve the system.', { icon:'•', ms:2600 });
       }
@@ -6839,7 +6865,7 @@ function handleLogEdit(el){
     scheduleSave();
 
     updateHabitVisuals(habitId);
-    updateDashboardQuick(habitId); // keeps the collapsed "Done/Undo/Reset" button correct if date is today
+    updateDashboardQuick(habitId); // keeps the dashboard card state in sync for today
     refreshHabitList();
     updateTodayCard({ animate:true });
     hydrateVisibleCharts();
@@ -7014,9 +7040,18 @@ function handleLogEdit(el){
 
 if (action === 'openHabitDetail'){
   e.preventDefault();
+  e.stopPropagation();
   const hid = btn.getAttribute('data-habit');
   if (!hid) return;
   openHabitDetail(hid);
+  return;
+}
+
+if (action === 'dashToggleCard'){
+  e.preventDefault();
+  const hid = btn.getAttribute('data-habit');
+  if (!hid) return;
+  dashToggle(hid);
   return;
 }
 
@@ -7351,12 +7386,14 @@ if (action === 'removeFrictionItem'){
     // ESC closes modal
     document.addEventListener('keydown', (e) => {
       if (!$('#modal').classList.contains('active')){
-        if (e.key === 'Enter' || e.key === ' '){
-          const card = e.target.closest?.('.habitItem[data-action="openHabitDetail"]');
-          if (card){
+        if ((e.key === 'Enter' || e.key === ' ') && e.target instanceof HTMLElement){
+          const card = e.target.closest?.('.habitItem[data-action="dashToggleCard"]');
+          if (card && e.target === card){
             e.preventDefault();
             const hid = card.getAttribute('data-habit');
-            if (hid) openHabitDetail(hid);
+            if (hid) dashToggle(hid);
+          }
+        }
         return;
       }
 
@@ -7375,8 +7412,6 @@ if (action === 'removeFrictionItem'){
         } else if (!e.shiftKey && document.activeElement === last){
           e.preventDefault();
           first.focus();
-        }
-          }
         }
       }
     });
