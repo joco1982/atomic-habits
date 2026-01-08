@@ -957,7 +957,7 @@ body::after{
 .countControls{
   display:flex;
   align-items:center;
-  gap:8px;
+  gap:4px;
 }
 .countControls .btn{
   min-height:32px;
@@ -968,11 +968,163 @@ body::after{
   font-weight:900;
 }
 .countValue{
-  min-width:40px;
+  min-width:28px;
   text-align:center;
-  font-size:12px;
+  font-size:13px;
   font-weight:800;
   color: var(--text);
+}
+
+.dueTag{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.2px;
+  border:1px solid rgba(255,255,255,.15);
+  background: rgba(122,167,255,.18);
+  color: var(--text);
+}
+.dueTag.today{
+  background: rgba(41,211,154,.18);
+  border-color: rgba(41,211,154,.45);
+  color: #EFFFF7;
+}
+.dueTag.critical{
+  background: rgba(255,90,106,.18);
+  border-color: rgba(255,90,106,.45);
+  color: #FFE9ED;
+}
+.dueTag.soon{
+  background: rgba(255,194,71,.15);
+  border-color: rgba(255,194,71,.4);
+  color: #FFF4D6;
+}
+.dueTag.met{
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.12);
+  color: var(--muted);
+}
+
+.schedulePicker{
+  margin-top:10px;
+  padding:10px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.03);
+}
+.schedulePicker .label{
+  font-size:12px;
+  font-weight:800;
+  color: var(--muted2);
+  margin-bottom:6px;
+}
+.scheduleGrid{
+  display:grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap:6px;
+}
+.scheduleGrid.month{
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+.scheduleChip{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:32px;
+  border-radius:10px;
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.04);
+  font-size:12px;
+  font-weight:800;
+  color: var(--muted);
+  cursor:pointer;
+  user-select:none;
+}
+.scheduleChip input{
+  display:none;
+}
+.scheduleChip.active{
+  border-color: rgba(122,167,255,.5);
+  background: rgba(122,167,255,.25);
+  color: #EAF0FF;
+}
+
+.loopClosedHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.loopHabitList{
+  display:grid;
+  gap:10px;
+}
+.loopHabitCard{
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:10px;
+  background: rgba(255,255,255,.03);
+}
+.loopHabitTop{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+.loopHabitName{
+  font-weight:800;
+  font-size:13px;
+}
+.loopHabitMeta{
+  font-size:11px;
+  color: var(--muted2);
+}
+.loopHabitDays{
+  display:grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap:6px;
+  margin-top:8px;
+}
+.loopHabitDays.month{
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+.loopDay{
+  min-height:28px;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:11px;
+  font-weight:700;
+  color: var(--muted2);
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.02);
+}
+.loopDay.complete{
+  background: rgba(41,211,154,.18);
+  color: #EFFFF7;
+  border-color: rgba(41,211,154,.5);
+}
+.loopDay.miss{
+  background: rgba(255,90,106,.15);
+  color: #FFE9ED;
+  border-color: rgba(255,90,106,.45);
+}
+.loopDay.pending{
+  background: rgba(255,255,255,.05);
+  color: var(--muted);
+}
+.loopToggle{
+  border-radius:999px;
+  min-height:32px;
+  min-width:32px;
+  padding:0;
+  font-size:14px;
+  font-weight:800;
 }
 
 /* Satisfying completion pulse */
@@ -2367,6 +2519,35 @@ input[type="date"]{
       return `${n} / ${u}`;
     }
 
+    const WEEKDAY_LABELS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const WEEKDAY_FULL = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+    function toWeekdayIndex(d){
+      return (d.getDay() + 6) % 7; // Monday=0
+    }
+
+    function normalizeDaysOfWeek(value){
+      return [...new Set(safeArr(value)
+        .map(v => Math.round(Number(v)))
+        .filter(v => Number.isFinite(v) && v >= 0 && v <= 6))]
+        .sort((a,b) => a - b);
+    }
+
+    function normalizeDaysOfMonth(value){
+      return [...new Set(safeArr(value)
+        .map(v => Math.round(Number(v)))
+        .filter(v => Number.isFinite(v) && v >= 1 && v <= 31))]
+        .sort((a,b) => a - b);
+    }
+
+    function normalizeFrequencySchedule(freq){
+      const f = safeObj(freq);
+      return {
+        daysOfWeek: normalizeDaysOfWeek(f.daysOfWeek),
+        daysOfMonth: normalizeDaysOfMonth(f.daysOfMonth)
+      };
+    }
+
     function startOfWeekMonday(d){
       const dd = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0, 0);
       const day = (dd.getDay() + 6) % 7; // Monday=0
@@ -2500,7 +2681,8 @@ input[type="date"]{
           lastCelebratedISO: '',
           soundEnabled: true,
           soundStyle: 'bright',
-          streakBest: {}
+          streakBest: {},
+          loopRanges: {}
         }
       };
 
@@ -2524,6 +2706,7 @@ input[type="date"]{
       if (typeof out.ui.soundEnabled !== 'boolean') out.ui.soundEnabled = true;
       if (!['bright','soft'].includes(out.ui.soundStyle)) out.ui.soundStyle = 'bright';
       if (!out.ui.streakBest || typeof out.ui.streakBest !== 'object') out.ui.streakBest = {};
+      if (!out.ui.loopRanges || typeof out.ui.loopRanges !== 'object') out.ui.loopRanges = {};
       if (!out.ui.wizard || typeof out.ui.wizard !== 'object'){
         out.ui.wizard = { open:false, mode:'create', step:0, draft: blankWizardDraft() };
       } else {
@@ -2550,6 +2733,7 @@ input[type="date"]{
           let target = Number(freq.target);
           if (!Number.isFinite(target) || target <= 0) target = 1;
           target = Math.round(target);
+          const schedule = normalizeFrequencySchedule(freq);
 
           const motivator = safeObj(hh.motivator);
           const design = safeObj(hh.design);
@@ -2597,7 +2781,12 @@ cleanLogs[k] = {
             type,
             description: String(hh.description ?? '').slice(0, 1200),
             startDate: /^\d{4}-\d{2}-\d{2}$/.test(hh.startDate) ? hh.startDate : todayISO(),
-            frequency: { unit, target },
+            frequency: {
+              unit,
+              target,
+              daysOfWeek: schedule.daysOfWeek,
+              daysOfMonth: schedule.daysOfMonth
+            },
             motivator: {
               identity: String(motivator.identity ?? '').slice(0, 220),
               outcome: String(motivator.outcome ?? '').slice(0, 260),
@@ -2896,8 +3085,8 @@ cleanLogs[k] = {
       return target / 30.4375;
     }
 
-    function currentPeriodRange(h){
-      const now = new Date();
+    function currentPeriodRange(h, baseDate = new Date()){
+      const now = baseDate;
       const unit = safeObj(h.frequency).unit;
       if (unit === 'week'){
         const start = startOfWeekMonday(now);
@@ -3019,7 +3208,7 @@ function windowConsistencyPercent(h, days){
       scheduleSave();
     }
 
-    function periodProgress(h){
+function periodProgress(h){
   const f = safeObj(h.frequency);
   const target = Math.max(1, Math.round(Number(f.target) || 1));
   const unit = f.unit === 'week' ? 'week' : f.unit === 'month' ? 'month' : 'day';
@@ -3041,6 +3230,185 @@ function windowConsistencyPercent(h, days){
   const actual = countSuccessInRange(h, start, end);
   const ratio = clamp(actual / target, 0, 1);
   return { target, actual, ratio, label, startISO: toISODate(start) };
+}
+
+function generateEvenlySpacedIndices(totalDays, target){
+  const total = Math.max(1, Math.round(Number(totalDays) || 1));
+  const goal = clamp(Math.round(Number(target) || 1), 1, total);
+  const step = total / goal;
+  const indices = new Set();
+  for (let i = 0; i < goal; i++){
+    let idx = Math.min(total - 1, Math.floor(i * step + step / 2));
+    while (indices.has(idx) && idx < total - 1) idx += 1;
+    indices.add(idx);
+  }
+  return [...indices].sort((a,b) => a - b);
+}
+
+function plannedIndicesForWeek(h){
+  const schedule = normalizeFrequencySchedule(safeObj(h.frequency));
+  if (schedule.daysOfWeek.length){
+    return schedule.daysOfWeek.slice();
+  }
+  const target = Math.max(1, Math.round(Number(safeObj(h.frequency).target) || 1));
+  return generateEvenlySpacedIndices(7, Math.min(target, 7));
+}
+
+function plannedIndicesForMonth(h, monthStart){
+  const schedule = normalizeFrequencySchedule(safeObj(h.frequency));
+  const daysInMonth = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0).getDate();
+  if (schedule.daysOfMonth.length){
+    return schedule.daysOfMonth
+      .map(d => d - 1)
+      .filter(d => d >= 0 && d < daysInMonth)
+      .sort((a,b) => a - b);
+  }
+  const target = Math.max(1, Math.round(Number(safeObj(h.frequency).target) || 1));
+  return generateEvenlySpacedIndices(daysInMonth, Math.min(target, daysInMonth));
+}
+
+function plannedIndicesForRange(h, rangeStart, totalDays, rangeType){
+  const unit = safeObj(h.frequency).unit;
+  if (unit === 'day'){
+    return Array.from({ length: totalDays }, (_, i) => i);
+  }
+  if (unit === 'week'){
+    if (rangeType === 'week'){
+      return plannedIndicesForWeek(h);
+    }
+    // month range: plan per week segment
+    const indices = new Set();
+    const start = rangeStart;
+    for (let i = 0; i < totalDays; i++){
+      const d = addDays(start, i);
+      const weekStart = startOfWeekMonday(d);
+      const weekBase = diffDays(start, weekStart);
+      const plan = plannedIndicesForWeek(h);
+      plan.forEach(idx => {
+        const absolute = weekBase + idx;
+        if (absolute >= 0 && absolute < totalDays) indices.add(absolute);
+      });
+    }
+    return [...indices].sort((a,b) => a - b);
+  }
+  if (unit === 'month'){
+    const monthStart = startOfMonth(rangeStart);
+    const planned = plannedIndicesForMonth(h, monthStart);
+    if (rangeType === 'month'){
+      return planned;
+    }
+    // week range: only include planned days in this week
+    const weekOffset = diffDays(monthStart, rangeStart);
+    return planned.filter(idx => idx >= weekOffset && idx < weekOffset + totalDays).map(idx => idx - weekOffset);
+  }
+  return [];
+}
+
+function isHabitScheduledForDate(h, date){
+  const unit = safeObj(h.frequency).unit;
+  if (unit === 'day') return true;
+  const schedule = normalizeFrequencySchedule(safeObj(h.frequency));
+  if (unit === 'week'){
+    if (!schedule.daysOfWeek.length) return false;
+    const idx = toWeekdayIndex(date);
+    return schedule.daysOfWeek.includes(idx);
+  }
+  if (unit === 'month'){
+    if (!schedule.daysOfMonth.length) return false;
+    const day = date.getDate();
+    return schedule.daysOfMonth.includes(day);
+  }
+  return false;
+}
+
+function remainingInPeriod(h, date){
+  const unit = safeObj(h.frequency).unit;
+  if (unit === 'day'){
+    return { remaining: 0, daysLeft: 0, actual: 0, target: 0 };
+  }
+  const target = Math.max(1, Math.round(Number(safeObj(h.frequency).target) || 1));
+  const range = currentPeriodRange(h, date);
+  const actual = countSuccessInRange(h, range.start, range.end);
+  const remaining = Math.max(0, target - actual);
+  const endDay = addDays(range.end, -1);
+  const todayNoon = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0, 0);
+  const daysLeft = Math.max(0, diffDays(todayNoon, endDay) + 1);
+  return { remaining, daysLeft, actual, target, range };
+}
+
+function isHabitCriticalToday(h, date){
+  const unit = safeObj(h.frequency).unit;
+  if (unit === 'day') return true;
+  const { remaining, daysLeft } = remainingInPeriod(h, date);
+  if (remaining <= 0) return false;
+  return remaining >= daysLeft;
+}
+
+function getHabitDueState(h, iso){
+  const date = parseISODate(iso) || new Date();
+  const unit = safeObj(h.frequency).unit;
+  if (unit === 'day'){
+    return {
+      dueToday: true,
+      dueThisPeriod: true,
+      critical: false,
+      label: 'Due today',
+      className: 'today'
+    };
+  }
+
+  const scheduledToday = isHabitScheduledForDate(h, date);
+  const { remaining } = remainingInPeriod(h, date);
+  const hasSchedule = (unit === 'week')
+    ? normalizeFrequencySchedule(safeObj(h.frequency)).daysOfWeek.length > 0
+    : normalizeFrequencySchedule(safeObj(h.frequency)).daysOfMonth.length > 0;
+  const critical = !hasSchedule && isHabitCriticalToday(h, date);
+  const dueToday = remaining > 0 && (scheduledToday || critical);
+  const dueThisPeriod = remaining > 0;
+
+  if (dueToday){
+    return {
+      dueToday: true,
+      dueThisPeriod: true,
+      critical,
+      label: critical ? 'Critical today' : 'Due today',
+      className: critical ? 'critical' : 'today'
+    };
+  }
+
+  if (dueThisPeriod){
+    return {
+      dueToday: false,
+      dueThisPeriod: true,
+      critical: false,
+      label: unit === 'week' ? 'Due this week' : 'Due this month',
+      className: 'soon'
+    };
+  }
+
+  return {
+    dueToday: false,
+    dueThisPeriod: false,
+    critical: false,
+    label: 'Goal met',
+    className: 'met'
+  };
+}
+
+function getHabitsDueOnDate(habits, iso){
+  const date = parseISODate(iso);
+  if (!date) return [];
+  return safeArr(habits).filter(h => {
+    const unit = safeObj(h.frequency).unit;
+    if (unit === 'day') return true;
+    const { remaining } = remainingInPeriod(h, date);
+    if (remaining <= 0) return false;
+    if (isHabitScheduledForDate(h, date)) return true;
+    const schedule = normalizeFrequencySchedule(safeObj(h.frequency));
+    const hasSchedule = (unit === 'week') ? schedule.daysOfWeek.length : schedule.daysOfMonth.length;
+    if (!hasSchedule && isHabitCriticalToday(h, date)) return true;
+    return false;
+  });
 }
 
 
@@ -3461,7 +3829,7 @@ function renderChartSVG(h, container, rangeKey){
         type: 'positive',
         name: '',
         description: '',
-        frequency: { unit: 'day', target: 1 },
+        frequency: { unit: 'day', target: 1, daysOfWeek: [], daysOfMonth: [] },
         motivator: { identity: '', outcome: '', why: '' },
         design: {
           plan: { ifThen: '', cuePlan: '', twoMinute: '' },
@@ -3565,8 +3933,28 @@ function renderChartSVG(h, container, rangeKey){
       const donePlaceholder = isNegative
         ? 'Define a clear win (e.g., Zero cigarettes today).'
         : 'Define a clear win (e.g., 30 minutes of writing).';
+      const schedule = normalizeFrequencySchedule(draft.frequency || {});
+      const freqUnit = draft.frequency?.unit || 'day';
+      const weekSchedule = WEEKDAY_LABELS.map((label, idx) => `
+        <label class="scheduleChip ${schedule.daysOfWeek.includes(idx) ? 'active' : ''}">
+          <input type="checkbox" data-action="wizardInput" data-field="frequency.daysOfWeek" data-value="${idx}" ${schedule.daysOfWeek.includes(idx) ? 'checked' : ''} />
+          <span>${label}</span>
+        </label>
+      `).join('');
+      const monthSchedule = Array.from({ length: 31 }, (_, i) => {
+        const day = i + 1;
+        const active = schedule.daysOfMonth.includes(day);
+        return `
+          <label class="scheduleChip ${active ? 'active' : ''}">
+            <input type="checkbox" data-action="wizardInput" data-field="frequency.daysOfMonth" data-value="${day}" ${active ? 'checked' : ''} />
+            <span>${day}</span>
+          </label>
+        `;
+      }).join('');
+      const scheduleHint = freqUnit === 'week'
+        ? 'Pick the days this habit is due. Leave blank to get critical-day prompts.'
+        : 'Pick the dates this habit is due. Leave blank to get critical-day prompts.';
    
-
       return `
         <div class="wizard">
           <div class="wizardHeader">
@@ -3610,6 +3998,15 @@ function renderChartSVG(h, container, rangeKey){
                   <div class="help">${escapeHtml(targetHelp)}</div>
                 </div>
               </div>
+              ${freqUnit !== 'day' ? `
+                <div class="schedulePicker" style="margin-top:10px;">
+                  <div class="label">${freqUnit === 'week' ? 'Due days' : 'Due dates'}</div>
+                  <div class="scheduleGrid ${freqUnit === 'month' ? 'month' : ''}">
+                    ${freqUnit === 'week' ? weekSchedule : monthSchedule}
+                  </div>
+                  <div class="help" style="margin-top:6px;">${escapeHtml(scheduleHint)}</div>
+                </div>
+              ` : ''}
               <div class="stepTags" style="margin-top:10px;">
                 <button class="btn ghost small" data-action="wizardSuggestTarget" data-value="1">Start at 1</button>
                 <button class="btn ghost small" data-action="wizardSuggestTarget" data-value="3">Try 3</button>
@@ -3739,13 +4136,27 @@ function renderChartSVG(h, container, rangeKey){
       return tags[step] || '';
     }
 
-    function updateWizardDraft(path, rawValue){
+    function updateWizardDraft(path, rawValue, sourceEl){
       if (!appData.ui?.wizard) return;
       const draft = safeObj(appData.ui.wizard.draft);
       let value = rawValue;
       if (path === 'frequency.target'){
         const n = Math.max(1, Math.round(Number(rawValue || 1)));
         value = Number.isFinite(n) ? n : 1;
+      }
+      if (path === 'frequency.daysOfWeek' || path === 'frequency.daysOfMonth'){
+        const dayValue = Number(sourceEl?.getAttribute('data-value'));
+        if (!Number.isFinite(dayValue)) return;
+        const schedule = normalizeFrequencySchedule(draft.frequency || {});
+        const listKey = path === 'frequency.daysOfWeek' ? 'daysOfWeek' : 'daysOfMonth';
+        const next = new Set(schedule[listKey]);
+        if (rawValue) next.add(dayValue);
+        else next.delete(dayValue);
+        draft.frequency = draft.frequency || {};
+        draft.frequency[listKey] = [...next].sort((a,b) => a - b);
+        appData.ui.wizard.draft = draft;
+        saveData({ toast:false });
+        return;
       }
       setByPath(draft, path, value);
       appData.ui.wizard.draft = draft;
@@ -3838,6 +4249,9 @@ function renderChartSVG(h, container, rangeKey){
       const type = (draft.type === 'negative') ? 'negative' : 'positive';
       const unit = (draft.frequency?.unit === 'week' || draft.frequency?.unit === 'month') ? draft.frequency.unit : 'day';
       const target = Math.max(1, Math.round(Number(draft.frequency?.target || 1)));
+      const schedule = normalizeFrequencySchedule(draft.frequency || {});
+      const daysOfWeek = unit === 'week' ? schedule.daysOfWeek : [];
+      const daysOfMonth = unit === 'month' ? schedule.daysOfMonth : [];
       const desc = String(draft.description || '').trim() || (type === 'negative'
         ? `Reduce or resist: ${name}.`
         : `Complete: ${name}.`);
@@ -3851,7 +4265,7 @@ function renderChartSVG(h, container, rangeKey){
         type,
         description: desc,
         startDate: iso,
-        frequency: { unit, target },
+        frequency: { unit, target, daysOfWeek, daysOfMonth },
         motivator: {
           identity: String(draft.motivator?.identity || '').trim(),
           outcome: String(draft.motivator?.outcome || '').trim(),
@@ -3943,7 +4357,7 @@ function renderChartSVG(h, container, rangeKey){
         type: t.type,
         description: t.desc,
         startDate: todayISO(),
-        frequency: { unit: t.unit, target: t.target },
+        frequency: { unit: t.unit, target: t.target, daysOfWeek: [], daysOfMonth: [] },
         motivator: { identity: t.ident, outcome: t.outcome, why: t.why },
         design: {
           loop: { cue:'', craving:'', response:'', reward:'' },
@@ -3997,7 +4411,7 @@ function renderChartSVG(h, container, rangeKey){
     }
 
     function getCompletionStateForDate(habits, iso){
-      const list = safeArr(habits);
+      const list = getHabitsDueOnDate(habits, iso);
       let doneCount = 0;
       list.forEach(h => {
         if (isHabitDoneOnDate(h, iso)) doneCount += 1;
@@ -4011,7 +4425,7 @@ function renderChartSVG(h, container, rangeKey){
     }
 
     function getTodayCompletionState(habits){
-      const list = safeArr(habits);
+      const list = getHabitsDueOnDate(habits, todayISO());
       const iso = todayISO();
       let doneCount = 0;
 
@@ -4031,12 +4445,14 @@ function renderChartSVG(h, container, rangeKey){
       const habits = safeArr(appData.habits);
       const completion = getTodayCompletionState(habits);
 
-      const allDone = completion.allDone && completion.total > 0;
-      const focusLabel = allDone ? 'Celebrate' : 'Focus';
-      const focusAction = allDone ? 'celebrateDay' : 'openTodayFocus';
-      const completionLine = `${completion.doneCount}/${completion.total} complete`;
+      const hasDue = completion.total > 0;
+      const allDone = completion.allDone && hasDue;
+      const focusLabel = allDone ? 'Celebrate' : (hasDue ? 'Focus' : 'Progress');
+      const focusAction = allDone ? 'celebrateDay' : (hasDue ? 'openTodayFocus' : 'openLoopClosed');
+      const completionLine = hasDue ? `${completion.doneCount}/${completion.total} due` : 'No habits due';
       const ratio = completion.total ? clamp(completion.doneCount / completion.total, 0, 1) : 0;
-      const progressLeft = allDone ? 'All done' : `${completion.remaining} left`;
+      const progressLeft = hasDue ? (allDone ? 'All due done' : `${completion.remaining} left`) : 'Enjoy the calm';
+      const progressCount = hasDue ? `${completion.doneCount}/${completion.total}` : '—';
 
       return `
         <div class="todaySummary ${allDone ? 'done' : ''}">
@@ -4052,7 +4468,7 @@ function renderChartSVG(h, container, rangeKey){
             </div>
           </div>
           <div class="todayProgressRow" aria-label="Today progress">
-            <div class="todayProgressMeta">${completion.doneCount}/${completion.total}</div>
+            <div class="todayProgressMeta">${progressCount}</div>
             <div class="todayMeter" aria-hidden="true">
               <div class="todayMeterFill" style="--p:${ratio.toFixed(3)}"></div>
             </div>
@@ -4088,7 +4504,7 @@ function renderChartSVG(h, container, rangeKey){
     }
 
     function renderTodayFocusBody(){
-      const habits = safeArr(appData.habits);
+      const habits = getHabitsDueOnDate(appData.habits, todayISO());
       const today = todayISO();
       const completion = getTodayCompletionState(habits);
 
@@ -4109,7 +4525,7 @@ function renderChartSVG(h, container, rangeKey){
           if (count <= 0) count = doneToday ? target : 0;
         }
         count = Math.max(0, Math.round(count));
-        const countLabel = unit === 'day' ? `${count}/${target}` : `${count}`;
+        const countLabel = `${count}`;
         const countControls = `
           <div class="countControls" role="group" aria-label="Adjust today count">
             <button class="btn ghost small" data-action="adjustCount" data-habit="${escapeHtml(h.id)}" data-delta="-1" aria-label="Decrease count">−</button>
@@ -4117,6 +4533,8 @@ function renderChartSVG(h, container, rangeKey){
             <button class="btn ghost small" data-action="adjustCount" data-habit="${escapeHtml(h.id)}" data-delta="1" aria-label="Increase count">+</button>
           </div>
         `;
+
+        const dueState = getHabitDueState(h, today);
 
         return `
           <div
@@ -4134,6 +4552,7 @@ function renderChartSVG(h, container, rangeKey){
                 <div class="focusTitle nowrapEllip">${escapeHtml(h.name || 'Untitled habit')}</div>
                 <div class="focusMeta">
                   ${escapeHtml(formatUnit(h.frequency.unit, h.frequency.target))} • ${escapeHtml(s.labelRight)}
+                  <span class="dueTag ${escapeHtml(dueState.className)}">${escapeHtml(dueState.label)}</span>
                 </div>
                 ${hint ? `<div class="focusHint">${hint}</div>` : ''}
               </div>
@@ -4160,9 +4579,9 @@ function renderChartSVG(h, container, rangeKey){
 
       return `
         <div class="muted small" style="margin-bottom:8px;">
-          Quick check-in. No shame. If you miss, it’s data.
+          Quick check-in. Focus on what’s due today.
         </div>
-        <div id="todayFocusList">${rows || '<div class="panel"><div class="muted small">No habits yet.</div></div>'}</div>
+        <div id="todayFocusList">${rows || '<div class="panel"><div class="muted small">No habits due today. Take a calm breath or log ahead if you like.</div></div>'}</div>
         ${doneCard}
       `;
     }
@@ -4175,26 +4594,93 @@ function renderChartSVG(h, container, rangeKey){
       );
     }
 
-    function celebrateDay(){
+    function getLoopRange(habitId){
+      appData.ui = safeObj(appData.ui);
+      appData.ui.loopRanges = safeObj(appData.ui.loopRanges);
+      return appData.ui.loopRanges[habitId] === 'month' ? 'month' : 'week';
+    }
+
+    function setLoopRange(habitId, range){
+      appData.ui = safeObj(appData.ui);
+      appData.ui.loopRanges = safeObj(appData.ui.loopRanges);
+      appData.ui.loopRanges[habitId] = range === 'month' ? 'month' : 'week';
+      saveData({ toast:false });
+    }
+
+    function renderLoopHabitDays(h, range){
+      const now = new Date();
+      const start = range === 'month' ? startOfMonth(now) : startOfWeekMonday(now);
+      const totalDays = range === 'month'
+        ? new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate()
+        : 7;
+      const planned = plannedIndicesForRange(h, start, totalDays, range);
+      const logs = safeObj(h.logs);
+      const succ = successStatusForType(h.type);
+      const todayNoon = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0, 0);
+
+      const cells = Array.from({ length: totalDays }, (_, i) => {
+        const d = addDays(start, i);
+        const iso = toISODate(d);
+        const isSuccess = String(logs?.[iso]?.status || '').toLowerCase() === succ;
+        const isPlanned = planned.includes(i);
+        const isPast = d <= todayNoon;
+
+        let cls = 'pending';
+        if (isSuccess) cls = 'complete';
+        else if (isPlanned && isPast) cls = 'miss';
+
+        const label = range === 'month' ? String(i + 1) : WEEKDAY_LABELS[i];
+        return `<div class="loopDay ${cls}" title="${escapeHtml(iso)}">${escapeHtml(label)}</div>`;
+      }).join('');
+
+      return `<div class="loopHabitDays ${range}">${cells}</div>`;
+    }
+
+    function renderLoopClosedGoals(habits){
+      const today = todayISO();
+      const dailyHabits = habits.filter(h => safeObj(h.frequency).unit === 'day');
+      const weeklyHabits = habits.filter(h => safeObj(h.frequency).unit === 'week');
+      const monthlyHabits = habits.filter(h => safeObj(h.frequency).unit === 'month');
+
+      const dailyDone = dailyHabits.length && dailyHabits.every(h => isHabitDoneOnDate(h, today));
+      const weeklyDone = weeklyHabits.length && weeklyHabits.every(h => {
+        const prog = periodProgress(h);
+        return prog.actual >= prog.target;
+      });
+      const monthlyDone = monthlyHabits.length && monthlyHabits.every(h => {
+        const prog = periodProgress(h);
+        return prog.actual >= prog.target;
+      });
+
+      const renderGoal = (label, done, hasAny) => `
+        <div class="panel" style="margin-bottom:8px;">
+          <div style="font-weight:800; display:flex; justify-content:space-between; align-items:center;">
+            <span>${escapeHtml(label)}</span>
+            <span class="tag ${done ? 'good' : 'muted'}">${hasAny ? (done ? 'Completed' : 'In progress') : 'No habits'}</span>
+          </div>
+        </div>
+      `;
+
+      return `
+        <div class="panel">
+          <div class="sectionTitle" style="margin-bottom:8px;">Goal awards</div>
+          ${renderGoal('Daily goals', dailyDone, dailyHabits.length > 0)}
+          ${renderGoal('Weekly goals', weeklyDone, weeklyHabits.length > 0)}
+          ${renderGoal('Monthly goals', monthlyDone, monthlyHabits.length > 0)}
+        </div>
+      `;
+    }
+
+    function openLoopClosedModal({ celebrate = false } = {}){
       const habits = safeArr(appData.habits);
       const completion = getTodayCompletionState(habits);
-      if (!completion.total) return;
       const quote = getCelebrateQuote();
-      const weekStart = startOfWeekMonday(new Date());
-      const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-      const weekCells = weekDays.map(d => {
-        const iso = toISODate(d);
-        const state = getCompletionStateForDate(habits, iso);
-        const label = d.toLocaleDateString(undefined, { weekday: 'short' });
-        const dateLabel = d.toLocaleDateString(undefined, { month:'short', day:'numeric' });
-        return {
-          iso,
-          label,
-          dateLabel,
-          complete: state.allDone
-        };
-      });
-      const fullDays = weekCells.filter(c => c.complete).length;
+      const headerTitle = completion.allDone && completion.total > 0
+        ? 'You closed the loop today.'
+        : 'Collective progress snapshot';
+      const headerSubtitle = completion.total > 0
+        ? `${completion.doneCount} of ${completion.total} due habits completed today.`
+        : 'No habits are due today. Use this space to see overall progress.';
 
       const streakCards = habits.map(h => {
         const current = currentDailyStreak(h);
@@ -4215,12 +4701,23 @@ function renderChartSVG(h, container, rangeKey){
         `;
       }).join('');
 
-      const weekStrip = weekCells.map(cell => `
-        <div class="weekDay ${cell.complete ? 'complete' : ''}">
-          <div class="wkLabel">${escapeHtml(cell.label)}</div>
-          <div class="wkDate">${escapeHtml(cell.dateLabel)}</div>
+      const habitCards = habits.map(h => {
+        const range = getLoopRange(h.id);
+        const rangeLabel = range === 'month' ? 'Monthly view' : 'Weekly view';
+        return `
+          <div class="loopHabitCard" data-loop-habit="${escapeHtml(h.id)}" data-loop-range="${escapeHtml(range)}">
+            <div class="loopHabitTop">
+              <div>
+                <div class="loopHabitName">${escapeHtml(h.name || 'Untitled habit')}</div>
+            <div class="loopHabitMeta">${escapeHtml(formatUnit(h.frequency.unit, h.frequency.target))}</div>
+          </div>
+          <button class="btn ghost loopToggle" data-action="toggleLoopRange" data-habit="${escapeHtml(h.id)}" aria-label="Toggle to ${range === 'month' ? 'weekly' : 'monthly'} view">${range === 'month' ? '🗓' : '📅'}</button>
         </div>
-      `).join('');
+        <div class="loopHabitRange" style="margin-top:4px; font-size:11px; color: var(--muted2);">${escapeHtml(rangeLabel)}</div>
+        ${renderLoopHabitDays(h, range)}
+      </div>
+    `;
+      }).join('');
 
       openModal(
         'Loop closed',
@@ -4228,14 +4725,16 @@ function renderChartSVG(h, container, rangeKey){
           <div class="celebrateWrap">
             <div class="panel celebrateCard">
               <div class="celebrateHero">
-                <div class="title">You closed the loop today.</div>
-                <div class="subtitle">${completion.doneCount} of ${completion.total} habits completed. You showed up for yourself.</div>
+                <div class="title">${escapeHtml(headerTitle)}</div>
+                <div class="subtitle">${escapeHtml(headerSubtitle)}</div>
               </div>
               <div class="summaryAction" style="margin-top:12px;">
                 <div class="summaryLabel">Encouragement</div>
                 <div class="summaryValue">${escapeHtml(quote)}</div>
               </div>
             </div>
+
+            ${renderLoopClosedGoals(habits)}
 
             <div class="panel">
               <div class="sectionTitle" style="margin-bottom:8px;">Streak momentum</div>
@@ -4245,10 +4744,9 @@ function renderChartSVG(h, container, rangeKey){
             </div>
 
             <div class="panel">
-              <div class="sectionTitle" style="margin-bottom:8px;">Fully completed days this week</div>
-              <div class="weekStrip">${weekStrip}</div>
-              <div class="muted tiny" style="margin-top:8px;">
-                ${escapeHtml(String(fullDays))} full-completion day${fullDays === 1 ? '' : 's'} so far this week.
+              <div class="sectionTitle" style="margin-bottom:8px;">Habit day-by-day</div>
+              <div class="loopHabitList">
+                ${habitCards || '<div class="muted small">No habits yet.</div>'}
               </div>
             </div>
           </div>
@@ -4256,16 +4754,24 @@ function renderChartSVG(h, container, rangeKey){
         `<button class="btn primary" data-action="closeModal">Close</button>`
       );
 
-      document.querySelectorAll('.celebrateOverlay').forEach(el => el.remove());
-      const overlay = document.createElement('div');
-      overlay.className = 'celebrateOverlay';
-      document.body.appendChild(overlay);
-      overlay.addEventListener('animationend', () => overlay.remove(), { once: true });
+      if (celebrate){
+        document.querySelectorAll('.celebrateOverlay').forEach(el => el.remove());
+        const overlay = document.createElement('div');
+        overlay.className = 'celebrateOverlay';
+        document.body.appendChild(overlay);
+        overlay.addEventListener('animationend', () => overlay.remove(), { once: true });
+      }
+    }
+
+    function celebrateDay(){
+      const completion = getTodayCompletionState(appData.habits);
+      if (!completion.total || !completion.allDone) return;
+      openLoopClosedModal({ celebrate: true });
     }
 
     function maybeCelebrateDay(){
       const completion = getTodayCompletionState(appData.habits);
-      if (!completion.allDone) return;
+      if (!completion.allDone || completion.total === 0) return;
       const iso = todayISO();
       appData.ui = safeObj(appData.ui);
       if (appData.ui.lastCelebratedISO === iso) return;
@@ -4282,6 +4788,8 @@ function renderChartSVG(h, container, rangeKey){
 
     function renderReviewNudge(){
       const weekISO = getReviewWeekISO();
+      const today = new Date();
+      if (today.getDay() !== 0) return '';
       if (isReviewComplete(weekISO)) return '';
 
       appData.ui = safeObj(appData.ui);
@@ -4365,6 +4873,10 @@ function renderChartSVG(h, container, rangeKey){
                 <p class="hTitle">Habits</p>
               </div>
               <div class="right">
+                <button class="btn small ghost iconButton" data-action="openLoopClosed" aria-label="Open loop closed summary" title="Loop closed summary">
+                  <span aria-hidden="true">✨</span>
+                  <span class="sr-only">Loop closed summary</span>
+                </button>
                 <button class="btn small ghost iconButton" data-action="toggleSound" data-sound-icon="true" aria-pressed="${soundOn ? 'true' : 'false'}" aria-label="${soundLabel}" title="${soundLabel}">
                   <span aria-hidden="true">${soundOn ? '🔊' : '🔇'}</span>
                   <span class="sr-only">${soundLabel}</span>
@@ -4393,6 +4905,7 @@ function renderChartSVG(h, container, rangeKey){
 
       root.innerHTML = createHtml;
       cleanupSubtabArtifacts();
+      updateCreateScheduleUI();
 
       // After render, hydrate charts for any open habits (details open)
       hydrateVisibleCharts();
@@ -4458,6 +4971,30 @@ function renderCreateForm(){
                 <input id="c_target" type="number" min="1" step="1" value="1" inputmode="numeric" />
               </div>
             </div>
+            <div class="schedulePicker" id="createWeekSchedule" hidden>
+              <div class="label">Due days (optional)</div>
+              <div class="scheduleGrid">
+                ${WEEKDAY_LABELS.map((label, idx) => `
+                  <label class="scheduleChip">
+                    <input type="checkbox" data-create-schedule="week" data-value="${idx}" />
+                    <span>${label}</span>
+                  </label>
+                `).join('')}
+              </div>
+              <div class="help" style="margin-top:6px;">Leave blank to get critical-day prompts.</div>
+            </div>
+            <div class="schedulePicker" id="createMonthSchedule" hidden>
+              <div class="label">Due dates (optional)</div>
+              <div class="scheduleGrid month">
+                ${Array.from({ length: 31 }, (_, i) => `
+                  <label class="scheduleChip">
+                    <input type="checkbox" data-create-schedule="month" data-value="${i + 1}" />
+                    <span>${i + 1}</span>
+                  </label>
+                `).join('')}
+              </div>
+              <div class="help" style="margin-top:6px;">Leave blank to get critical-day prompts.</div>
+            </div>
           </div>
 
           <div class="panel">
@@ -4482,6 +5019,14 @@ function renderCreateForm(){
           </div>
         </div>
       `;
+    }
+
+    function updateCreateScheduleUI(){
+      const unit = ($('#c_unit')?.value || 'day').trim();
+      const week = $('#createWeekSchedule');
+      const month = $('#createMonthSchedule');
+      if (week) week.hidden = unit !== 'week';
+      if (month) month.hidden = unit !== 'month';
     }
 
 function dashboardState(h){
@@ -4889,6 +5434,16 @@ function renderHabitList(){
 
   const today = todayISO();
   const sortedHabits = habits.slice().sort((a, b) => {
+    const aState = getHabitDueState(a, today);
+    const bState = getHabitDueState(b, today);
+    const aPriority = aState.dueToday ? 2 : (aState.dueThisPeriod ? 1 : 0);
+    const bPriority = bState.dueToday ? 2 : (bState.dueThisPeriod ? 1 : 0);
+    if (aPriority !== bPriority) return bPriority - aPriority;
+    if (aState.critical !== bState.critical) return aState.critical ? -1 : 1;
+    const unitRank = (unit) => unit === 'day' ? 0 : unit === 'week' ? 1 : 2;
+    const au = unitRank(safeObj(a.frequency).unit);
+    const bu = unitRank(safeObj(b.frequency).unit);
+    if (au !== bu) return au - bu;
     const aDone = isHabitDoneOnDate(a, today);
     const bDone = isHabitDoneOnDate(b, today);
     if (aDone !== bDone) return aDone ? 1 : -1;
@@ -4904,6 +5459,7 @@ function renderHabitList(){
     const typeLabel = isNeg ? 'Negative' : 'Positive';
     const freqTxt = formatUnit(h.frequency.unit, h.frequency.target);
     const s = dashboardState(h);
+    const dueState = getHabitDueState(h, today);
     const isDone = isHabitDoneOnDate(h, today);
     const statusIcon = isDone ? '✓' : '○';
 
@@ -4915,6 +5471,7 @@ function renderHabitList(){
               <div class="habitName" data-sum="name" data-habit="${escapeHtml(h.id)}">${escapeHtml(h.name || 'Untitled habit')}</div>
               <span class="tag ${tagClass}">${typeLabel}</span>
               <span class="tag muted" data-sum="freq" data-habit="${escapeHtml(h.id)}">${escapeHtml(freqTxt)}</span>
+              <span class="dueTag ${escapeHtml(dueState.className)}" data-sum="due" data-habit="${escapeHtml(h.id)}">${escapeHtml(dueState.label)}</span>
             </div>
             <div class="habitDesc" data-sum="desc" data-habit="${escapeHtml(h.id)}">${escapeHtml(h.description || '')}</div>
           </div>
@@ -5108,6 +5665,7 @@ function renderHabitEditPanel(h){
   const unit = (f.unit === 'week' || f.unit === 'month') ? f.unit : 'day';
   const target = Math.max(1, Math.round(Number(f.target) || 1));
   const m = safeObj(h.motivator);
+  const schedule = normalizeFrequencySchedule(f);
 
   return `
     <div class="panel" style="border:none; background:transparent; padding:0;">
@@ -5167,6 +5725,36 @@ function renderHabitEditPanel(h){
             data-habit="${escapeHtml(h.id)}"
             value="${escapeHtml(String(target))}" />
         </div>
+      </div>
+
+      <div class="schedulePicker" id="edit-${escapeHtml(h.id)}-week" ${unit === 'week' ? '' : 'hidden'}>
+        <div class="label">Due days (optional)</div>
+        <div class="scheduleGrid">
+          ${WEEKDAY_LABELS.map((label, idx) => `
+            <label class="scheduleChip ${schedule.daysOfWeek.includes(idx) ? 'active' : ''}">
+              <input type="checkbox" data-bind="frequency.daysOfWeek" data-habit="${escapeHtml(h.id)}" data-value="${idx}" ${schedule.daysOfWeek.includes(idx) ? 'checked' : ''} />
+              <span>${label}</span>
+            </label>
+          `).join('')}
+        </div>
+        <div class="help" style="margin-top:6px;">Leave blank to use critical-day prompts.</div>
+      </div>
+
+      <div class="schedulePicker" id="edit-${escapeHtml(h.id)}-month" ${unit === 'month' ? '' : 'hidden'}>
+        <div class="label">Due dates (optional)</div>
+        <div class="scheduleGrid month">
+          ${Array.from({ length: 31 }, (_, i) => {
+            const day = i + 1;
+            const active = schedule.daysOfMonth.includes(day);
+            return `
+              <label class="scheduleChip ${active ? 'active' : ''}">
+                <input type="checkbox" data-bind="frequency.daysOfMonth" data-habit="${escapeHtml(h.id)}" data-value="${day}" ${active ? 'checked' : ''} />
+                <span>${day}</span>
+              </label>
+            `;
+          }).join('')}
+        </div>
+        <div class="help" style="margin-top:6px;">Leave blank to use critical-day prompts.</div>
       </div>
 
       <div class="panel" style="margin-top:14px;">
@@ -5305,6 +5893,13 @@ function updateHabitHeader(habitId){
   const freqEls = document.querySelectorAll(`[data-sum="freq"][data-habit="${cssEscape(habitId)}"]`);
   freqEls.forEach(el => { el.textContent = formatUnit(h.frequency.unit, h.frequency.target); });
 
+  const dueEls = document.querySelectorAll(`[data-sum="due"][data-habit="${cssEscape(habitId)}"]`);
+  const dueState = getHabitDueState(h, todayISO());
+  dueEls.forEach(el => {
+    el.textContent = dueState.label;
+    el.className = `dueTag ${dueState.className}`;
+  });
+
   const dashBtn = document.querySelector(`button[data-action="dashToggle"][data-habit="${cssEscape(habitId)}"]`);
   if (dashBtn) dashBtn.setAttribute('aria-label', `Mark ${h.name || 'habit'} for today`);
   const card = document.querySelector(`.habitItem[data-action="dashToggleCard"][data-habit="${cssEscape(habitId)}"]`);
@@ -5431,6 +6026,16 @@ function updateHabitHeader(habitId){
         </div>
       `;
     }
+
+function updateHabitScheduleUI(habitId){
+  const h = getHabit(habitId);
+  if (!h) return;
+  const unit = safeObj(h.frequency).unit;
+  const week = document.getElementById(`edit-${habitId}-week`);
+  const month = document.getElementById(`edit-${habitId}-month`);
+  if (week) week.hidden = unit !== 'week';
+  if (month) month.hidden = unit !== 'month';
+}
 
 function renderHabitInsightsPanel(h){
 const rk = getInsightRangeKey(h.id);
@@ -6171,6 +6776,11 @@ function ensureDefaultLogsUpToToday(){
           el.value = '';
         }
       });
+      document.querySelectorAll('[data-create-schedule]').forEach(el => {
+        if (el instanceof HTMLInputElement) el.checked = false;
+        el.closest('.scheduleChip')?.classList.remove('active');
+      });
+      updateCreateScheduleUI();
       const err = $('#createErr');
       if (err) err.innerHTML = '';
     }
@@ -6199,6 +6809,14 @@ function ensureDefaultLogsUpToToday(){
       const ident = ($('#c_ident')?.value || '').trim();
       const outcome = ($('#c_outcome')?.value || '').trim();
       const why = ($('#c_why')?.value || '').trim();
+      const weekDays = normalizeDaysOfWeek(
+        Array.from(document.querySelectorAll('[data-create-schedule="week"]:checked'))
+          .map(el => Number(el.getAttribute('data-value')))
+      );
+      const monthDays = normalizeDaysOfMonth(
+        Array.from(document.querySelectorAll('[data-create-schedule="month"]:checked'))
+          .map(el => Number(el.getAttribute('data-value')))
+      );
 
       const errors = [];
 
@@ -6211,7 +6829,23 @@ function ensureDefaultLogsUpToToday(){
 
       if (!ident) errors.push('Identity is required.');
 
-      return { ok: errors.length === 0, errors, value: { name, type, desc, start, unit, target: Math.round(target), ident, outcome, why } };
+      return {
+        ok: errors.length === 0,
+        errors,
+        value: {
+          name,
+          type,
+          desc,
+          start,
+          unit,
+          target: Math.round(target),
+          ident,
+          outcome,
+          why,
+          daysOfWeek: weekDays,
+          daysOfMonth: monthDays
+        }
+      };
     }
 
     function createHabitFromForm(){
@@ -6236,13 +6870,20 @@ function ensureDefaultLogsUpToToday(){
       if (!x.desc) x.desc = defaults.desc;
       if (!x.outcome) x.outcome = defaults.outcome;
       if (!x.why) x.why = defaults.why;
+      const daysOfWeek = x.unit === 'week' ? normalizeDaysOfWeek(x.daysOfWeek) : [];
+      const daysOfMonth = x.unit === 'month' ? normalizeDaysOfMonth(x.daysOfMonth) : [];
       const habit = {
         id: uid(),
         name: x.name,
         type: x.type,
         description: x.desc,
         startDate: x.start,
-        frequency: { unit: x.unit, target: x.target },
+        frequency: {
+          unit: x.unit,
+          target: x.target,
+          daysOfWeek,
+          daysOfMonth
+        },
         motivator: { identity: x.ident, outcome: x.outcome, why: x.why },
         design: {
           loop: { cue:'', craving:'', response:'', reward:'' },
@@ -6771,7 +7412,7 @@ if (path === 'description'){
   val = trimmed;
 }
 
-if (path === 'startDate'){
+      if (path === 'startDate'){
   const s = String(val || '').trim();
   if (!parseISODate(s)){
     el.value = h.startDate || todayISO();
@@ -6779,6 +7420,27 @@ if (path === 'startDate'){
   }
   val = s;
 }
+
+      if (path === 'frequency.daysOfWeek' || path === 'frequency.daysOfMonth'){
+        const dayValue = Number(el.getAttribute('data-value'));
+        if (!Number.isFinite(dayValue)) return;
+        const schedule = normalizeFrequencySchedule(h.frequency);
+        const listKey = path === 'frequency.daysOfWeek' ? 'daysOfWeek' : 'daysOfMonth';
+        const next = new Set(schedule[listKey]);
+        if (val) next.add(dayValue);
+        else next.delete(dayValue);
+        h.frequency = safeObj(h.frequency);
+        h.frequency[listKey] = [...next].sort((a,b) => a - b);
+        h.updatedAt = new Date().toISOString();
+        scheduleSave();
+        updateHabitHeader(habitId);
+        refreshHabitList();
+        updateTodayCard();
+        if ($('#modal').classList.contains('active') && isTodayFocusOpen()){
+          $('#modalBody').innerHTML = renderTodayFocusBody();
+        }
+        return;
+      }
 
 
       // special cases: frequency target numeric
@@ -6808,6 +7470,8 @@ if (path === 'frequency.target' || path === 'frequency.unit'){
   h.updatedAt = new Date().toISOString();
   scheduleSave();
   updateDashboardQuick(habitId);
+  refreshHabitList();
+  updateHabitScheduleUI(habitId);
 }
 
 // Refresh the expanded visuals when core settings change
@@ -7098,6 +7762,33 @@ if (action === 'celebrateDay'){
   return;
 }
 
+if (action === 'openLoopClosed'){
+  e.preventDefault();
+  openLoopClosedModal({ celebrate: false });
+  return;
+}
+
+if (action === 'toggleLoopRange'){
+  e.preventDefault();
+  const hid = btn.getAttribute('data-habit');
+  if (!hid) return;
+  const current = getLoopRange(hid);
+  const next = current === 'month' ? 'week' : 'month';
+  setLoopRange(hid, next);
+  const card = document.querySelector(`.loopHabitCard[data-loop-habit="${cssEscape(hid)}"]`);
+  if (card){
+    card.setAttribute('data-loop-range', next);
+    const days = renderLoopHabitDays(getHabit(hid), next);
+    const existing = card.querySelector('.loopHabitDays');
+    if (existing) existing.outerHTML = days;
+    const rangeLabel = card.querySelector('.loopHabitRange');
+    if (rangeLabel) rangeLabel.textContent = next === 'month' ? 'Monthly view' : 'Weekly view';
+  }
+  btn.textContent = next === 'month' ? '🗓' : '📅';
+  btn.setAttribute('aria-label', `Toggle to ${next === 'month' ? 'weekly' : 'monthly'} view`);
+  return;
+}
+
 if (action === 'createTemplate'){
   e.preventDefault();
   const key = btn.getAttribute('data-template');
@@ -7359,7 +8050,20 @@ if (action === 'removeFrictionItem'){
       if (el.getAttribute('data-action') === 'wizardInput'){
         const field = el.getAttribute('data-field');
         if (!field) return;
-        updateWizardDraft(field, el.value);
+        const value = (el instanceof HTMLInputElement && el.type === 'checkbox') ? el.checked : el.value;
+        updateWizardDraft(field, value, el);
+        if (el.closest('.scheduleChip')){
+          el.closest('.scheduleChip')?.classList.toggle('active', !!value);
+        }
+        if (field === 'frequency.unit'){
+          renderWizardModal();
+        }
+        return;
+      }
+
+      if (el.hasAttribute('data-create-schedule')){
+        const checked = (el instanceof HTMLInputElement && el.type === 'checkbox') ? el.checked : false;
+        el.closest('.scheduleChip')?.classList.toggle('active', checked);
         return;
       }
 
@@ -7370,6 +8074,10 @@ if (action === 'removeFrictionItem'){
 
       if (el.hasAttribute('data-bind')){
         handleBoundInput(el);
+        if (el.closest('.scheduleChip')){
+          const checked = (el instanceof HTMLInputElement && el.type === 'checkbox') ? el.checked : false;
+          el.closest('.scheduleChip')?.classList.toggle('active', checked);
+        }
         return;
       }
 
@@ -7391,7 +8099,11 @@ if (action === 'removeFrictionItem'){
       if (el.getAttribute('data-action') === 'wizardInput'){
         const field = el.getAttribute('data-field');
         if (!field) return;
-        updateWizardDraft(field, el.value);
+        const value = (el instanceof HTMLInputElement && el.type === 'checkbox') ? el.checked : el.value;
+        updateWizardDraft(field, value, el);
+      }
+      if (el.id === 'c_unit'){
+        updateCreateScheduleUI();
       }
     });
 
