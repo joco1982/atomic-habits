@@ -10,14 +10,14 @@
   <style>
     :root {
       color-scheme: light;
-      --bg: #f6f7fb;
+      --bg: #f1f3f4;
       --card: #ffffff;
-      --text: #1f1f1f;
+      --text: #202124;
       --muted: #5f6368;
       --accent: #1a73e8;
-      --border: #e1e3ea;
-      --shadow: 0 6px 20px rgba(32, 33, 36, 0.08);
-      --radius: 16px;
+      --border: #e0e0e0;
+      --shadow: 0 2px 8px rgba(32, 33, 36, 0.18);
+      --radius: 12px;
     }
 
     * {
@@ -29,143 +29,131 @@
       font-family: "Roboto", system-ui, -apple-system, sans-serif;
       background: var(--bg);
       color: var(--text);
+      min-height: 100vh;
     }
 
-    .app {
-      max-width: 960px;
+    button {
+      font-family: inherit;
+    }
+
+    .app-shell {
+      max-width: 520px;
       margin: 0 auto;
-      padding: 24px 20px 48px;
+      padding: 14px 16px 90px;
     }
 
-    .app-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .app-header h1 {
-      margin: 0;
-      font-size: 28px;
-      font-weight: 700;
-    }
-
-    .eyebrow {
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      font-size: 11px;
-      color: var(--muted);
-      margin: 0 0 6px;
-    }
-
-    .subtle {
-      color: var(--muted);
-      font-size: 14px;
-      margin: 6px 0 0;
-    }
-
-    .profile-chip {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: #e8f0fe;
-      color: var(--accent);
-      display: grid;
-      place-items: center;
-      font-weight: 700;
-    }
-
-    .quick-actions {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-
-    .action-pill {
-      border: 1px solid var(--border);
-      background: var(--card);
-      border-radius: 999px;
-      padding: 12px 16px;
+    .top-bar {
       display: flex;
       align-items: center;
       gap: 10px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      box-shadow: var(--shadow);
+      padding: 6px 4px 18px;
     }
 
-    .action-pill .icon {
-      width: 28px;
-      height: 28px;
+    .top-bar h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .icon-button {
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
-      background: #e8f0fe;
+      border: none;
+      background: transparent;
       display: grid;
       place-items: center;
-      color: var(--accent);
-      font-size: 16px;
+      color: var(--muted);
+      font-size: 18px;
+      cursor: pointer;
     }
 
-    .card {
+    .icon-button:hover {
+      background: rgba(60, 64, 67, 0.08);
+    }
+
+    .profile-chip {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #e8f0fe;
+      color: var(--accent);
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .task-card {
       background: var(--card);
-      border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      margin-bottom: 20px;
+      padding: 12px 0 8px;
     }
 
-    .card-header {
+    .task-card-header {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: 20px;
+      justify-content: space-between;
+      padding: 0 16px 10px;
       border-bottom: 1px solid var(--border);
     }
 
-    .card-header h2 {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 600;
+    .list-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 16px;
+      font-weight: 500;
     }
 
-    .card-body {
-      padding: 16px 20px 20px;
+    .add-task-row {
+      width: 100%;
+      border: none;
+      background: transparent;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .add-task-row .plus {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .task-items {
+      padding: 6px 16px 8px;
       display: grid;
       gap: 12px;
     }
 
-    .progress-ring {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      border: 6px solid #e8f0fe;
+    .task-item {
       display: grid;
-      place-items: center;
-      color: var(--accent);
-      font-weight: 700;
-    }
-
-    .habit-item {
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      gap: 14px;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .habit-item:last-child {
-      border-bottom: none;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: start;
     }
 
     .check-button {
-      width: 28px;
-      height: 28px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
-      border: 2px solid var(--border);
+      border: 2px solid #9aa0a6;
       background: #fff;
       cursor: pointer;
+      margin-top: 2px;
     }
 
     .check-button.is-complete {
@@ -179,76 +167,43 @@
       position: absolute;
       inset: 0;
       color: #fff;
-      font-size: 16px;
+      font-size: 12px;
       display: grid;
       place-items: center;
     }
 
-    .habit-main h3 {
+    .task-main h3 {
       margin: 0;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 500;
+      color: var(--text);
     }
 
-    .habit-meta {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+    .task-meta {
+      margin-top: 4px;
       font-size: 12px;
       color: var(--muted);
     }
 
-    .habit-actions {
-      display: flex;
-      gap: 8px;
-    }
-
-    .habit-actions button {
-      border: 1px solid var(--border);
-      background: #fff;
-      border-radius: 10px;
-      padding: 6px 10px;
-      font-size: 12px;
-      cursor: pointer;
-    }
-
-    .badge {
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: #e8f0fe;
-      color: var(--accent);
-      font-size: 11px;
-    }
-
-    .analytics-grid {
-      display: grid;
-      gap: 12px;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    }
-
-    .analytics-card {
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 12px 14px;
-      background: #f8f9ff;
-    }
-
-    .analytics-card h4 {
-      margin: 0 0 8px;
-      font-size: 14px;
-    }
-
-    .analytics-card p {
-      margin: 0;
+    .empty-state {
       font-size: 13px;
       color: var(--muted);
+      padding: 8px 0 6px;
     }
 
-    .toggle {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-top: 12px;
+    .fab {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-size: 28px;
+      box-shadow: 0 6px 16px rgba(26, 115, 232, 0.35);
+      cursor: pointer;
     }
 
     .habit-dialog {
@@ -324,126 +279,45 @@
     }
 
     @media (max-width: 640px) {
-      .app {
-        padding: 16px 14px 36px;
+      .app-shell {
+        padding: 12px 12px 90px;
       }
 
-      .card-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-      }
-
-      .habit-item {
-        grid-template-columns: auto 1fr;
-      }
-
-      .habit-actions {
-        width: 100%;
-        justify-content: flex-end;
+      .top-bar {
+        padding-bottom: 12px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <header class="app-header">
-      <div>
-        <p class="eyebrow">Today</p>
-        <h1>Habits</h1>
-        <p class="subtle" id="dateLabel"></p>
-      </div>
+  <div class="app-shell">
+    <header class="top-bar">
+      <button class="icon-button" aria-label="Open menu">☰</button>
+      <h1>Habits</h1>
+      <button class="icon-button" aria-label="List options">≡</button>
+      <button class="icon-button" aria-label="More options">⋮</button>
       <div class="profile-chip" aria-hidden="true">HF</div>
     </header>
 
     <main>
-      <section class="quick-actions" aria-label="Habit actions">
-        <button class="action-pill" data-action="open-create">
-          <span class="icon">＋</span>
-          <span>New habit</span>
+      <section class="task-card" aria-label="Tasks list">
+        <div class="task-card-header">
+          <div class="list-title">
+            <span>My tasks</span>
+            <button class="icon-button" aria-label="Select list">▾</button>
+          </div>
+          <button class="icon-button" aria-label="List settings">⋮</button>
+        </div>
+        <button class="add-task-row" data-action="open-create" aria-label="Add a task">
+          <span class="plus">+</span>
+          <span>Add a task</span>
         </button>
-        <button class="action-pill" data-action="show-streaks">
-          <span class="icon">🔥</span>
-          <span>Streaks</span>
-        </button>
-        <button class="action-pill" data-action="show-schedule">
-          <span class="icon">🗓️</span>
-          <span>Schedule</span>
-        </button>
-        <button class="action-pill" data-action="show-reminders">
-          <span class="icon">🔔</span>
-          <span>Reminders</span>
-        </button>
-        <button class="action-pill" data-action="show-analytics">
-          <span class="icon">📈</span>
-          <span>Analytics</span>
-        </button>
-      </section>
-
-      <section class="card" aria-labelledby="todayTitle">
-        <div class="card-header">
-          <div>
-            <h2 id="todayTitle">Today</h2>
-            <p class="subtle" id="todaySummary"></p>
-          </div>
-          <div class="progress-ring" aria-hidden="true">
-            <span id="todayProgress">0%</span>
-          </div>
-        </div>
-        <div class="card-body" id="todayList"></div>
-      </section>
-
-      <section class="card" aria-labelledby="habitsTitle">
-        <div class="card-header">
-          <div>
-            <h2 id="habitsTitle">All habits</h2>
-            <p class="subtle" id="habitCount"></p>
-          </div>
-        </div>
-        <div class="card-body" id="habitList"></div>
-      </section>
-
-      <section class="card" id="panel-streaks" hidden>
-        <div class="card-header">
-          <div>
-            <h2>Streaks</h2>
-            <p class="subtle">Consecutive completions for each habit.</p>
-          </div>
-        </div>
-        <div class="card-body" id="streakList"></div>
-      </section>
-
-      <section class="card" id="panel-schedule" hidden>
-        <div class="card-header">
-          <div>
-            <h2>Schedule</h2>
-            <p class="subtle">When habits are due this week.</p>
-          </div>
-        </div>
-        <div class="card-body" id="scheduleList"></div>
-      </section>
-
-      <section class="card" id="panel-reminders" hidden>
-        <div class="card-header">
-          <div>
-            <h2>Reminders</h2>
-            <p class="subtle">Toggle gentle reminders for each habit.</p>
-          </div>
-        </div>
-        <div class="card-body" id="reminderList"></div>
-      </section>
-
-      <section class="card" id="panel-analytics" hidden>
-        <div class="card-header">
-          <div>
-            <h2>Analytics</h2>
-            <p class="subtle">Completion rate, streak length, and missed days.</p>
-          </div>
-        </div>
-        <div class="card-body" id="analyticsPanel"></div>
+        <div class="task-items" id="habitList"></div>
       </section>
     </main>
   </div>
+
+  <button class="fab" data-action="open-create" aria-label="Create task">+</button>
 
   <dialog id="habitDialog" class="habit-dialog">
     <form id="habitForm" method="dialog">
@@ -554,24 +428,11 @@
       saveState();
     };
 
-    const removeHabit = (id) => {
-      state.habits = state.habits.filter((habit) => habit.id !== id);
-      saveState();
-    };
-
     const toggleCompletion = (id, dateISO) => {
       const habit = state.habits.find((item) => item.id === id);
       if (!habit) return;
       habit.logs[dateISO] = !habit.logs[dateISO];
       saveState();
-    };
-
-    const isDueOn = (habit, date) => {
-      if (habit.frequency === "daily") {
-        return true;
-      }
-      const day = date.getDay();
-      return habit.days.includes(day);
     };
 
     const nextDueLabel = (habit) => {
@@ -580,65 +441,6 @@
       }
       const days = habit.days.map((day) => dayNames[day]).join(", ");
       return `Weekly · ${days}`;
-    };
-
-    const getCompletionRate = (habit, range = 14) => {
-      const today = new Date();
-      let due = 0;
-      let done = 0;
-      for (let i = 0; i < range; i += 1) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
-        if (isDueOn(habit, date)) {
-          due += 1;
-          if (habit.logs[formatISO(date)]) {
-            done += 1;
-          }
-        }
-      }
-      return due === 0 ? 0 : Math.round((done / due) * 100);
-    };
-
-    const getMissedDays = (habit, range = 14) => {
-      const today = new Date();
-      let missed = 0;
-      for (let i = 0; i < range; i += 1) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
-        if (isDueOn(habit, date) && !habit.logs[formatISO(date)]) {
-          missed += 1;
-        }
-      }
-      return missed;
-    };
-
-    const getStreak = (habit) => {
-      const today = new Date();
-      let streak = 0;
-      for (let i = 0; i < 60; i += 1) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
-        if (!isDueOn(habit, date)) {
-          continue;
-        }
-        if (habit.logs[formatISO(date)]) {
-          streak += 1;
-        } else {
-          break;
-        }
-      }
-      return streak;
-    };
-
-    const getTodayStats = () => {
-      const today = new Date();
-      const dueHabits = state.habits.filter((habit) => isDueOn(habit, today));
-      const completed = dueHabits.filter((habit) => habit.logs[todayISO()]).length;
-      return {
-        dueHabits,
-        completed,
-        total: dueHabits.length
-      };
     };
 
     const createHabitPayload = ({ name, frequency, days, reminder, notes }) => ({
@@ -659,15 +461,6 @@
 
     let editingId = null;
 
-    const formatDateLabel = () => {
-      const now = new Date();
-      return now.toLocaleDateString(undefined, {
-        weekday: "long",
-        month: "long",
-        day: "numeric"
-      });
-    };
-
     const getSelectedDays = () =>
       [...weeklyDays.querySelectorAll("input[type='checkbox']")]
         .filter((input) => input.checked)
@@ -687,66 +480,24 @@
       weeklyDays.hidden = habitFrequency.value !== "weekly";
     };
 
-    const togglePanels = (panelId) => {
-      ["panel-streaks", "panel-schedule", "panel-reminders", "panel-analytics"].forEach((id) => {
-        const panel = document.getElementById(id);
-        panel.hidden = id !== panelId;
-      });
-    };
-
-    const renderToday = () => {
-      const { dueHabits, completed, total } = getTodayStats();
-      const todayList = document.getElementById("todayList");
-      const todaySummary = document.getElementById("todaySummary");
-      const todayProgress = document.getElementById("todayProgress");
-      const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
-
-      todaySummary.textContent = total === 0 ? "No habits due today." : `${completed} of ${total} complete`;
-      todayProgress.textContent = `${progress}%`;
-
-      const todayItems = dueHabits
-        .map((habit) => {
-          const isComplete = habit.logs[todayISO()];
-          return `
-            <div class="habit-item">
-              <button class="check-button ${isComplete ? "is-complete" : ""}" data-action="toggle" data-id="${habit.id}" aria-pressed="${isComplete}" aria-label="Toggle ${habit.name}"></button>
-              <div class="habit-main">
-                <h3>${habit.name}</h3>
-                <div class="habit-meta">
-                  <span>${nextDueLabel(habit)}</span>
-                  <span class="badge">Streak ${getStreak(habit)}</span>
-                </div>
-              </div>
-            </div>
-          `;
-        })
-        .join("");
-      todayList.innerHTML = todayItems || `<p class="subtle">Nothing scheduled for today.</p>`;
-    };
-
     const renderHabits = () => {
       const { habits } = getState();
       const habitList = document.getElementById("habitList");
-      const habitCount = document.getElementById("habitCount");
 
-      habitCount.textContent = `${habits.length} habits tracked`;
+      if (!habits.length) {
+        habitList.innerHTML = '<div class="empty-state">No tasks yet.</div>';
+        return;
+      }
 
       habitList.innerHTML = habits
         .map((habit) => {
-          const completionRate = getCompletionRate(habit);
+          const isComplete = habit.logs[todayISO()];
           return `
-            <div class="habit-item">
-              <button class="check-button ${habit.logs[todayISO()] ? "is-complete" : ""}" data-action="toggle" data-id="${habit.id}" aria-pressed="${!!habit.logs[todayISO()]}" aria-label="Toggle ${habit.name}"></button>
-              <div class="habit-main">
+            <div class="task-item">
+              <button class="check-button ${isComplete ? "is-complete" : ""}" data-action="toggle" data-id="${habit.id}" aria-pressed="${!!isComplete}" aria-label="Toggle ${habit.name}"></button>
+              <div class="task-main">
                 <h3>${habit.name}</h3>
-                <div class="habit-meta">
-                  <span>${nextDueLabel(habit)}</span>
-                  <span>${completionRate}% last 2 weeks</span>
-                </div>
-              </div>
-              <div class="habit-actions">
-                <button data-action="edit" data-id="${habit.id}">Edit</button>
-                <button data-action="delete" data-id="${habit.id}">Delete</button>
+                <div class="task-meta">${nextDueLabel(habit)}</div>
               </div>
             </div>
           `;
@@ -756,93 +507,13 @@
 
     const renderStreaks = () => {
       const { habits } = getState();
-      const streakList = document.getElementById("streakList");
-      streakList.innerHTML = habits
-        .map((habit) => `
-          <div class="habit-item">
-            <div class="habit-main">
-              <h3>${habit.name}</h3>
-              <div class="habit-meta">
-                <span class="badge">${getStreak(habit)} day streak</span>
-                <span>${nextDueLabel(habit)}</span>
-              </div>
-            </div>
-          </div>
-        `)
-        .join("");
-    };
-
-    const renderSchedule = () => {
-      const { habits } = getState();
-      const scheduleList = document.getElementById("scheduleList");
-      scheduleList.innerHTML = habits
-        .map((habit) => `
-          <div class="habit-item">
-            <div class="habit-main">
-              <h3>${habit.name}</h3>
-              <div class="habit-meta">
-                <span>${nextDueLabel(habit)}</span>
-                <span>${habit.frequency === "daily" ? "Due today" : "Due on selected days"}</span>
-              </div>
-            </div>
-          </div>
-        `)
-        .join("");
-    };
-
-    const renderReminders = () => {
-      const { habits } = getState();
-      const reminderList = document.getElementById("reminderList");
-      reminderList.innerHTML = habits
-        .map((habit) => `
-          <div class="habit-item">
-            <div class="habit-main">
-              <h3>${habit.name}</h3>
-              <div class="habit-meta">
-                <span>${habit.reminder ? "Reminder on" : "Reminder off"}</span>
-              </div>
-            </div>
-            <label class="toggle">
-              <input type="checkbox" data-action="reminder" data-id="${habit.id}" ${habit.reminder ? "checked" : ""} />
-              <span>${habit.reminder ? "On" : "Off"}</span>
-            </label>
-          </div>
-        `)
-        .join("");
-    };
-
-    const renderAnalytics = () => {
-      const { habits } = getState();
-      const analyticsPanel = document.getElementById("analyticsPanel");
-      analyticsPanel.innerHTML = `
-        <div class="analytics-grid">
-          ${habits
-            .map((habit) => {
-              const completion = getCompletionRate(habit);
-              const missed = getMissedDays(habit);
-              const streak = getStreak(habit);
-              return `
-                <div class="analytics-card">
-                  <h4>${habit.name}</h4>
-                  <p>${completion}% completion rate (14 days)</p>
-                  <p>${streak} day streak</p>
-                  <p>${missed} missed days</p>
-                </div>
-              `;
-            })
-            .join("")}
-        </div>
-      `;
+      if (!habits.length) {
+        habitList.innerHTML = '<div class="empty-state">No tasks yet.</div>';
+      }
     };
 
     const renderAll = () => {
-      document.getElementById("dateLabel").textContent = formatDateLabel();
-      renderToday();
       renderHabits();
-      renderStreaks();
-      renderSchedule();
-      renderReminders();
-      renderAnalytics();
     };
 
     const openDialog = (habit) => {
@@ -861,28 +532,6 @@
       weeklyDays.hidden = habitFrequency.value !== "weekly";
     };
 
-    const handleQuickAction = (action) => {
-      if (action === "open-create") {
-        openDialog();
-        return;
-      }
-      if (action === "show-streaks") {
-        togglePanels("panel-streaks");
-        return;
-      }
-      if (action === "show-schedule") {
-        togglePanels("panel-schedule");
-        return;
-      }
-      if (action === "show-reminders") {
-        togglePanels("panel-reminders");
-        return;
-      }
-      if (action === "show-analytics") {
-        togglePanels("panel-analytics");
-      }
-    };
-
     const handleHabitAction = (action, id) => {
       if (action === "toggle") {
         toggleCompletion(id, todayISO());
@@ -892,17 +541,7 @@
       if (action === "edit") {
         const habit = getState().habits.find((item) => item.id === id);
         if (habit) openDialog(habit);
-        return;
       }
-      if (action === "delete") {
-        removeHabit(id);
-        renderAll();
-      }
-    };
-
-    const handleReminderToggle = (id, checked) => {
-      updateHabit(id, { reminder: checked });
-      renderAll();
     };
 
     habitFrequency.addEventListener("change", () => {
@@ -944,14 +583,8 @@
       const action = event.target?.dataset.action;
       if (!action) return;
 
-      if (["open-create", "show-streaks", "show-schedule", "show-reminders", "show-analytics"].includes(action)) {
-        handleQuickAction(action);
-        return;
-      }
-
-      if (action === "reminder") {
-        const id = event.target.dataset.id;
-        handleReminderToggle(id, event.target.checked);
+      if (action === "open-create") {
+        openDialog();
         return;
       }
 
