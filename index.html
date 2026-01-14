@@ -2023,6 +2023,28 @@ body::after{
       flex-direction:column;
       gap:12px;
     }
+    .celebrateGrid{
+      display:grid;
+      gap:10px;
+    }
+    .celebrateCard{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .celebrateCardTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .celebrateCardTitle{
+      font-weight:800;
+    }
+    .celebrateCardMeta{
+      font-size:11px;
+      color: var(--muted2);
+    }
 
     .weekStrip{
       display:flex;
@@ -4573,6 +4595,28 @@ function renderChartSVG(h, container, rangeKey){
     function openLoopClosedModal({ celebrate = false } = {}){
       const habits = safeArr(appData.habits);
 
+      const streakCards = habits.map(h => {
+        const range = 'week';
+        const streak = currentDailyStreak(h);
+        const best = bestDailyStreak(h);
+        const prog = periodProgress(h);
+        const completionDone = prog.actual >= prog.target;
+        const completionLabel = completionDone ? 'Completed' : 'In progress';
+        const completionMeta = `${prog.label}: ${prog.actual}/${prog.target}`;
+        return `
+          <div class="panel celebrateCard">
+            <div class="celebrateCardTop">
+              <div>
+                <div class="celebrateCardTitle">${escapeHtml(h.name || 'Untitled habit')}</div>
+                <div class="celebrateCardMeta">🔥 ${escapeHtml(String(streak))} day${streak === 1 ? '' : 's'} • Best ${escapeHtml(String(best))}</div>
+              </div>
+              <div class="tag ${completionDone ? 'good' : 'muted'}">${escapeHtml(completionLabel)} • ${escapeHtml(completionMeta)}</div>
+            </div>
+            ${renderLoopHabitDays(h, range)}
+          </div>
+        `;
+      }).join('');
+
       const habitCards = habits.map(h => {
         const range = getLoopRange(h.id);
         const rangeLabel = range === 'month' ? 'Monthly view' : 'Weekly view';
@@ -4604,13 +4648,6 @@ function renderChartSVG(h, container, rangeKey){
         'Loop closed',
         `
           <div class="celebrateWrap">
-            <div class="panel loopHabitPanel">
-              <div class="sectionTitle loopHabitSectionTitle" style="margin-bottom:8px;">Day-by-day progress</div>
-              <div class="celebrateGrid">
-                ${streakCards || '<div class="muted small">No habits yet.</div>'}
-              </div>
-            </div>
-
             <div class="panel">
               <div class="sectionTitle" style="margin-bottom:8px;">Habit day-by-day</div>
               <div class="loopHabitList">
